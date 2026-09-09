@@ -40,22 +40,29 @@ export const siteConfig: SiteConfig = {
   whatsappLabel: "Solicitar servicio por WhatsApp",
 
   /*
-   * El número de WhatsApp se guarda como un único dato central.
+   * Número inicial de WhatsApp de Enfri.Ar.
+   *
+   * Se guarda en formato internacional para que pueda mostrarse
+   * correctamente y también generar automáticamente el enlace de WhatsApp.
+   *
+   * La función normalizeWhatsAppNumber() lo transforma internamente en:
+   * 5491138473222
    *
    * Cuando conectemos el Panel de Administración con Supabase,
-   * este valor será administrable sin modificar código.
+   * este valor dejará de depender del código y será administrable.
    *
-   * Los botones y enlaces de WhatsApp deberán generar su URL
-   * automáticamente utilizando este dato.
-   *
-   * No debemos escribir manualmente enlaces wa.me ni repetir
-   * el número en distintos componentes.
+   * Al modificarlo desde Administración deberán actualizarse
+   * automáticamente todos los lugares que utilicen WhatsApp:
+   * - botón principal,
+   * - burbuja flotante,
+   * - sección Contacto,
+   * - pie de página,
+   * - futuros enlaces o botones de WhatsApp.
    */
-  whatsappNumber: "",
+  whatsappNumber: "+54 9 11 3847-3222",
 
   /*
-   * Mensaje inicial opcional que podrá acompañar los enlaces
-   * de WhatsApp.
+   * Mensaje inicial opcional que acompaña los enlaces de WhatsApp.
    *
    * También podrá hacerse administrable posteriormente.
    */
