@@ -1,0 +1,130 @@
+.section {
+  background: var(--background);
+}
+
+.container {
+  width: min(100% - 32px, var(--max-width));
+  margin: 0 auto;
+  padding: 64px 0;
+  display: grid;
+  gap: 32px;
+}
+
+.heading {
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--brand-orange);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--brand-blue-dark);
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.description {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.contactCard {
+  min-height: 104px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: var(--surface);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.iconWrapper {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 79, 139, 0.1);
+  color: var(--brand-blue);
+}
+
+.contactContent {
+  min-width: 0;
+}
+
+.contactLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.contactValue {
+  margin: 6px 0 0;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.contactLink {
+  color: var(--brand-blue-dark);
+  text-decoration: none;
+}
+
+.contactLink:hover {
+  text-decoration: underline;
+}
+
+.contactLink:focus-visible {
+  outline: 3px solid var(--brand-orange);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.emptyState {
+  padding: 22px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-medium);
+  color: var(--muted);
+  background: var(--surface);
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .contactGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .container {
+    padding: 88px 0;
+  }
+
+  .contactGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
