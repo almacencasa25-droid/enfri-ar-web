@@ -1,0 +1,140 @@
+.section {
+  background: var(--background);
+}
+
+.container {
+  width: min(100% - 32px, var(--max-width));
+  margin: 0 auto;
+  padding: 64px 0;
+}
+
+.heading {
+  max-width: 760px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--brand-orange);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--brand-blue-dark);
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.description {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: var(--radius-medium);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13, 79, 139, 0.94),
+      rgba(21, 153, 214, 0.78)
+    );
+  box-shadow: 0 14px 40px rgba(16, 32, 51, 0.08);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 24px 20px 20px;
+  background:
+    linear-gradient(
+      to top,
+      rgba(6, 28, 47, 0.82),
+      rgba(6, 28, 47, 0)
+    );
+  color: #ffffff;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.cardDescription {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.placeholder {
+  min-height: 280px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: #ffffff;
+}
+
+.placeholderTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.placeholderText {
+  margin: 8px 0 0;
+  max-width: 420px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card,
+  .placeholder {
+    min-height: 320px;
+  }
+}
+
+@media (min-width: 960px) {
+  .container {
+    padding: 88px 0;
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .card,
+  .placeholder {
+    min-height: 360px;
+  }
+}
