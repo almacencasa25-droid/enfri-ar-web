@@ -1,0 +1,106 @@
+.footer {
+  background: var(--brand-blue-dark);
+  color: #ffffff;
+}
+
+.container {
+  width: min(100% - 32px, var(--max-width));
+  margin: 0 auto;
+  padding: 40px 0 24px;
+}
+
+.main {
+  display: grid;
+  gap: 28px;
+}
+
+.brand {
+  max-width: 520px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.description {
+  margin: 10px 0 0;
+  line-height: 1.65;
+  opacity: 0.88;
+}
+
+.contactList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.contactItem {
+  line-height: 1.5;
+}
+
+.contactLink {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.contactLink:hover {
+  text-decoration: underline;
+}
+
+.contactLink:focus-visible,
+.renacliLink:focus-visible {
+  outline: 3px solid var(--brand-orange);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.secondary {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: grid;
+  gap: 14px;
+}
+
+.renacli {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.renacliTitle {
+  font-weight: 700;
+}
+
+.renacliLink {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.renacliLink:hover {
+  text-decoration: underline;
+}
+
+.copyright {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.68;
+}
+
+@media (min-width: 760px) {
+  .main {
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.6fr);
+    align-items: start;
+    gap: 48px;
+  }
+
+  .secondary {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+}
