@@ -13,6 +13,15 @@ export type SiteConfig = {
   email: string;
   website: string;
   address: string | null;
+
+  renacli: {
+    name: string;
+    fullName: string;
+    website: string;
+    sectionTitle: string;
+    sectionDescription: string;
+    buttonLabel: string;
+  };
 };
 
 export const siteConfig: SiteConfig = {
@@ -66,4 +75,25 @@ export const siteConfig: SiteConfig = {
   email: "",
   website: "",
   address: null,
+
+  /*
+   * Información centralizada de RENACLI.
+   *
+   * Enfri.Ar y RENACLI deben mantenerse visual y funcionalmente
+   * diferenciados.
+   *
+   * Estos datos se utilizarán únicamente en los sectores donde
+   * corresponda informar sobre matriculación.
+   *
+   * El enlace no debe escribirse manualmente en distintos componentes.
+   */
+  renacli: {
+    name: "RENACLI",
+    fullName: "Registro Nacional de Climatización y Refrigeración",
+    website: "https://renacli.com.ar",
+    sectionTitle: "¿Sos técnico y querés matricularte?",
+    sectionDescription:
+      "Te ayudamos a gestionar tu matrícula a través de RENACLI – Registro Nacional de Climatización y Refrigeración.",
+    buttonLabel: "Información para matricularme",
+  },
 };
