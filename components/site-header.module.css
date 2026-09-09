@@ -1,0 +1,134 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+
+.container {
+  width: min(100% - 32px, var(--max-width));
+  min-height: var(--header-height);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.logo {
+  width: auto;
+  height: 48px;
+  object-fit: contain;
+}
+
+.desktopNavigation {
+  display: none;
+}
+
+.mobileMenuButton {
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--brand-blue-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mobileMenuButton:hover {
+  background: var(--surface);
+}
+
+.mobileMenuButton:focus-visible,
+.navigationLink:focus-visible,
+.adminLink:focus-visible,
+.logoLink:focus-visible {
+  outline: 3px solid var(--brand-orange);
+  outline-offset: 3px;
+}
+
+.mobileNavigation {
+  border-top: 1px solid var(--border);
+  background: var(--background);
+}
+
+.mobileNavigationInner {
+  width: min(100% - 32px, var(--max-width));
+  margin: 0 auto;
+  padding: 12px 0 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.navigationLink,
+.adminLink {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: var(--radius-small);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.navigationLink:hover,
+.adminLink:hover {
+  background: var(--surface);
+}
+
+.adminLink {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--brand-blue);
+}
+
+@media (min-width: 860px) {
+  .container {
+    min-height: 82px;
+  }
+
+  .logo {
+    height: 58px;
+  }
+
+  .mobileMenuButton,
+  .mobileNavigation {
+    display: none;
+  }
+
+  .desktopNavigation {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .navigationLink,
+  .adminLink {
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .adminLink {
+    margin-top: 0;
+    margin-left: 8px;
+    border-top: 0;
+    border-left: 1px solid var(--border);
+    border-radius: var(--radius-small);
+    padding-left: 16px;
+  }
+}
