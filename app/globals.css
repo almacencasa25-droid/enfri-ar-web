@@ -1,17 +1,37 @@
 :root {
-  --background: #ffffff;
-  --foreground: #102033;
+  /*
+   * IDENTIDAD VISUAL ENFRI.AR
+   *
+   * Los nombres "brand-blue" se conservan temporalmente por compatibilidad
+   * con los componentes ya creados.
+   *
+   * Visualmente la web deja de utilizar el azul como color predominante.
+   */
 
-  --brand-blue: #0d4f8b;
-  --brand-blue-dark: #083963;
-  --brand-blue-light: #1599d6;
+  --background: #fffdf8;
+  --foreground: #26282a;
 
-  --brand-orange: #f28a00;
-  --brand-yellow: #ffc107;
+  /* Cobre / acción principal */
+  --brand-blue: #b8582b;
 
-  --surface: #f5f8fb;
-  --border: #dce5ed;
-  --muted: #5f6f7d;
+  /* Grafito / títulos y sectores fuertes */
+  --brand-blue-dark: #26282a;
+
+  /* Turquesa apagado / climatización */
+  --brand-blue-light: #2f8f86;
+
+  /* Dorado cálido / detalles */
+  --brand-orange: #d89428;
+  --brand-yellow: #f1c45a;
+
+  /* Fondos secundarios */
+  --surface: #f5efe5;
+
+  /* Líneas y separadores */
+  --border: #e1d6c5;
+
+  /* Texto secundario */
+  --muted: #69655f;
 
   --max-width: 1200px;
   --header-height: 72px;
