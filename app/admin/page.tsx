@@ -3,6 +3,7 @@ import {
   ArrowRight,
   ClipboardList,
   ExternalLink,
+  Images,
   LogOut,
   Settings,
   ShieldCheck,
@@ -313,6 +314,57 @@ export default async function AdminPage() {
                 style={actionLinkStyle}
               >
                 Abrir configuración
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </article>
+
+            <article
+              style={{
+                ...cardStyle,
+                padding: "22px",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  display: "grid",
+                  placeItems: "center",
+                  marginBottom: "16px",
+                  borderRadius: "12px",
+                  background: "rgba(51, 105, 167, 0.11)",
+                  color: "#285887",
+                }}
+              >
+                <Images size={22} aria-hidden="true" />
+              </div>
+
+              <h3
+                style={{
+                  margin: "0 0 8px",
+                  color: "var(--foreground)",
+                  fontSize: "1.12rem",
+                }}
+              >
+                Galería de trabajos
+              </h3>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--muted)",
+                  lineHeight: 1.6,
+                }}
+              >
+                Subí fotos reales de trabajos, cambiá su orden,
+                ocultalas o eliminálas desde el Administrador.
+              </p>
+
+              <Link
+                href="/admin/galeria"
+                style={actionLinkStyle}
+              >
+                Abrir galería
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </article>
