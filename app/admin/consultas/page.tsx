@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { updateContactRequestStatus } from "@/app/admin/consultas/actions";
 import {
   getContactRequests,
+  type ContactRequest,
   type ContactRequestStatus,
 } from "@/lib/admin/contact-requests";
 
@@ -30,6 +31,13 @@ const serviceLabels: Record<string, string> = {
   reparacion_diagnostico: "Reparación / Diagnóstico",
   mantenimiento_limpieza: "Mantenimiento / Limpieza",
   otro: "Otro",
+};
+
+const groupDescriptions: Record<ContactRequestStatus, string> = {
+  pendiente: "Consultas nuevas que todavía no fueron revisadas.",
+  en_revision: "Consultas que actualmente estás revisando.",
+  respondida: "Consultas que ya fueron atendidas o respondidas.",
+  cerrada: "Consultas finalizadas que quedan guardadas como historial.",
 };
 
 function getStatusClass(status: ContactRequestStatus) {
@@ -65,26 +73,210 @@ function formatDate(value: string) {
   }).format(date);
 }
 
+function ContactRequestCard({
+  request,
+}: {
+  request: ContactRequest;
+}) {
+  return (
+    <article className={styles.card}>
+      <header className={styles.cardHeader}>
+        <div className={styles.person}>
+          <h3 className={styles.personName}>
+            {request.full_name}
+          </h3>
+
+          <p className={styles.date}>
+            Recibida el {formatDate(request.created_at)}
+          </p>
+        </div>
+
+        <span
+          className={`${styles.status} ${getStatusClass(
+            request.status
+          )}`}
+        >
+          {statusLabels[request.status]}
+        </span>
+      </header>
+
+      <div className={styles.cardBody}>
+        <div className={styles.details}>
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>
+              Teléfono
+            </span>
+
+            <p className={styles.detailValue}>
+              <a
+                className={styles.detailLink}
+                href={`tel:${request.phone}`}
+              >
+                {request.phone}
+              </a>
+            </p>
+          </div>
+
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>
+              Correo electrónico
+            </span>
+
+            <p className={styles.detailValue}>
+              {request.email ? (
+                <a
+                  className={styles.detailLink}
+                  href={`mailto:${request.email}`}
+                >
+                  {request.email}
+                </a>
+              ) : (
+                "No informado"
+              )}
+            </p>
+          </div>
+
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>
+              Localidad
+            </span>
+
+            <p className={styles.detailValue}>
+              {request.locality}
+            </p>
+          </div>
+
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>
+              Tipo de servicio
+            </span>
+
+            <p className={styles.detailValue}>
+              {serviceLabels[request.service_type] ??
+                request.service_type}
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.messageBox}>
+          <p className={styles.messageLabel}>
+            Consulta
+          </p>
+
+          <p className={styles.message}>
+            {request.message}
+          </p>
+        </div>
+
+        <div className={styles.actions}>
+          <form
+            action={updateContactRequestStatus}
+            className={styles.statusForm}
+          >
+            <input
+              type="hidden"
+              name="id"
+              value={request.id}
+            />
+
+            <div className={styles.selectGroup}>
+              <label
+                className={styles.selectLabel}
+                htmlFor={`status-${request.id}`}
+              >
+                Estado
+              </label>
+
+              <select
+                key={`${request.id}-${request.status}`}
+                className={styles.select}
+                id={`status-${request.id}`}
+                name="status"
+                defaultValue={request.status}
+              >
+                <option value="pendiente">
+                  Pendiente
+                </option>
+
+                <option value="en_revision">
+                  En revisión
+                </option>
+
+                <option value="respondida">
+                  Respondida
+                </option>
+
+                <option value="cerrada">
+                  Cerrada
+                </option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className={styles.button}
+            >
+              Guardar estado
+            </button>
+          </form>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default async function AdminConsultasPage() {
   const requests = await getContactRequests();
 
-  const totals = {
+  const groupedRequests: Record<
+    ContactRequestStatus,
+    ContactRequest[]
+  > = {
     pendiente: requests.filter(
       (request) => request.status === "pendiente"
-    ).length,
+    ),
 
     en_revision: requests.filter(
       (request) => request.status === "en_revision"
-    ).length,
+    ),
 
     respondida: requests.filter(
       (request) => request.status === "respondida"
-    ).length,
+    ),
 
     cerrada: requests.filter(
       (request) => request.status === "cerrada"
-    ).length,
+    ),
   };
+
+  const totals = {
+    pendiente: groupedRequests.pendiente.length,
+    en_revision: groupedRequests.en_revision.length,
+    respondida: groupedRequests.respondida.length,
+    cerrada: groupedRequests.cerrada.length,
+  };
+
+  const groups: {
+    status: ContactRequestStatus;
+    defaultOpen: boolean;
+  }[] = [
+    {
+      status: "pendiente",
+      defaultOpen: true,
+    },
+    {
+      status: "en_revision",
+      defaultOpen: true,
+    },
+    {
+      status: "respondida",
+      defaultOpen: false,
+    },
+    {
+      status: "cerrada",
+      defaultOpen: false,
+    },
+  ];
 
   return (
     <main className={styles.page}>
@@ -101,9 +293,10 @@ export default async function AdminConsultasPage() {
               </h1>
 
               <p className={styles.description}>
-                Consultas enviadas desde el formulario público
-                del sitio. Desde acá podés revisar los datos del
-                cliente y administrar el estado de cada solicitud.
+                Las consultas están organizadas por estado.
+                Podés desplegar solamente el grupo que necesites
+                y cada sección mantiene su propio desplazamiento
+                interno.
               </p>
             </div>
 
@@ -175,157 +368,58 @@ export default async function AdminConsultasPage() {
           </section>
         ) : (
           <section
-            className={styles.list}
-            aria-label="Listado de consultas"
+            className={styles.groups}
+            aria-label="Consultas agrupadas por estado"
           >
-            {requests.map((request) => (
-              <article
-                className={styles.card}
-                key={request.id}
-              >
-                <header className={styles.cardHeader}>
-                  <div className={styles.person}>
-                    <h2 className={styles.personName}>
-                      {request.full_name}
-                    </h2>
+            {groups.map((group) => {
+              const groupRequests =
+                groupedRequests[group.status];
 
-                    <p className={styles.date}>
-                      Recibida el {formatDate(request.created_at)}
-                    </p>
-                  </div>
+              return (
+                <details
+                  className={styles.group}
+                  key={group.status}
+                  open={group.defaultOpen}
+                >
+                  <summary className={styles.groupSummary}>
+                    <div className={styles.groupTitleArea}>
+                      <div className={styles.groupTitleRow}>
+                        <span className={styles.groupTitle}>
+                          {statusLabels[group.status]}
+                        </span>
 
-                  <span
-                    className={`${styles.status} ${getStatusClass(
-                      request.status
-                    )}`}
-                  >
-                    {statusLabels[request.status]}
-                  </span>
-                </header>
-
-                <div className={styles.cardBody}>
-                  <div className={styles.details}>
-                    <div className={styles.detail}>
-                      <span className={styles.detailLabel}>
-                        Teléfono
-                      </span>
-
-                      <p className={styles.detailValue}>
-                        <a
-                          className={styles.detailLink}
-                          href={`tel:${request.phone}`}
-                        >
-                          {request.phone}
-                        </a>
-                      </p>
-                    </div>
-
-                    <div className={styles.detail}>
-                      <span className={styles.detailLabel}>
-                        Correo electrónico
-                      </span>
-
-                      <p className={styles.detailValue}>
-                        {request.email ? (
-                          <a
-                            className={styles.detailLink}
-                            href={`mailto:${request.email}`}
-                          >
-                            {request.email}
-                          </a>
-                        ) : (
-                          "No informado"
-                        )}
-                      </p>
-                    </div>
-
-                    <div className={styles.detail}>
-                      <span className={styles.detailLabel}>
-                        Localidad
-                      </span>
-
-                      <p className={styles.detailValue}>
-                        {request.locality}
-                      </p>
-                    </div>
-
-                    <div className={styles.detail}>
-                      <span className={styles.detailLabel}>
-                        Tipo de servicio
-                      </span>
-
-                      <p className={styles.detailValue}>
-                        {serviceLabels[request.service_type] ??
-                          request.service_type}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={styles.messageBox}>
-                    <p className={styles.messageLabel}>
-                      Consulta
-                    </p>
-
-                    <p className={styles.message}>
-                      {request.message}
-                    </p>
-                  </div>
-
-                  <div className={styles.actions}>
-                    <form
-                      action={updateContactRequestStatus}
-                      className={styles.statusForm}
-                    >
-                      <input
-                        type="hidden"
-                        name="id"
-                        value={request.id}
-                      />
-
-                      <div className={styles.selectGroup}>
-                        <label
-                          className={styles.selectLabel}
-                          htmlFor={`status-${request.id}`}
-                        >
-                          Estado
-                        </label>
-
-                        <select
-                          key={`${request.id}-${request.status}`}
-                          className={styles.select}
-                          id={`status-${request.id}`}
-                          name="status"
-                          defaultValue={request.status}
-                        >
-                          <option value="pendiente">
-                            Pendiente
-                          </option>
-
-                          <option value="en_revision">
-                            En revisión
-                          </option>
-
-                          <option value="respondida">
-                            Respondida
-                          </option>
-
-                          <option value="cerrada">
-                            Cerrada
-                          </option>
-                        </select>
+                        <span className={styles.groupCount}>
+                          {groupRequests.length}
+                        </span>
                       </div>
 
-                      <button
-                        type="submit"
-                        className={styles.button}
-                      >
-                        Guardar estado
-                      </button>
-                    </form>
+                      <p className={styles.groupDescription}>
+                        {groupDescriptions[group.status]}
+                      </p>
+                    </div>
+                  </summary>
+
+                  <div className={styles.groupContent}>
+                    {groupRequests.length === 0 ? (
+                      <p className={styles.groupEmpty}>
+                        No hay consultas en este estado.
+                      </p>
+                    ) : (
+                      <div className={styles.groupScroll}>
+                        <div className={styles.list}>
+                          {groupRequests.map((request) => (
+                            <ContactRequestCard
+                              key={request.id}
+                              request={request}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </article>
-            ))}
+                </details>
+              );
+            })}
           </section>
         )}
       </div>
