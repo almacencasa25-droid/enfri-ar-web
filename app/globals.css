@@ -24,17 +24,19 @@
   --muted: #69655f;
 
   /* Zona fría */
-  --cold-background: #eaf7f8;
-  --cold-light: #c7ecee;
-  --cold-accent: #4daeb5;
+  --cold-background: #dff4f7;
+  --cold-light: #bfe7ec;
+  --cold-accent: #369eaa;
+  --cold-strong: #218897;
 
   /* Zona neutra */
   --neutral-background: #fffdf8;
 
   /* Zona cálida */
-  --warm-background: #fff0d6;
-  --warm-light: #ffd28a;
-  --warm-accent: #e99a2e;
+  --warm-background: #ffe8bd;
+  --warm-light: #ffd17b;
+  --warm-accent: #ef9d2f;
+  --warm-strong: #df791c;
 
   --max-width: 1200px;
   --header-height: 72px;
@@ -63,34 +65,43 @@ body {
   overflow-x: hidden;
 
   /*
-   * RECORRIDO GENERAL DE LA PÁGINA
+   * RECORRIDO COMPLETO DE LA PÁGINA
    *
-   * Arriba = frío.
-   * Centro = neutro.
-   * Abajo = cálido.
+   * Arriba:
+   * frío más intenso.
+   *
+   * Centro:
+   * transición prácticamente neutra.
+   *
+   * Abajo:
+   * aumenta progresivamente la temperatura visual.
    */
   background:
     radial-gradient(
-      circle at 0% 0%,
-      rgba(77, 174, 181, 0.26) 0%,
-      rgba(199, 236, 238, 0.18) 18%,
-      transparent 34%
+      ellipse at 0% 0%,
+      rgba(54, 158, 170, 0.34) 0%,
+      rgba(191, 231, 236, 0.25) 16%,
+      rgba(223, 244, 247, 0.12) 29%,
+      transparent 43%
     ),
     radial-gradient(
-      circle at 100% 100%,
-      rgba(233, 154, 46, 0.28) 0%,
-      rgba(255, 210, 138, 0.22) 22%,
-      transparent 42%
+      ellipse at 100% 100%,
+      rgba(223, 121, 28, 0.34) 0%,
+      rgba(239, 157, 47, 0.25) 16%,
+      rgba(255, 209, 123, 0.16) 32%,
+      transparent 48%
     ),
     linear-gradient(
       to bottom,
-      #e9f7f8 0%,
-      #f1faf9 14%,
-      #f9fcf9 32%,
+      #dff4f7 0%,
+      #e8f7f8 10%,
+      #f2faf9 24%,
+      #fafcf8 38%,
       #fffdf8 50%,
-      #fff9ec 68%,
-      #fff3dc 84%,
-      #ffe9c5 100%
+      #fffaf0 62%,
+      #fff3dc 76%,
+      #ffe9c4 88%,
+      #ffdda2 100%
     );
 
   color: var(--foreground);
@@ -103,47 +114,75 @@ body {
 
 /*
  * ======================================================
- * COPOS DE NIEVE - ESQUINA SUPERIOR IZQUIERDA
+ * COPOS DE NIEVE
  * ======================================================
  *
- * Son decoración propia del fondo de la página.
- * No son una fotografía ni una imagen externa.
+ * Los copos son más fuertes cerca de la esquina superior
+ * izquierda y se van desvaneciendo al alejarse.
  */
 body::before {
   content:
-    "❄      ❅"
-    "\A    ❆        ❄"
-    "\A ❅       ❄"
-    "\A       ❆       ❅"
-    "\A  ❄         ❆"
+    "❄       ❅"
+    "\A   ❆           ❄"
     "\A       ❅"
-    "\A ❆            ❄";
+    "\A ❄          ❆"
+    "\A      ❄           ❅"
+    "\A  ❆"
+    "\A           ❅      ❄"
+    "\A     ❆"
+    "\A ❄             ❅";
 
   position: absolute;
 
-  top: 105px;
-  left: -25px;
+  top: 90px;
+  left: -28px;
 
   z-index: 0;
 
-  width: 360px;
+  width: 470px;
+  height: 760px;
 
   white-space: pre;
 
-  color: #379ca7;
+  color: var(--cold-strong);
 
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 400;
 
-  line-height: 1.9;
-  letter-spacing: 0.25rem;
+  line-height: 1.85;
+  letter-spacing: 0.3rem;
 
-  opacity: 0.24;
+  opacity: 0.4;
 
-  transform: rotate(-10deg);
+  transform: rotate(-8deg);
 
   text-shadow:
-    0 0 18px rgba(77, 174, 181, 0.28);
+    0 0 12px rgba(33, 136, 151, 0.2),
+    0 0 28px rgba(54, 158, 170, 0.14);
+
+  /*
+   * Hace que los copos sean más visibles junto a la
+   * esquina fría y desaparezcan progresivamente.
+   */
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse at 0% 0%,
+      #000 0%,
+      #000 32%,
+      rgba(0, 0, 0, 0.72) 52%,
+      rgba(0, 0, 0, 0.28) 72%,
+      transparent 94%
+    );
+
+  mask-image:
+    radial-gradient(
+      ellipse at 0% 0%,
+      #000 0%,
+      #000 32%,
+      rgba(0, 0, 0, 0.72) 52%,
+      rgba(0, 0, 0, 0.28) 72%,
+      transparent 94%
+    );
 
   pointer-events: none;
   user-select: none;
@@ -151,46 +190,57 @@ body::before {
 
 /*
  * ======================================================
- * SOL / CALOR - ESQUINA INFERIOR DERECHA
+ * SOL GRANDE - ESQUINA INFERIOR DERECHA
  * ======================================================
  *
- * Se encuentra físicamente al final de la página.
- * Por eso va apareciendo a medida que el usuario baja.
+ * No es solamente una luz.
+ *
+ * Se ve una parte del disco solar entrando desde afuera
+ * de la página y alrededor aparecen rayos suaves.
  */
 body::after {
   content: "";
 
   position: absolute;
 
-  right: -170px;
-  bottom: 70px;
+  right: -310px;
+  bottom: -245px;
 
   z-index: 0;
 
-  width: 500px;
-  height: 500px;
+  width: 680px;
+  height: 680px;
 
   border-radius: 50%;
 
   background:
     radial-gradient(
-      circle,
-      rgba(255, 211, 82, 0.48) 0%,
-      rgba(244, 175, 54, 0.34) 25%,
-      rgba(233, 154, 46, 0.19) 48%,
-      rgba(255, 210, 138, 0.08) 62%,
-      transparent 74%
+      circle at center,
+      rgba(255, 239, 154, 0.98) 0%,
+      rgba(255, 208, 83, 0.96) 28%,
+      rgba(244, 159, 43, 0.92) 47%,
+      rgba(226, 118, 25, 0.86) 58%,
+      transparent 59%
+    ),
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(239, 157, 47, 0.36) 0deg 5deg,
+      transparent 5deg 14deg
     );
 
   box-shadow:
-    0 0 90px rgba(244, 175, 54, 0.18);
+    0 0 60px rgba(255, 199, 67, 0.34),
+    0 0 140px rgba(239, 157, 47, 0.26),
+    0 0 240px rgba(223, 121, 28, 0.14);
+
+  opacity: 0.88;
 
   pointer-events: none;
 }
 
 /*
- * El contenido siempre permanece por encima
- * de los efectos decorativos.
+ * Todo el contenido permanece por encima
+ * del fondo decorativo.
  */
 body > * {
   position: relative;
@@ -226,47 +276,63 @@ main {
 }
 
 /*
+ * ======================================================
  * CELULAR
+ * ======================================================
  *
- * Los efectos siguen estando presentes,
- * pero ocupan menos espacio.
+ * Los elementos siguen siendo grandes y reconocibles,
+ * pero se ajustan para no invadir demasiado el contenido.
  */
 @media (max-width: 639px) {
   body::before {
-    top: 95px;
-    left: -55px;
+    top: 78px;
+    left: -48px;
 
-    width: 280px;
+    width: 330px;
+    height: 620px;
 
-    font-size: 1.85rem;
-    line-height: 2.15;
+    font-size: 2.15rem;
+    line-height: 2;
 
-    opacity: 0.2;
+    opacity: 0.34;
   }
 
   body::after {
-    right: -215px;
-    bottom: 50px;
-
-    width: 430px;
-    height: 430px;
-  }
-}
-
-@media (min-width: 1200px) {
-  body::before {
-    width: 430px;
-
-    font-size: 2.8rem;
-
-    opacity: 0.26;
-  }
-
-  body::after {
-    right: -130px;
+    right: -285px;
+    bottom: -220px;
 
     width: 560px;
     height: 560px;
+
+    opacity: 0.82;
+  }
+}
+
+/*
+ * ======================================================
+ * PANTALLAS GRANDES
+ * ======================================================
+ */
+@media (min-width: 1200px) {
+  body::before {
+    left: -18px;
+
+    width: 520px;
+    height: 820px;
+
+    font-size: 3.25rem;
+
+    opacity: 0.43;
+  }
+
+  body::after {
+    right: -320px;
+    bottom: -270px;
+
+    width: 760px;
+    height: 760px;
+
+    opacity: 0.9;
   }
 }
 
