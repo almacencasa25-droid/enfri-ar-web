@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowRight,
   ClipboardList,
   ExternalLink,
   LogOut,
@@ -236,21 +237,31 @@ export default async function AdminPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Acá vas a poder revisar las consultas enviadas
-                desde el formulario público y administrar su
-                estado.
+                Revisá las consultas enviadas desde el formulario
+                público y administrá el estado de cada solicitud.
               </p>
 
-              <p
+              <Link
+                href="/admin/consultas"
                 style={{
-                  margin: "16px 0 0",
-                  fontSize: "0.82rem",
+                  minHeight: "42px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "7px",
+                  marginTop: "18px",
+                  padding: "9px 14px",
+                  borderRadius: "10px",
+                  background: "var(--foreground)",
+                  color: "#ffffff",
+                  fontSize: "0.88rem",
                   fontWeight: 800,
-                  color: "var(--brand-blue)",
+                  textDecoration: "none",
                 }}
               >
-                Próximamente
-              </p>
+                Abrir consultas
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
             </article>
 
             <article
