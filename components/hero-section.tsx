@@ -1,17 +1,9 @@
-import { MessageCircle } from "lucide-react";
-
 import { getSiteConfig } from "@/lib/site-data";
-import { createWhatsAppLink } from "@/lib/whatsapp";
 
 import styles from "./hero-section.module.css";
 
 export async function HeroSection() {
   const config = await getSiteConfig();
-
-  const whatsappLink = createWhatsAppLink({
-    number: config.whatsappNumber,
-    message: config.whatsappMessage,
-  });
 
   return (
     <section id="inicio" className={styles.hero}>
@@ -28,33 +20,12 @@ export async function HeroSection() {
           <p className={styles.description}>
             {config.heroDescription}
           </p>
-
-          <div className={styles.actions}>
-            {whatsappLink ? (
-              <a
-                href={whatsappLink}
-                className={styles.whatsappButton}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Solicitar servicio por WhatsApp"
-              >
-                <MessageCircle size={22} aria-hidden="true" />
-                {config.whatsappLabel}
-              </a>
-            ) : (
-              <span
-                className={styles.disabledButton}
-                aria-disabled="true"
-                title="WhatsApp todavía no está configurado"
-              >
-                <MessageCircle size={22} aria-hidden="true" />
-                {config.whatsappLabel}
-              </span>
-            )}
-          </div>
         </div>
 
-        <div className={styles.media} aria-label="Espacio para fotografía real de un trabajo de Enfri.Ar">
+        <div
+          className={styles.media}
+          aria-label="Espacio para fotografía real de un trabajo de Enfri.Ar"
+        >
           <div className={styles.mediaPlaceholder}>
             <p className={styles.mediaPlaceholderTitle}>
               Trabajo real de Enfri.Ar
