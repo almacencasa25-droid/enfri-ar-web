@@ -1,5 +1,7 @@
 .section {
-  background: var(--background);
+  position: relative;
+  background: rgba(255, 242, 220, 0.34);
+  backdrop-filter: blur(2px);
 }
 
 .container {
@@ -11,27 +13,45 @@
 .card {
   position: relative;
   overflow: hidden;
+
   padding: 28px;
-  border: 1px solid var(--border);
+
+  border: 1px solid rgba(225, 214, 197, 0.9);
   border-radius: var(--radius-large);
+
   background:
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(241, 196, 90, 0.16),
+      transparent 34%
+    ),
     linear-gradient(
       135deg,
-      rgba(47, 143, 134, 0.08),
-      rgba(216, 148, 40, 0.07)
-    ),
-    var(--surface);
+      rgba(255, 253, 248, 0.92),
+      rgba(245, 239, 229, 0.86)
+    );
+
+  box-shadow:
+    0 18px 48px rgba(38, 40, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  backdrop-filter: blur(8px);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
+
   min-height: 32px;
   margin-bottom: 16px;
   padding: 6px 12px;
+
+  border: 1px solid rgba(38, 40, 42, 0.08);
   border-radius: 999px;
-  background: rgba(38, 40, 42, 0.08);
+
+  background: rgba(38, 40, 42, 0.06);
   color: var(--foreground);
+
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -41,7 +61,9 @@
 .title {
   margin: 0;
   max-width: 760px;
+
   color: var(--foreground);
+
   font-size: clamp(1.7rem, 7vw, 2.6rem);
   line-height: 1.12;
   letter-spacing: -0.03em;
@@ -50,7 +72,9 @@
 .description {
   max-width: 760px;
   margin: 16px 0 0;
+
   color: var(--muted);
+
   font-size: 1rem;
   line-height: 1.65;
 }
@@ -62,6 +86,7 @@
 
 .actions {
   margin-top: 24px;
+
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -70,22 +95,34 @@
 .primaryButton {
   min-height: 50px;
   width: 100%;
+
   padding: 13px 18px;
+
+  border: 1px solid var(--foreground);
   border-radius: var(--radius-medium);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  gap: 8px;
+
   background: var(--foreground);
   color: #ffffff;
+
   font-weight: 800;
+  text-align: center;
+
+  box-shadow: 0 8px 22px rgba(38, 40, 42, 0.12);
+
   transition:
     transform 160ms ease,
-    opacity 160ms ease;
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .primaryButton:hover {
-  opacity: 0.9;
+  background: #3a3c3e;
+  box-shadow: 0 12px 26px rgba(38, 40, 42, 0.16);
 }
 
 .primaryButton:active {
@@ -100,7 +137,9 @@
 .note {
   margin: 18px 0 0;
   max-width: 760px;
+
   color: var(--muted);
+
   font-size: 0.88rem;
   line-height: 1.55;
 }
