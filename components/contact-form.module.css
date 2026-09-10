@@ -1,0 +1,213 @@
+.form {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+
+  border: 1px solid rgba(225, 214, 197, 0.9);
+  border-radius: var(--radius-large);
+
+  background: rgba(255, 253, 248, 0.88);
+
+  box-shadow:
+    0 18px 48px rgba(38, 40, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  backdrop-filter: blur(8px);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.label {
+  color: var(--foreground);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.optional {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--foreground);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.input,
+.select {
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.textarea {
+  min-height: 150px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: rgba(184, 88, 43, 0.48);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(184, 88, 43, 0.12);
+}
+
+.errorText {
+  margin: 0;
+  color: #a33124;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--brand-blue);
+}
+
+.checkboxLabel {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.submitButton {
+  min-height: 52px;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-medium);
+  padding: 14px 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  background: var(--brand-blue);
+  color: #ffffff;
+
+  font-weight: 800;
+  cursor: pointer;
+
+  box-shadow: 0 10px 28px rgba(184, 88, 43, 0.2);
+
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #98451f;
+  box-shadow: 0 14px 32px rgba(184, 88, 43, 0.26);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.submitButton:focus-visible {
+  outline: 3px solid var(--brand-orange);
+  outline-offset: 3px;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.statusSuccess,
+.statusError {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-small);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.statusSuccess {
+  border: 1px solid rgba(47, 143, 134, 0.35);
+  background: rgba(47, 143, 134, 0.1);
+  color: #245f59;
+}
+
+.statusError {
+  border: 1px solid rgba(163, 49, 36, 0.24);
+  background: rgba(163, 49, 36, 0.07);
+  color: #8b2c22;
+}
+
+/*
+ * Honeypot anti-spam.
+ * Debe existir en el formulario pero permanecer fuera
+ * de la vista y navegación normal de una persona.
+ */
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  clip-path: inset(50%);
+}
+
+@media (min-width: 700px) {
+  .form {
+    padding: 30px;
+  }
+
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .submitButton {
+    width: auto;
+    min-width: 190px;
+    justify-self: start;
+  }
+}
+
+@media (min-width: 960px) {
+  .form {
+    padding: 34px;
+  }
+}
