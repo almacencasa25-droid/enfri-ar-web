@@ -1,12 +1,6 @@
 :root {
   /*
    * IDENTIDAD VISUAL ENFRI.AR
-   *
-   * Los nombres "brand-blue" se conservan temporalmente por compatibilidad
-   * con los componentes ya creados.
-   *
-   * Visualmente la web utiliza una identidad propia:
-   * grafito, cobre, turquesa, arena y tonos cálidos.
    */
 
   --background: #fffdf8;
@@ -15,37 +9,32 @@
   /* Cobre / acción principal */
   --brand-blue: #b8582b;
 
-  /* Grafito / títulos y sectores fuertes */
+  /* Grafito / títulos */
   --brand-blue-dark: #26282a;
 
-  /* Turquesa apagado / climatización */
+  /* Turquesa / frío */
   --brand-blue-light: #2f8f86;
 
-  /* Dorado cálido / detalles */
+  /* Cálidos */
   --brand-orange: #d89428;
   --brand-yellow: #f1c45a;
 
-  /* Fondos secundarios */
   --surface: #f5efe5;
-
-  /* Líneas y separadores */
   --border: #e1d6c5;
-
-  /* Texto secundario */
   --muted: #69655f;
 
-  /*
-   * ATMÓSFERA FRÍO / CALOR
-   */
-  --cold-background: #edf8f7;
-  --cold-light: #cdecea;
-  --cold-accent: #68bcb5;
+  /* Zona fría */
+  --cold-background: #eaf7f8;
+  --cold-light: #c7ecee;
+  --cold-accent: #4daeb5;
 
+  /* Zona neutra */
   --neutral-background: #fffdf8;
 
-  --warm-background: #fff2dc;
-  --warm-light: #ffd99c;
-  --warm-accent: #e6a23c;
+  /* Zona cálida */
+  --warm-background: #fff0d6;
+  --warm-light: #ffd28a;
+  --warm-accent: #e99a2e;
 
   --max-width: 1200px;
   --header-height: 72px;
@@ -67,120 +56,141 @@ html {
 body {
   position: relative;
   isolation: isolate;
+
   min-height: 100vh;
   margin: 0;
+
   overflow-x: hidden;
 
   /*
-   * El fondo recorre toda la altura real de la página.
+   * RECORRIDO GENERAL DE LA PÁGINA
    *
-   * Arriba:
-   * atmósfera fría.
-   *
-   * Centro:
-   * transición neutra.
-   *
-   * Abajo:
-   * atmósfera cálida.
-   *
-   * Al navegar hacia arriba o hacia abajo el usuario va recorriendo
-   * físicamente este degradado, sin utilizar JavaScript.
+   * Arriba = frío.
+   * Centro = neutro.
+   * Abajo = cálido.
    */
   background:
     radial-gradient(
-      circle at 8% 3%,
-      rgba(104, 188, 181, 0.24) 0,
-      rgba(205, 236, 234, 0.16) 18%,
+      circle at 0% 0%,
+      rgba(77, 174, 181, 0.26) 0%,
+      rgba(199, 236, 238, 0.18) 18%,
       transparent 34%
     ),
     radial-gradient(
-      circle at 94% 98%,
-      rgba(230, 162, 60, 0.24) 0,
-      rgba(255, 217, 156, 0.18) 20%,
-      transparent 38%
+      circle at 100% 100%,
+      rgba(233, 154, 46, 0.28) 0%,
+      rgba(255, 210, 138, 0.22) 22%,
+      transparent 42%
     ),
     linear-gradient(
       to bottom,
-      var(--cold-background) 0%,
-      #f5faf8 18%,
-      var(--neutral-background) 46%,
-      #fff9ed 70%,
-      var(--warm-background) 100%
+      #e9f7f8 0%,
+      #f1faf9 14%,
+      #f9fcf9 32%,
+      #fffdf8 50%,
+      #fff9ec 68%,
+      #fff3dc 84%,
+      #ffe9c5 100%
     );
 
   color: var(--foreground);
+
   font-family: Arial, Helvetica, sans-serif;
+
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 /*
- * COPOS DE NIEVE
+ * ======================================================
+ * COPOS DE NIEVE - ESQUINA SUPERIOR IZQUIERDA
+ * ======================================================
  *
- * Decoración puramente visual.
- * No es una imagen descargada ni afecta el SEO.
+ * Son decoración propia del fondo de la página.
+ * No son una fotografía ni una imagen externa.
  */
 body::before {
   content:
-    "❄    ❅       ❆"
-    "\A      ❄         ❅"
-    "\A  ❆       ❄"
-    "\A         ❅      ❄"
-    "\A    ❆         ❅";
+    "❄      ❅"
+    "\A    ❆        ❄"
+    "\A ❅       ❄"
+    "\A       ❆       ❅"
+    "\A  ❄         ❆"
+    "\A       ❅"
+    "\A ❆            ❄";
 
   position: absolute;
+
   top: 105px;
-  left: -22px;
+  left: -25px;
+
   z-index: 0;
 
-  width: 300px;
+  width: 360px;
+
   white-space: pre;
 
-  color: var(--cold-accent);
-  font-size: 2rem;
-  line-height: 2.2;
-  letter-spacing: 0.18rem;
+  color: #379ca7;
 
-  opacity: 0.11;
-  transform: rotate(-12deg);
+  font-size: 2.5rem;
+  font-weight: 400;
+
+  line-height: 1.9;
+  letter-spacing: 0.25rem;
+
+  opacity: 0.24;
+
+  transform: rotate(-10deg);
+
+  text-shadow:
+    0 0 18px rgba(77, 174, 181, 0.28);
 
   pointer-events: none;
   user-select: none;
 }
 
 /*
- * RESPLANDOR CÁLIDO / SOL
+ * ======================================================
+ * SOL / CALOR - ESQUINA INFERIOR DERECHA
+ * ======================================================
  *
- * Se ubica en la esquina opuesta a los copos.
- * Es intencionalmente difuso para que nunca compita con el contenido.
+ * Se encuentra físicamente al final de la página.
+ * Por eso va apareciendo a medida que el usuario baja.
  */
 body::after {
   content: "";
 
   position: absolute;
-  right: -190px;
-  bottom: -180px;
+
+  right: -170px;
+  bottom: 70px;
+
   z-index: 0;
 
-  width: 520px;
-  height: 520px;
+  width: 500px;
+  height: 500px;
+
   border-radius: 50%;
 
   background:
     radial-gradient(
       circle,
-      rgba(241, 196, 90, 0.34) 0%,
-      rgba(230, 162, 60, 0.2) 30%,
-      rgba(255, 217, 156, 0.1) 52%,
-      transparent 72%
+      rgba(255, 211, 82, 0.48) 0%,
+      rgba(244, 175, 54, 0.34) 25%,
+      rgba(233, 154, 46, 0.19) 48%,
+      rgba(255, 210, 138, 0.08) 62%,
+      transparent 74%
     );
+
+  box-shadow:
+    0 0 90px rgba(244, 175, 54, 0.18);
 
   pointer-events: none;
 }
 
 /*
- * El contenido real permanece siempre por encima
- * de la decoración ambiental.
+ * El contenido siempre permanece por encima
+ * de los efectos decorativos.
  */
 body > * {
   position: relative;
@@ -189,6 +199,7 @@ body > * {
 
 img {
   display: block;
+
   max-width: 100%;
   height: auto;
 }
@@ -215,30 +226,50 @@ main {
 }
 
 /*
- * En teléfonos reducimos ligeramente las decoraciones
- * para mantener el fondo limpio y liviano.
+ * CELULAR
+ *
+ * Los efectos siguen estando presentes,
+ * pero ocupan menos espacio.
  */
 @media (max-width: 639px) {
   body::before {
-    top: 90px;
-    left: -38px;
-    font-size: 1.6rem;
-    line-height: 2.35;
-    opacity: 0.09;
+    top: 95px;
+    left: -55px;
+
+    width: 280px;
+
+    font-size: 1.85rem;
+    line-height: 2.15;
+
+    opacity: 0.2;
   }
 
   body::after {
-    right: -210px;
-    bottom: -170px;
-    width: 440px;
-    height: 440px;
+    right: -215px;
+    bottom: 50px;
+
+    width: 430px;
+    height: 430px;
   }
 }
 
-/*
- * Si el usuario prefiere menos efectos visuales,
- * mantenemos el diseño pero reducimos la decoración.
- */
+@media (min-width: 1200px) {
+  body::before {
+    width: 430px;
+
+    font-size: 2.8rem;
+
+    opacity: 0.26;
+  }
+
+  body::after {
+    right: -130px;
+
+    width: 560px;
+    height: 560px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
