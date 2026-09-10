@@ -291,6 +291,7 @@ export default async function AdminConsultasPage() {
                         </label>
 
                         <select
+                          key={`${request.id}-${request.status}`}
                           className={styles.select}
                           id={`status-${request.id}`}
                           name="status"
