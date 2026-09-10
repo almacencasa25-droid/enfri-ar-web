@@ -5,7 +5,8 @@
    * Los nombres "brand-blue" se conservan temporalmente por compatibilidad
    * con los componentes ya creados.
    *
-   * Visualmente la web deja de utilizar el azul como color predominante.
+   * Visualmente la web utiliza una identidad propia:
+   * grafito, cobre, turquesa, arena y tonos cálidos.
    */
 
   --background: #fffdf8;
@@ -33,6 +34,19 @@
   /* Texto secundario */
   --muted: #69655f;
 
+  /*
+   * ATMÓSFERA FRÍO / CALOR
+   */
+  --cold-background: #edf8f7;
+  --cold-light: #cdecea;
+  --cold-accent: #68bcb5;
+
+  --neutral-background: #fffdf8;
+
+  --warm-background: #fff2dc;
+  --warm-light: #ffd99c;
+  --warm-accent: #e6a23c;
+
   --max-width: 1200px;
   --header-height: 72px;
 
@@ -47,15 +61,130 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--neutral-background);
 }
 
 body {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
   margin: 0;
-  background: var(--background);
+  overflow-x: hidden;
+
+  /*
+   * El fondo recorre toda la altura real de la página.
+   *
+   * Arriba:
+   * atmósfera fría.
+   *
+   * Centro:
+   * transición neutra.
+   *
+   * Abajo:
+   * atmósfera cálida.
+   *
+   * Al navegar hacia arriba o hacia abajo el usuario va recorriendo
+   * físicamente este degradado, sin utilizar JavaScript.
+   */
+  background:
+    radial-gradient(
+      circle at 8% 3%,
+      rgba(104, 188, 181, 0.24) 0,
+      rgba(205, 236, 234, 0.16) 18%,
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 94% 98%,
+      rgba(230, 162, 60, 0.24) 0,
+      rgba(255, 217, 156, 0.18) 20%,
+      transparent 38%
+    ),
+    linear-gradient(
+      to bottom,
+      var(--cold-background) 0%,
+      #f5faf8 18%,
+      var(--neutral-background) 46%,
+      #fff9ed 70%,
+      var(--warm-background) 100%
+    );
+
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/*
+ * COPOS DE NIEVE
+ *
+ * Decoración puramente visual.
+ * No es una imagen descargada ni afecta el SEO.
+ */
+body::before {
+  content:
+    "❄    ❅       ❆"
+    "\A      ❄         ❅"
+    "\A  ❆       ❄"
+    "\A         ❅      ❄"
+    "\A    ❆         ❅";
+
+  position: absolute;
+  top: 105px;
+  left: -22px;
+  z-index: 0;
+
+  width: 300px;
+  white-space: pre;
+
+  color: var(--cold-accent);
+  font-size: 2rem;
+  line-height: 2.2;
+  letter-spacing: 0.18rem;
+
+  opacity: 0.11;
+  transform: rotate(-12deg);
+
+  pointer-events: none;
+  user-select: none;
+}
+
+/*
+ * RESPLANDOR CÁLIDO / SOL
+ *
+ * Se ubica en la esquina opuesta a los copos.
+ * Es intencionalmente difuso para que nunca compita con el contenido.
+ */
+body::after {
+  content: "";
+
+  position: absolute;
+  right: -190px;
+  bottom: -180px;
+  z-index: 0;
+
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(241, 196, 90, 0.34) 0%,
+      rgba(230, 162, 60, 0.2) 30%,
+      rgba(255, 217, 156, 0.1) 52%,
+      transparent 72%
+    );
+
+  pointer-events: none;
+}
+
+/*
+ * El contenido real permanece siempre por encima
+ * de la decoración ambiental.
+ */
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 img {
@@ -83,4 +212,35 @@ a {
 
 main {
   min-height: 100vh;
+}
+
+/*
+ * En teléfonos reducimos ligeramente las decoraciones
+ * para mantener el fondo limpio y liviano.
+ */
+@media (max-width: 639px) {
+  body::before {
+    top: 90px;
+    left: -38px;
+    font-size: 1.6rem;
+    line-height: 2.35;
+    opacity: 0.09;
+  }
+
+  body::after {
+    right: -210px;
+    bottom: -170px;
+    width: 440px;
+    height: 440px;
+  }
+}
+
+/*
+ * Si el usuario prefiere menos efectos visuales,
+ * mantenemos el diseño pero reducimos la decoración.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
