@@ -65,31 +65,26 @@ body {
   overflow-x: hidden;
 
   /*
-   * RECORRIDO COMPLETO DE LA PÁGINA
+   * RECORRIDO COMPLETO
    *
-   * Arriba:
-   * frío más intenso.
-   *
-   * Centro:
-   * transición prácticamente neutra.
-   *
-   * Abajo:
-   * aumenta progresivamente la temperatura visual.
+   * Arriba: frío intenso.
+   * Centro: neutro.
+   * Abajo: aumenta progresivamente el calor.
    */
   background:
     radial-gradient(
       ellipse at 0% 0%,
-      rgba(54, 158, 170, 0.34) 0%,
-      rgba(191, 231, 236, 0.25) 16%,
-      rgba(223, 244, 247, 0.12) 29%,
-      transparent 43%
+      rgba(54, 158, 170, 0.38) 0%,
+      rgba(191, 231, 236, 0.28) 16%,
+      rgba(223, 244, 247, 0.14) 30%,
+      transparent 44%
     ),
     radial-gradient(
       ellipse at 100% 100%,
-      rgba(223, 121, 28, 0.34) 0%,
-      rgba(239, 157, 47, 0.25) 16%,
-      rgba(255, 209, 123, 0.16) 32%,
-      transparent 48%
+      rgba(223, 121, 28, 0.38) 0%,
+      rgba(239, 157, 47, 0.28) 17%,
+      rgba(255, 209, 123, 0.17) 33%,
+      transparent 50%
     ),
     linear-gradient(
       to bottom,
@@ -114,63 +109,57 @@ body {
 
 /*
  * ======================================================
- * COPOS DE NIEVE
+ * COPOS GRANDES - ESQUINA SUPERIOR IZQUIERDA
  * ======================================================
  *
- * Los copos son más fuertes cerca de la esquina superior
- * izquierda y se van desvaneciendo al alejarse.
+ * Son más grandes y visibles cerca de la esquina.
+ * Hacia el centro se van desvaneciendo.
  */
 body::before {
   content:
     "❄       ❅"
-    "\A   ❆           ❄"
-    "\A       ❅"
-    "\A ❄          ❆"
-    "\A      ❄           ❅"
-    "\A  ❆"
-    "\A           ❅      ❄"
-    "\A     ❆"
-    "\A ❄             ❅";
+    "\A    ❆          ❄"
+    "\A  ❅"
+    "\A       ❄       ❆"
+    "\A ❆          ❅"
+    "\A      ❄"
+    "\A  ❅             ❆";
 
   position: absolute;
 
   top: 90px;
-  left: -28px;
+  left: -45px;
 
   z-index: 0;
 
-  width: 470px;
-  height: 760px;
+  width: 570px;
+  height: 900px;
 
   white-space: pre;
 
   color: var(--cold-strong);
 
-  font-size: 3rem;
+  font-size: 4.15rem;
   font-weight: 400;
 
-  line-height: 1.85;
-  letter-spacing: 0.3rem;
+  line-height: 1.6;
+  letter-spacing: 0.38rem;
 
-  opacity: 0.4;
+  opacity: 0.46;
 
   transform: rotate(-8deg);
 
   text-shadow:
-    0 0 12px rgba(33, 136, 151, 0.2),
-    0 0 28px rgba(54, 158, 170, 0.14);
+    0 0 14px rgba(33, 136, 151, 0.22),
+    0 0 32px rgba(54, 158, 170, 0.16);
 
-  /*
-   * Hace que los copos sean más visibles junto a la
-   * esquina fría y desaparezcan progresivamente.
-   */
   -webkit-mask-image:
     radial-gradient(
       ellipse at 0% 0%,
       #000 0%,
-      #000 32%,
-      rgba(0, 0, 0, 0.72) 52%,
-      rgba(0, 0, 0, 0.28) 72%,
+      #000 30%,
+      rgba(0, 0, 0, 0.8) 48%,
+      rgba(0, 0, 0, 0.35) 70%,
       transparent 94%
     );
 
@@ -178,9 +167,9 @@ body::before {
     radial-gradient(
       ellipse at 0% 0%,
       #000 0%,
-      #000 32%,
-      rgba(0, 0, 0, 0.72) 52%,
-      rgba(0, 0, 0, 0.28) 72%,
+      #000 30%,
+      rgba(0, 0, 0, 0.8) 48%,
+      rgba(0, 0, 0, 0.35) 70%,
       transparent 94%
     );
 
@@ -193,54 +182,54 @@ body::before {
  * SOL GRANDE - ESQUINA INFERIOR DERECHA
  * ======================================================
  *
- * No es solamente una luz.
+ * El sol permanece dentro de los límites reales de la página.
+ * Una parte queda fuera hacia la derecha, pero NO hacia abajo.
  *
- * Se ve una parte del disco solar entrando desde afuera
- * de la página y alrededor aparecen rayos suaves.
+ * Esto evita generar espacio adicional después del footer.
  */
 body::after {
   content: "";
 
   position: absolute;
 
-  right: -310px;
-  bottom: -245px;
+  right: -320px;
+  bottom: 0;
 
   z-index: 0;
 
-  width: 680px;
-  height: 680px;
+  width: 760px;
+  height: 760px;
 
   border-radius: 50%;
 
   background:
     radial-gradient(
       circle at center,
-      rgba(255, 239, 154, 0.98) 0%,
-      rgba(255, 208, 83, 0.96) 28%,
-      rgba(244, 159, 43, 0.92) 47%,
-      rgba(226, 118, 25, 0.86) 58%,
-      transparent 59%
+      rgba(255, 242, 157, 0.98) 0%,
+      rgba(255, 211, 83, 0.97) 27%,
+      rgba(244, 159, 43, 0.93) 46%,
+      rgba(226, 118, 25, 0.86) 57%,
+      transparent 58%
     ),
     repeating-conic-gradient(
       from 0deg,
-      rgba(239, 157, 47, 0.36) 0deg 5deg,
-      transparent 5deg 14deg
+      rgba(239, 157, 47, 0.34) 0deg 5deg,
+      transparent 5deg 15deg
     );
 
   box-shadow:
-    0 0 60px rgba(255, 199, 67, 0.34),
-    0 0 140px rgba(239, 157, 47, 0.26),
-    0 0 240px rgba(223, 121, 28, 0.14);
+    0 0 65px rgba(255, 199, 67, 0.32),
+    0 0 150px rgba(239, 157, 47, 0.23),
+    0 0 240px rgba(223, 121, 28, 0.12);
 
-  opacity: 0.88;
+  opacity: 0.86;
 
   pointer-events: none;
 }
 
 /*
- * Todo el contenido permanece por encima
- * del fondo decorativo.
+ * Todo el contenido queda por encima
+ * de la decoración.
  */
 body > * {
   position: relative;
@@ -279,32 +268,29 @@ main {
  * ======================================================
  * CELULAR
  * ======================================================
- *
- * Los elementos siguen siendo grandes y reconocibles,
- * pero se ajustan para no invadir demasiado el contenido.
  */
 @media (max-width: 639px) {
   body::before {
-    top: 78px;
-    left: -48px;
+    top: 80px;
+    left: -55px;
 
-    width: 330px;
-    height: 620px;
+    width: 390px;
+    height: 680px;
 
-    font-size: 2.15rem;
-    line-height: 2;
+    font-size: 2.8rem;
+    line-height: 1.8;
 
-    opacity: 0.34;
+    opacity: 0.4;
   }
 
   body::after {
-    right: -285px;
-    bottom: -220px;
+    right: -270px;
+    bottom: 0;
 
-    width: 560px;
-    height: 560px;
+    width: 570px;
+    height: 570px;
 
-    opacity: 0.82;
+    opacity: 0.8;
   }
 }
 
@@ -315,24 +301,24 @@ main {
  */
 @media (min-width: 1200px) {
   body::before {
-    left: -18px;
+    left: -35px;
 
-    width: 520px;
-    height: 820px;
+    width: 620px;
+    height: 950px;
 
-    font-size: 3.25rem;
+    font-size: 4.65rem;
 
-    opacity: 0.43;
+    opacity: 0.48;
   }
 
   body::after {
-    right: -320px;
-    bottom: -270px;
+    right: -350px;
+    bottom: 0;
 
-    width: 760px;
-    height: 760px;
+    width: 820px;
+    height: 820px;
 
-    opacity: 0.9;
+    opacity: 0.88;
   }
 }
 
