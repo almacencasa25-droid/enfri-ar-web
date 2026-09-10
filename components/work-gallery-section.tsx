@@ -1,63 +1,81 @@
+import { getPublishedWorkGallery } from "@/lib/work-gallery";
+
 import styles from "./work-gallery-section.module.css";
 
-export function WorkGallerySection() {
+export async function WorkGallerySection() {
+  const works = await getPublishedWorkGallery();
+
   return (
     <section id="trabajos" className={styles.section}>
       <div className={styles.container}>
         <div className={styles.heading}>
-          <p className={styles.eyebrow}>Nuestros trabajos</p>
+          <p className={styles.eyebrow}>
+            Nuestros trabajos
+          </p>
 
           <h2 className={styles.title}>
             Trabajos reales realizados por Enfri.Ar
           </h2>
 
           <p className={styles.description}>
-            Esta sección estará destinada a mostrar instalaciones,
-            mantenimientos y reparaciones realizadas por Enfri.Ar Refrigeración
-            utilizando fotografías reales de nuestros trabajos.
+            Instalaciones, mantenimientos y reparaciones
+            realizadas por Enfri.Ar Refrigeración.
           </p>
         </div>
 
-        <div className={styles.grid}>
-          <article className={styles.card}>
-            <div className={styles.placeholder}>
-              <p className={styles.placeholderTitle}>
-                Instalaciones
-              </p>
+        {works.length > 0 ? (
+          <div className={styles.grid}>
+            {works.map((work) => (
+              <article
+                className={styles.card}
+                key={work.id}
+              >
+                <img
+                  src={work.image_url}
+                  alt={work.alt_text}
+                  loading="lazy"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    aspectRatio: "4 / 3",
+                    objectFit: "cover",
+                  }}
+                />
 
-              <p className={styles.placeholderText}>
-                Aquí incorporaremos fotografías reales de instalaciones de
-                equipos Split y Piso-Techo.
-              </p>
-            </div>
-          </article>
+                <div
+                  style={{
+                    padding: "16px",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: 0,
+                      color: "var(--foreground)",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    {work.title}
+                  </h3>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.grid}>
+            <article className={styles.card}>
+              <div className={styles.placeholder}>
+                <p className={styles.placeholderTitle}>
+                  Próximamente
+                </p>
 
-          <article className={styles.card}>
-            <div className={styles.placeholder}>
-              <p className={styles.placeholderTitle}>
-                Mantenimiento y limpieza
-              </p>
-
-              <p className={styles.placeholderText}>
-                Espacio preparado para mostrar trabajos de mantenimiento,
-                limpieza y puesta a punto.
-              </p>
-            </div>
-          </article>
-
-          <article className={styles.card}>
-            <div className={styles.placeholder}>
-              <p className={styles.placeholderTitle}>
-                Reparaciones
-              </p>
-
-              <p className={styles.placeholderText}>
-                Aquí podremos mostrar diagnósticos y reparaciones realizadas por
-                Enfri.Ar Refrigeración.
-              </p>
-            </div>
-          </article>
-        </div>
+                <p className={styles.placeholderText}>
+                  Estamos preparando fotografías reales de
+                  nuestros trabajos.
+                </p>
+              </div>
+            </article>
+          </div>
+        )}
       </div>
     </section>
   );
