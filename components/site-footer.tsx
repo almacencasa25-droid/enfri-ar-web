@@ -1,15 +1,9 @@
 import { getSiteConfig } from "@/lib/site-data";
-import { createWhatsAppLink } from "@/lib/whatsapp";
 
 import styles from "./site-footer.module.css";
 
 export async function SiteFooter() {
   const config = await getSiteConfig();
-
-  const whatsappLink = createWhatsAppLink({
-    number: config.whatsappNumber,
-    message: config.whatsappMessage,
-  });
 
   const currentYear = new Date().getFullYear();
 
@@ -36,19 +30,6 @@ export async function SiteFooter() {
                   className={styles.contactLink}
                 >
                   Teléfono: {config.phone}
-                </a>
-              </li>
-            )}
-
-            {config.whatsappNumber && whatsappLink && (
-              <li className={styles.contactItem}>
-                <a
-                  href={whatsappLink}
-                  className={styles.contactLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  WhatsApp: {config.whatsappNumber}
                 </a>
               </li>
             )}
