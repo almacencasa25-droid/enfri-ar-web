@@ -1,5 +1,7 @@
 .section {
-  background: var(--background);
+  position: relative;
+  background: rgba(255, 253, 248, 0.38);
+  backdrop-filter: blur(2px);
 }
 
 .container {
@@ -47,14 +49,25 @@
   position: relative;
   min-height: 280px;
   overflow: hidden;
+
+  border: 1px solid rgba(225, 214, 197, 0.82);
   border-radius: var(--radius-medium);
+
   background:
+    radial-gradient(
+      circle at 82% 18%,
+      rgba(241, 196, 90, 0.18),
+      transparent 34%
+    ),
     linear-gradient(
       145deg,
-      rgba(13, 79, 139, 0.94),
-      rgba(21, 153, 214, 0.78)
+      rgba(38, 40, 42, 0.96),
+      rgba(47, 143, 134, 0.78)
     );
-  box-shadow: 0 14px 40px rgba(16, 32, 51, 0.08);
+
+  box-shadow:
+    0 14px 40px rgba(38, 40, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .image {
@@ -66,13 +79,16 @@
 .overlay {
   position: absolute;
   inset: auto 0 0;
-  padding: 24px 20px 20px;
+  padding: 26px 20px 20px;
+
   background:
     linear-gradient(
       to top,
-      rgba(6, 28, 47, 0.82),
-      rgba(6, 28, 47, 0)
+      rgba(28, 29, 30, 0.88),
+      rgba(28, 29, 30, 0.52) 52%,
+      rgba(28, 29, 30, 0)
     );
+
   color: #ffffff;
 }
 
@@ -92,9 +108,11 @@
 .placeholder {
   min-height: 280px;
   padding: 24px;
+
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+
   color: #ffffff;
 }
 
