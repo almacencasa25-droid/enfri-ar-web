@@ -30,6 +30,22 @@ export default async function AdminPage() {
     backdropFilter: "blur(12px)",
   };
 
+  const actionLinkStyle = {
+    minHeight: "42px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "7px",
+    marginTop: "18px",
+    padding: "9px 14px",
+    borderRadius: "10px",
+    background: "var(--foreground)",
+    color: "#ffffff",
+    fontSize: "0.88rem",
+    fontWeight: 800,
+    textDecoration: "none",
+  };
+
   return (
     <main
       style={{
@@ -243,21 +259,7 @@ export default async function AdminPage() {
 
               <Link
                 href="/admin/consultas"
-                style={{
-                  minHeight: "42px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "7px",
-                  marginTop: "18px",
-                  padding: "9px 14px",
-                  borderRadius: "10px",
-                  background: "var(--foreground)",
-                  color: "#ffffff",
-                  fontSize: "0.88rem",
-                  fontWeight: 800,
-                  textDecoration: "none",
-                }}
+                style={actionLinkStyle}
               >
                 Abrir consultas
                 <ArrowRight size={16} aria-hidden="true" />
@@ -302,21 +304,17 @@ export default async function AdminPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Desde acá vas a poder modificar WhatsApp,
-                teléfono, correo, web, dirección y otros datos
-                públicos sin tocar código.
+                Modificá WhatsApp, teléfono, correo, web,
+                dirección y otros datos públicos sin tocar código.
               </p>
 
-              <p
-                style={{
-                  margin: "16px 0 0",
-                  fontSize: "0.82rem",
-                  fontWeight: 800,
-                  color: "var(--brand-blue)",
-                }}
+              <Link
+                href="/admin/configuracion"
+                style={actionLinkStyle}
               >
-                Próximamente
-              </p>
+                Abrir configuración
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
             </article>
           </div>
         </section>
