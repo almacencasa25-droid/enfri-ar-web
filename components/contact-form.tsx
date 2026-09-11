@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef } from "react";
+import {
+  startTransition,
+  type FormEvent,
+  useActionState,
+  useEffect,
+  useRef,
+} from "react";
 import { Send } from "lucide-react";
 
 import {
@@ -31,6 +37,20 @@ export function ContactForm() {
     }
   }, [state.success]);
 
+  const handleSubmit = (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    const formData = new FormData(
+      event.currentTarget
+    );
+
+    startTransition(() => {
+      formAction(formData);
+    });
+  };
+
   const getError = (field: string) => {
     return state.errors?.[field]?.[0];
   };
@@ -38,7 +58,7 @@ export function ContactForm() {
   return (
     <form
       ref={formRef}
-      action={formAction}
+      onSubmit={handleSubmit}
       className={styles.form}
       noValidate
     >
