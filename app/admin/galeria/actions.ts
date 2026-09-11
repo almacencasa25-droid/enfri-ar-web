@@ -2,6 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAdminUser } from "@/lib/auth/admin";
@@ -187,6 +188,8 @@ export async function updateGalleryItem(
 
   revalidatePath("/");
   revalidatePath("/admin/galeria");
+
+  redirect("/admin/galeria?guardado=1");
 }
 
 export async function deleteGalleryItem(
