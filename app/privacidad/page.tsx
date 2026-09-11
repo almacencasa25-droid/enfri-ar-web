@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Política de privacidad",
   description:
     "Información sobre el tratamiento de datos enviados a través del sitio web de Enfri.Ar Refrigeración.",
+
+  alternates: {
+    canonical: "/privacidad",
+  },
+
   robots: {
     index: true,
     follow: true,
