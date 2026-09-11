@@ -1,8 +1,13 @@
 "use server";
 
+import { createHmac } from "node:crypto";
+import { headers } from "next/headers";
 import { z } from "zod";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+
+const RATE_LIMIT_MINUTES = 15;
+const RATE_LIMIT_MAX_REQUESTS = 5;
 
 const contactSchema = z.object({
   fullName: z
@@ -61,6 +66,31 @@ export type ContactFormState = {
   errors?: Record<string, string[]>;
 };
 
+async function getHashedIp() {
+  const requestHeaders = await headers();
+
+  const forwardedFor =
+    requestHeaders.get("x-forwarded-for");
+
+  const ip =
+    forwardedFor?.split(",")[0]?.trim() ||
+    requestHeaders.get("x-real-ip") ||
+    "unknown";
+
+  const secret =
+    process.env.SUPABASE_SECRET_KEY;
+
+  if (!secret) {
+    throw new Error(
+      "Falta SUPABASE_SECRET_KEY."
+    );
+  }
+
+  return createHmac("sha256", secret)
+    .update(ip)
+    .digest("hex");
+}
+
 export async function submitContactRequest(
   _previousState: ContactFormState,
   formData: FormData
@@ -82,13 +112,82 @@ export async function submitContactRequest(
   if (!result.success) {
     return {
       success: false,
-      message: "Revisá los datos marcados e intentá nuevamente.",
+      message:
+        "Revisá los datos marcados e intentá nuevamente.",
       errors: result.error.flatten().fieldErrors,
     };
   }
 
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase =
+      createSupabaseAdminClient();
+
+    const ipHash = await getHashedIp();
+
+    const windowStart = new Date(
+      Date.now() -
+        RATE_LIMIT_MINUTES * 60 * 1000
+    );
+
+    const {
+      count,
+      error: rateLimitReadError,
+    } = await supabase
+      .from("contact_rate_limits")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("ip_hash", ipHash)
+      .gte(
+        "created_at",
+        windowStart.toISOString()
+      );
+
+    if (rateLimitReadError) {
+      console.error(
+        "Error al verificar límite de consultas:",
+        rateLimitReadError
+      );
+
+      return {
+        success: false,
+        message:
+          "No pudimos enviar la consulta en este momento. Intentá nuevamente en unos minutos.",
+      };
+    }
+
+    if (
+      (count ?? 0) >=
+      RATE_LIMIT_MAX_REQUESTS
+    ) {
+      return {
+        success: false,
+        message:
+          "Se enviaron varias consultas recientemente. Esperá unos minutos antes de intentar nuevamente.",
+      };
+    }
+
+    const {
+      error: rateLimitInsertError,
+    } = await supabase
+      .from("contact_rate_limits")
+      .insert({
+        ip_hash: ipHash,
+      });
+
+    if (rateLimitInsertError) {
+      console.error(
+        "Error al registrar límite de consultas:",
+        rateLimitInsertError
+      );
+
+      return {
+        success: false,
+        message:
+          "No pudimos enviar la consulta en este momento. Intentá nuevamente en unos minutos.",
+      };
+    }
 
     const { error } = await supabase
       .from("contact_requests")
@@ -99,7 +198,8 @@ export async function submitContactRequest(
           result.data.email === ""
             ? null
             : result.data.email,
-        service_type: result.data.serviceType,
+        service_type:
+          result.data.serviceType,
         locality: result.data.locality,
         message: result.data.message,
         privacy_accepted: true,
