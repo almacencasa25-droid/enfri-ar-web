@@ -7,13 +7,21 @@ const siteTitle =
 const siteDescription =
   "Instalación, reparación, diagnóstico, mantenimiento y limpieza profesional de equipos de aire acondicionado Split y Piso-Techo.";
 
+const siteUrl = "https://www.enfriar.com.ar";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+
   title: {
     default: siteTitle,
     template: "%s | Enfri.Ar Refrigeración",
   },
 
   description: siteDescription,
+
+  alternates: {
+    canonical: "/",
+  },
 
   applicationName: "Enfri.Ar Refrigeración",
 
@@ -31,6 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_AR",
+    url: siteUrl,
     siteName: "Enfri.Ar Refrigeración",
     title: siteTitle,
     description: siteDescription,
