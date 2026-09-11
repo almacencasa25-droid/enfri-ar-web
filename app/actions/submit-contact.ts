@@ -8,6 +8,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const RATE_LIMIT_MINUTES = 15;
 const RATE_LIMIT_MAX_REQUESTS = 5;
+const RATE_LIMIT_CLEANUP_HOURS = 24;
 
 const contactSchema = z.object({
   fullName: z
@@ -121,6 +122,36 @@ export async function submitContactRequest(
   try {
     const supabase =
       createSupabaseAdminClient();
+
+    /*
+     * Limpieza automática.
+     * Conservamos solamente los registros recientes
+     * necesarios para el control anti-spam.
+     */
+    const cleanupBefore = new Date(
+      Date.now() -
+        RATE_LIMIT_CLEANUP_HOURS * 60 * 60 * 1000
+    );
+
+    const { error: cleanupError } =
+      await supabase
+        .from("contact_rate_limits")
+        .delete()
+        .lt(
+          "created_at",
+          cleanupBefore.toISOString()
+        );
+
+    /*
+     * Si la limpieza falla, no bloqueamos
+     * una consulta legítima.
+     */
+    if (cleanupError) {
+      console.error(
+        "Error al limpiar registros anti-spam antiguos:",
+        cleanupError
+      );
+    }
 
     const ipHash = await getHashedIp();
 
