@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getSiteConfig } from "@/lib/site-data";
 
 import styles from "./site-footer.module.css";
@@ -79,9 +81,18 @@ export async function SiteFooter() {
             Registro Nacional de Climatización y Refrigeración
           </div>
 
-          <p className={styles.copyright}>
-            © {currentYear} {config.companyName}
-          </p>
+          <div>
+            <p className={styles.copyright}>
+              © {currentYear} {config.companyName}
+            </p>
+
+            <Link
+              href="/privacidad"
+              className={styles.contactLink}
+            >
+              Política de privacidad
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
