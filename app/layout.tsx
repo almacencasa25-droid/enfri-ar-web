@@ -12,6 +12,18 @@ export const metadata: Metadata = {
   authors: [{ name: "Enfri.Ar Refrigeración" }],
   creator: "Enfri.Ar Refrigeración",
   publisher: "Enfri.Ar Refrigeración",
+
+  icons: {
+    icon: [
+      {
+        url: "/logo-enfri-ar.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/logo-enfri-ar.png",
+    apple: "/logo-enfri-ar.png",
+  },
+
   formatDetection: {
     email: false,
     address: false,
