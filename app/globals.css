@@ -51,17 +51,30 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100%;
+
   scroll-behavior: smooth;
   background: var(--neutral-background);
+
+  overflow-x: hidden;
 }
 
 body {
   position: relative;
   isolation: isolate;
 
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
+
   margin: 0;
 
+  /*
+   * Evita que las decoraciones que entran parcialmente
+   * desde los costados generen desplazamiento horizontal,
+   * especialmente en celulares.
+   */
   overflow-x: hidden;
 
   /*
@@ -108,12 +121,21 @@ body {
 }
 
 /*
+ * En navegadores modernos usamos clip para impedir
+ * completamente el desplazamiento lateral sin crear
+ * una barra de desplazamiento horizontal.
+ */
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+
+/*
  * ======================================================
  * COPOS GRANDES - ESQUINA SUPERIOR IZQUIERDA
  * ======================================================
- *
- * Son más grandes y visibles cerca de la esquina.
- * Hacia el centro se van desvaneciendo.
  */
 body::before {
   content:
@@ -181,11 +203,6 @@ body::before {
  * ======================================================
  * SOL GRANDE - ESQUINA INFERIOR DERECHA
  * ======================================================
- *
- * El sol permanece dentro de los límites reales de la página.
- * Una parte queda fuera hacia la derecha, pero NO hacia abajo.
- *
- * Esto evita generar espacio adicional después del footer.
  */
 body::after {
   content: "";
@@ -234,6 +251,9 @@ body::after {
 body > * {
   position: relative;
   z-index: 1;
+
+  min-width: 0;
+  max-width: 100%;
 }
 
 img {
@@ -261,6 +281,8 @@ a {
 }
 
 main {
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
 }
 
