@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Save } from "lucide-react";
 
 import {
   updateGalleryItem,
@@ -19,10 +19,21 @@ export const metadata = {
   },
 };
 
-export default async function AdminGaleriaPage() {
+type AdminGaleriaPageProps = {
+  searchParams: Promise<{
+    guardado?: string;
+  }>;
+};
+
+export default async function AdminGaleriaPage({
+  searchParams,
+}: AdminGaleriaPageProps) {
   await requireAdminUser();
 
+  const params = await searchParams;
   const items = await getAdminWorkGallery();
+
+  const savedSuccessfully = params.guardado === "1";
 
   return (
     <main className={styles.page}>
@@ -50,6 +61,22 @@ export default async function AdminGaleriaPage() {
             </Link>
           </div>
         </header>
+
+        {savedSuccessfully ? (
+          <div
+            className={`${styles.message} ${styles.success}`}
+            role="status"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "20px",
+            }}
+          >
+            <CheckCircle2 size={19} aria-hidden="true" />
+            Cambios guardados correctamente.
+          </div>
+        ) : null}
 
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>
