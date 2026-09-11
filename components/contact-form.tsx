@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
 
@@ -297,7 +298,18 @@ export function ContactForm() {
           className={styles.checkboxLabel}
         >
           Acepto que Enfri.Ar utilice los datos enviados
-          únicamente para responder y gestionar esta consulta.
+          únicamente para responder y gestionar esta consulta.{" "}
+          <Link
+            href="/privacidad"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontWeight: 800,
+              textDecoration: "underline",
+            }}
+          >
+            Ver Política de privacidad
+          </Link>
         </label>
       </div>
 
