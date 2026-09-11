@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { getPublishedWorkGallery } from "@/lib/work-gallery";
 
 import styles from "./work-gallery-section.module.css";
@@ -30,17 +32,24 @@ export async function WorkGallerySection() {
                 className={styles.card}
                 key={work.id}
               >
-                <img
-                  src={work.image_url}
-                  alt={work.alt_text}
-                  loading="lazy"
+                <div
                   style={{
-                    display: "block",
+                    position: "relative",
                     width: "100%",
                     aspectRatio: "4 / 3",
-                    objectFit: "cover",
+                    overflow: "hidden",
                   }}
-                />
+                >
+                  <Image
+                    src={work.image_url}
+                    alt={work.alt_text}
+                    fill
+                    sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
 
                 <div
                   style={{
