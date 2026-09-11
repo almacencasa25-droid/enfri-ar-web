@@ -16,12 +16,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/logo-enfri-ar.png",
+        url: "/favicon-enfri-ar.png",
         type: "image/png",
       },
     ],
-    shortcut: "/logo-enfri-ar.png",
-    apple: "/logo-enfri-ar.png",
+    shortcut: "/favicon-enfri-ar.png",
+    apple: "/favicon-enfri-ar.png",
   },
 
   formatDetection: {
