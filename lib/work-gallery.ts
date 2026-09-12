@@ -4,7 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export type WorkGalleryCategory =
   | "instalaciones"
   | "reparaciones_diagnostico"
-  | "mantenimiento_limpieza";
+  | "mantenimiento_limpieza"
+  | "capacitaciones";
 
 export type WorkGalleryItem = {
   id: string;
