@@ -349,6 +349,10 @@ export function GalleryForm() {
             <option value="mantenimiento_limpieza">
               Mantenimiento y limpieza
             </option>
+
+            <option value="capacitaciones">
+              Capacitaciones
+            </option>
           </select>
 
           {state.errors?.category?.[0] ? (
