@@ -322,25 +322,38 @@ export function GalleryForm() {
         <div className={styles.field}>
           <label
             className={styles.label}
-            htmlFor="sortOrder"
+            htmlFor="category"
           >
-            Orden
+            Galería
           </label>
 
-          <input
+          <select
             className={styles.input}
-            id="sortOrder"
-            name="sortOrder"
-            type="number"
-            min="0"
-            max="10000"
-            defaultValue="0"
+            id="category"
+            name="category"
+            defaultValue=""
             required
-          />
+          >
+            <option value="" disabled>
+              Seleccioná una galería
+            </option>
 
-          {state.errors?.sortOrder?.[0] ? (
+            <option value="instalaciones">
+              Instalaciones
+            </option>
+
+            <option value="reparaciones_diagnostico">
+              Reparaciones y diagnóstico
+            </option>
+
+            <option value="mantenimiento_limpieza">
+              Mantenimiento y limpieza
+            </option>
+          </select>
+
+          {state.errors?.category?.[0] ? (
             <p className={styles.message}>
-              {state.errors.sortOrder[0]}
+              {state.errors.category[0]}
             </p>
           ) : null}
         </div>
@@ -371,6 +384,10 @@ export function GalleryForm() {
           ) : null}
         </div>
       </div>
+
+      <p className={styles.message}>
+        La posición se asigna automáticamente al agregar la foto.
+      </p>
 
       {localError ? (
         <p
