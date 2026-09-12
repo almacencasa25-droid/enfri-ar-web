@@ -239,7 +239,7 @@
   overflow-x: hidden;
   padding: 0 14px 14px;
   scrollbar-gutter: stable;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: auto;
 }
 
 .galleryScroll::-webkit-scrollbar {
