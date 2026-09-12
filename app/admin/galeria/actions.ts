@@ -17,14 +17,28 @@ const allowedTypes = {
   "image/webp": "webp",
 } as const;
 
+const categorySchema = z.enum([
+  "instalaciones",
+  "reparaciones_diagnostico",
+  "mantenimiento_limpieza",
+]);
+
+type GalleryCategory = z.infer<typeof categorySchema>;
+
 const gallerySchema = z.object({
   title: z.string().trim().min(2).max(120),
   altText: z.string().trim().min(2).max(250),
-  sortOrder: z.coerce.number().int().min(0).max(10000),
+
+  /*
+   * Temporalmente opcional para mantener compatibilidad
+   * mientras actualizamos la interfaz del administrador.
+   */
+  category: categorySchema.optional(),
 });
 
 const updateSchema = gallerySchema.extend({
   id: z.string().uuid(),
+  sortOrder: z.coerce.number().int().min(1).max(10000),
   isActive: z.boolean(),
 });
 
@@ -38,6 +52,77 @@ export type GalleryActionState = {
   errors?: Record<string, string[]>;
 };
 
+type SupabaseClient = Awaited<
+  ReturnType<typeof createSupabaseServerClient>
+>;
+
+async function getNextSortOrder(
+  supabase: SupabaseClient,
+  category: GalleryCategory
+) {
+  const { data, error } = await supabase
+    .from("work_gallery")
+    .select("sort_order")
+    .eq("category", category)
+    .order("sort_order", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      "No fue posible calcular la posición de la nueva foto."
+    );
+  }
+
+  return (data?.sort_order ?? 0) + 1;
+}
+
+async function renumberCategory(
+  supabase: SupabaseClient,
+  category: GalleryCategory
+) {
+  const { data, error } = await supabase
+    .from("work_gallery")
+    .select("id, sort_order")
+    .eq("category", category)
+    .order("sort_order", {
+      ascending: true,
+    })
+    .order("created_at", {
+      ascending: true,
+    });
+
+  if (error) {
+    throw new Error(
+      "No fue posible reorganizar la galería."
+    );
+  }
+
+  for (let index = 0; index < data.length; index += 1) {
+    const expectedOrder = index + 1;
+    const item = data[index];
+
+    if (item.sort_order === expectedOrder) {
+      continue;
+    }
+
+    const { error: updateError } = await supabase
+      .from("work_gallery")
+      .update({
+        sort_order: expectedOrder,
+      })
+      .eq("id", item.id);
+
+    if (updateError) {
+      throw new Error(
+        "No fue posible reorganizar la galería."
+      );
+    }
+  }
+}
+
 export async function createGalleryItem(
   _previousState: GalleryActionState,
   formData: FormData
@@ -49,7 +134,10 @@ export async function createGalleryItem(
   const parsed = gallerySchema.safeParse({
     title: String(formData.get("title") ?? ""),
     altText: String(formData.get("altText") ?? ""),
-    sortOrder: String(formData.get("sortOrder") ?? "0"),
+    category:
+      formData.get("category") === null
+        ? undefined
+        : String(formData.get("category")),
   });
 
   if (!parsed.success) {
@@ -70,7 +158,8 @@ export async function createGalleryItem(
   if (file.size > MAX_FILE_SIZE) {
     return {
       success: false,
-      message: "La imagen no puede superar los 5 MB.",
+      message:
+        "La imagen no pudo reducirse lo suficiente para subirla.",
     };
   }
 
@@ -86,6 +175,33 @@ export async function createGalleryItem(
   }
 
   const supabase = await createSupabaseServerClient();
+
+  /*
+   * Mientras actualizamos la pantalla del administrador,
+   * una carga antigua sin categoría se conserva en Instalaciones.
+   */
+  const category: GalleryCategory =
+    parsed.data.category ?? "instalaciones";
+
+  let nextSortOrder: number;
+
+  try {
+    nextSortOrder = await getNextSortOrder(
+      supabase,
+      category
+    );
+  } catch (error) {
+    console.error(
+      "Error al calcular orden de galería:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        "No fue posible calcular la posición de la foto.",
+    };
+  }
 
   const storagePath = `${randomUUID()}.${extension}`;
 
@@ -114,7 +230,8 @@ export async function createGalleryItem(
       storage_path: storagePath,
       title: parsed.data.title,
       alt_text: parsed.data.altText,
-      sort_order: parsed.data.sortOrder,
+      category,
+      sort_order: nextSortOrder,
       is_active: true,
     });
 
@@ -153,7 +270,11 @@ export async function updateGalleryItem(
     id: String(formData.get("id") ?? ""),
     title: String(formData.get("title") ?? ""),
     altText: String(formData.get("altText") ?? ""),
-    sortOrder: String(formData.get("sortOrder") ?? "0"),
+    category:
+      formData.get("category") === null
+        ? undefined
+        : String(formData.get("category")),
+    sortOrder: String(formData.get("sortOrder") ?? "1"),
     isActive: formData.get("isActive") === "on",
   });
 
@@ -165,25 +286,152 @@ export async function updateGalleryItem(
 
   const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabase
-    .from("work_gallery")
-    .update({
-      title: parsed.data.title,
-      alt_text: parsed.data.altText,
-      sort_order: parsed.data.sortOrder,
-      is_active: parsed.data.isActive,
-    })
-    .eq("id", parsed.data.id);
+  const { data: currentItem, error: currentError } =
+    await supabase
+      .from("work_gallery")
+      .select("id, category, sort_order")
+      .eq("id", parsed.data.id)
+      .single();
 
-  if (error) {
-    console.error(
-      "Error al modificar trabajo de galería:",
-      error
-    );
-
+  if (currentError || !currentItem) {
     throw new Error(
-      "No fue posible modificar el trabajo."
+      "No fue posible encontrar el trabajo seleccionado."
     );
+  }
+
+  const currentCategory =
+    categorySchema.parse(currentItem.category);
+
+  const requestedCategory =
+    parsed.data.category ?? currentCategory;
+
+  /*
+   * Si cambia de galería:
+   * - sale de la categoría anterior;
+   * - entra automáticamente al final de la nueva;
+   * - la categoría anterior vuelve a quedar numerada 1, 2, 3...
+   */
+  if (requestedCategory !== currentCategory) {
+    const newOrder = await getNextSortOrder(
+      supabase,
+      requestedCategory
+    );
+
+    const { error } = await supabase
+      .from("work_gallery")
+      .update({
+        title: parsed.data.title,
+        alt_text: parsed.data.altText,
+        category: requestedCategory,
+        sort_order: newOrder,
+        is_active: parsed.data.isActive,
+      })
+      .eq("id", parsed.data.id);
+
+    if (error) {
+      console.error(
+        "Error al cambiar trabajo de galería:",
+        error
+      );
+
+      throw new Error(
+        "No fue posible modificar el trabajo."
+      );
+    }
+
+    await renumberCategory(
+      supabase,
+      currentCategory
+    );
+  } else {
+    const { data: lastItem, error: lastItemError } =
+      await supabase
+        .from("work_gallery")
+        .select("sort_order")
+        .eq("category", currentCategory)
+        .order("sort_order", {
+          ascending: false,
+        })
+        .limit(1)
+        .maybeSingle();
+
+    if (lastItemError) {
+      throw new Error(
+        "No fue posible verificar el orden de la galería."
+      );
+    }
+
+    const maxOrder = Math.max(
+      lastItem?.sort_order ?? 1,
+      1
+    );
+
+    const requestedOrder = Math.min(
+      parsed.data.sortOrder,
+      maxOrder
+    );
+
+    /*
+     * Si la posición solicitada ya pertenece a otra foto,
+     * intercambiamos ambas posiciones.
+     *
+     * Ejemplo:
+     * foto 8 pasa a 1
+     * foto que estaba en 1 pasa automáticamente a 8
+     */
+    if (requestedOrder !== currentItem.sort_order) {
+      const { data: targetItem, error: targetError } =
+        await supabase
+          .from("work_gallery")
+          .select("id")
+          .eq("category", currentCategory)
+          .eq("sort_order", requestedOrder)
+          .neq("id", parsed.data.id)
+          .maybeSingle();
+
+      if (targetError) {
+        throw new Error(
+          "No fue posible verificar la posición seleccionada."
+        );
+      }
+
+      if (targetItem) {
+        const { error: swapError } = await supabase
+          .from("work_gallery")
+          .update({
+            sort_order: currentItem.sort_order,
+          })
+          .eq("id", targetItem.id);
+
+        if (swapError) {
+          throw new Error(
+            "No fue posible intercambiar las posiciones."
+          );
+        }
+      }
+    }
+
+    const { error } = await supabase
+      .from("work_gallery")
+      .update({
+        title: parsed.data.title,
+        alt_text: parsed.data.altText,
+        category: currentCategory,
+        sort_order: requestedOrder,
+        is_active: parsed.data.isActive,
+      })
+      .eq("id", parsed.data.id);
+
+    if (error) {
+      console.error(
+        "Error al modificar trabajo de galería:",
+        error
+      );
+
+      throw new Error(
+        "No fue posible modificar el trabajo."
+      );
+    }
   }
 
   revalidatePath("/");
@@ -202,22 +450,29 @@ export async function deleteGalleryItem(
   });
 
   if (!parsed.success) {
-    throw new Error("El trabajo seleccionado no es válido.");
+    throw new Error(
+      "El trabajo seleccionado no es válido."
+    );
   }
 
   const supabase = await createSupabaseServerClient();
 
-  const { data: item, error: readError } = await supabase
-    .from("work_gallery")
-    .select("storage_path")
-    .eq("id", parsed.data.id)
-    .single();
+  const { data: item, error: readError } =
+    await supabase
+      .from("work_gallery")
+      .select("storage_path, category")
+      .eq("id", parsed.data.id)
+      .single();
 
   if (readError || !item) {
     throw new Error(
       "No fue posible encontrar el trabajo seleccionado."
     );
   }
+
+  const category = categorySchema.parse(
+    item.category
+  );
 
   const { error: deleteDbError } = await supabase
     .from("work_gallery")
@@ -235,9 +490,10 @@ export async function deleteGalleryItem(
     );
   }
 
-  const { error: deleteFileError } = await supabase.storage
-    .from(BUCKET)
-    .remove([item.storage_path]);
+  const { error: deleteFileError } =
+    await supabase.storage
+      .from(BUCKET)
+      .remove([item.storage_path]);
 
   if (deleteFileError) {
     console.error(
@@ -245,6 +501,15 @@ export async function deleteGalleryItem(
       deleteFileError
     );
   }
+
+  /*
+   * Si se elimina, por ejemplo, la foto 2,
+   * las siguientes pasan automáticamente a 2, 3, 4...
+   */
+  await renumberCategory(
+    supabase,
+    category
+  );
 
   revalidatePath("/");
   revalidatePath("/admin/galeria");
