@@ -1,11 +1,17 @@
 import { requireAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+export type WorkGalleryCategory =
+  | "instalaciones"
+  | "reparaciones_diagnostico"
+  | "mantenimiento_limpieza";
+
 export type WorkGalleryItem = {
   id: string;
   storage_path: string;
   title: string;
   alt_text: string;
+  category: WorkGalleryCategory;
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -16,7 +22,9 @@ export type WorkGalleryItem = {
 type WorkGalleryRow = Omit<WorkGalleryItem, "image_url">;
 
 function addPublicUrl(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: Awaited<
+    ReturnType<typeof createSupabaseServerClient>
+  >,
   row: WorkGalleryRow
 ): WorkGalleryItem {
   const { data } = supabase.storage
@@ -32,7 +40,8 @@ function addPublicUrl(
 export async function getPublishedWorkGallery(): Promise<
   WorkGalleryItem[]
 > {
-  const supabase = await createSupabaseServerClient();
+  const supabase =
+    await createSupabaseServerClient();
 
   const { data, error } = await supabase
     .from("work_gallery")
@@ -42,6 +51,7 @@ export async function getPublishedWorkGallery(): Promise<
         storage_path,
         title,
         alt_text,
+        category,
         sort_order,
         is_active,
         created_at,
@@ -49,8 +59,15 @@ export async function getPublishedWorkGallery(): Promise<
       `
     )
     .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
+    .order("category", {
+      ascending: true,
+    })
+    .order("sort_order", {
+      ascending: true,
+    })
+    .order("created_at", {
+      ascending: true,
+    });
 
   if (error) {
     console.error(
@@ -61,8 +78,8 @@ export async function getPublishedWorkGallery(): Promise<
     return [];
   }
 
-  return ((data ?? []) as WorkGalleryRow[]).map((row) =>
-    addPublicUrl(supabase, row)
+  return ((data ?? []) as WorkGalleryRow[]).map(
+    (row) => addPublicUrl(supabase, row)
   );
 }
 
@@ -71,7 +88,8 @@ export async function getAdminWorkGallery(): Promise<
 > {
   await requireAdminUser();
 
-  const supabase = await createSupabaseServerClient();
+  const supabase =
+    await createSupabaseServerClient();
 
   const { data, error } = await supabase
     .from("work_gallery")
@@ -81,14 +99,22 @@ export async function getAdminWorkGallery(): Promise<
         storage_path,
         title,
         alt_text,
+        category,
         sort_order,
         is_active,
         created_at,
         updated_at
       `
     )
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
+    .order("category", {
+      ascending: true,
+    })
+    .order("sort_order", {
+      ascending: true,
+    })
+    .order("created_at", {
+      ascending: true,
+    });
 
   if (error) {
     console.error(
@@ -101,7 +127,7 @@ export async function getAdminWorkGallery(): Promise<
     );
   }
 
-  return ((data ?? []) as WorkGalleryRow[]).map((row) =>
-    addPublicUrl(supabase, row)
+  return ((data ?? []) as WorkGalleryRow[]).map(
+    (row) => addPublicUrl(supabase, row)
   );
 }
