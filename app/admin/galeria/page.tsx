@@ -346,11 +346,10 @@ export default async function AdminGaleriaPage({
           </p>
 
           <div className={styles.galleryGroups}>
-            {groups.map((group, index) => (
+            {groups.map((group) => (
               <details
                 className={styles.galleryGroup}
                 key={group.category}
-                open={index === 0}
               >
                 <summary
                   className={styles.gallerySummary}
