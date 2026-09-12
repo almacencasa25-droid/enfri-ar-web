@@ -136,6 +136,10 @@ function GalleryCards({
                     <option value="mantenimiento_limpieza">
                       Mantenimiento y limpieza
                     </option>
+
+                    <option value="capacitaciones">
+                      Capacitaciones
+                    </option>
                   </select>
                 </div>
 
@@ -250,6 +254,14 @@ export default async function AdminGaleriaPage({
         (item) =>
           item.category ===
           "mantenimiento_limpieza"
+      ),
+    },
+    {
+      category: "capacitaciones",
+      title: "Capacitaciones",
+      items: items.filter(
+        (item) =>
+          item.category === "capacitaciones"
       ),
     },
   ];
