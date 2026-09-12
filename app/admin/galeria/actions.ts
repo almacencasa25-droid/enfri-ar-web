@@ -21,6 +21,7 @@ const categorySchema = z.enum([
   "instalaciones",
   "reparaciones_diagnostico",
   "mantenimiento_limpieza",
+  "capacitaciones",
 ]);
 
 type GalleryCategory = z.infer<typeof categorySchema>;
@@ -176,10 +177,6 @@ export async function createGalleryItem(
 
   const supabase = await createSupabaseServerClient();
 
-  /*
-   * Mientras actualizamos la pantalla del administrador,
-   * una carga antigua sin categoría se conserva en Instalaciones.
-   */
   const category: GalleryCategory =
     parsed.data.category ?? "instalaciones";
 
@@ -305,12 +302,6 @@ export async function updateGalleryItem(
   const requestedCategory =
     parsed.data.category ?? currentCategory;
 
-  /*
-   * Si cambia de galería:
-   * - sale de la categoría anterior;
-   * - entra automáticamente al final de la nueva;
-   * - la categoría anterior vuelve a quedar numerada 1, 2, 3...
-   */
   if (requestedCategory !== currentCategory) {
     const newOrder = await getNextSortOrder(
       supabase,
@@ -371,14 +362,6 @@ export async function updateGalleryItem(
       maxOrder
     );
 
-    /*
-     * Si la posición solicitada ya pertenece a otra foto,
-     * intercambiamos ambas posiciones.
-     *
-     * Ejemplo:
-     * foto 8 pasa a 1
-     * foto que estaba en 1 pasa automáticamente a 8
-     */
     if (requestedOrder !== currentItem.sort_order) {
       const { data: targetItem, error: targetError } =
         await supabase
@@ -502,10 +485,6 @@ export async function deleteGalleryItem(
     );
   }
 
-  /*
-   * Si se elimina, por ejemplo, la foto 2,
-   * las siguientes pasan automáticamente a 2, 3, 4...
-   */
   await renumberCategory(
     supabase,
     category
