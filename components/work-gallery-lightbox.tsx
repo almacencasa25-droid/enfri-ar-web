@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import type { WorkGalleryItem } from "@/lib/work-gallery";
 
@@ -14,12 +14,19 @@ type WorkGalleryLightboxProps = {
   onChange: (index: number) => void;
 };
 
+const SWIPE_DISTANCE = 50;
+
 export function WorkGalleryLightbox({
   items,
   currentIndex,
   onClose,
   onChange,
 }: WorkGalleryLightboxProps) {
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchCurrentX = useRef<number | null>(null);
+  const touchCurrentY = useRef<number | null>(null);
+
   const currentItem = items[currentIndex];
 
   const goPrevious = () => {
@@ -74,6 +81,67 @@ export function WorkGalleryLightbox({
     };
   });
 
+  const handleTouchStart = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
+    const touch = event.touches[0];
+
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+
+    touchCurrentX.current = touch.clientX;
+    touchCurrentY.current = touch.clientY;
+  };
+
+  const handleTouchMove = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
+    const touch = event.touches[0];
+
+    touchCurrentX.current = touch.clientX;
+    touchCurrentY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = () => {
+    if (
+      touchStartX.current === null ||
+      touchStartY.current === null ||
+      touchCurrentX.current === null ||
+      touchCurrentY.current === null
+    ) {
+      return;
+    }
+
+    const differenceX =
+      touchCurrentX.current -
+      touchStartX.current;
+
+    const differenceY =
+      touchCurrentY.current -
+      touchStartY.current;
+
+    const isHorizontalSwipe =
+      Math.abs(differenceX) >
+      Math.abs(differenceY);
+
+    if (
+      items.length > 1 &&
+      isHorizontalSwipe &&
+      Math.abs(differenceX) >= SWIPE_DISTANCE
+    ) {
+      if (differenceX < 0) {
+        goNext();
+      } else {
+        goPrevious();
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+    touchCurrentX.current = null;
+    touchCurrentY.current = null;
+  };
+
   if (!currentItem) {
     return null;
   }
@@ -91,6 +159,9 @@ export function WorkGalleryLightbox({
         onClick={(event) =>
           event.stopPropagation()
         }
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div className={styles.imageWrap}>
           <Image
