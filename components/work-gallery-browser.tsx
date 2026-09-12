@@ -3,11 +3,14 @@
 import Image from "next/image";
 import { useState } from "react";
 
+import { WorkGalleryLightbox } from "@/components/work-gallery-lightbox";
+
 import type {
   WorkGalleryCategory,
   WorkGalleryItem,
 } from "@/lib/work-gallery";
 
+import lightboxStyles from "./work-gallery-lightbox.module.css";
 import styles from "./work-gallery-section.module.css";
 
 type GalleryDefinition = {
@@ -44,6 +47,9 @@ export function WorkGalleryBrowser({
   const [activeCategory, setActiveCategory] =
     useState<WorkGalleryCategory | null>(null);
 
+  const [lightboxIndex, setLightboxIndex] =
+    useState<number | null>(null);
+
   const activeGallery = galleries.find(
     (gallery) =>
       gallery.category === activeCategory
@@ -61,69 +67,110 @@ export function WorkGalleryBrowser({
       );
 
     return (
-      <div className={styles.galleryPanel}>
-        <div className={styles.galleryToolbar}>
-          <h3 className={styles.galleryTitle}>
-            {activeGallery.title}
-          </h3>
+      <>
+        <div className={styles.galleryPanel}>
+          <div className={styles.galleryToolbar}>
+            <h3 className={styles.galleryTitle}>
+              {activeGallery.title}
+            </h3>
 
-          <button
-            type="button"
-            className={styles.backButton}
-            onClick={() => setActiveCategory(null)}
-          >
-            ← Volver a galerías
-          </button>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={() => {
+                setLightboxIndex(null);
+                setActiveCategory(null);
+              }}
+            >
+              ← Volver a galerías
+            </button>
+          </div>
+
+          {galleryWorks.length > 0 ? (
+            <div className={styles.galleryScroll}>
+              <div className={styles.galleryGrid}>
+                {galleryWorks.map(
+                  (work, index) => (
+                    <article
+                      className={styles.photoCard}
+                      key={work.id}
+                    >
+                      <button
+                        type="button"
+                        className={
+                          lightboxStyles.photoButton
+                        }
+                        onClick={() =>
+                          setLightboxIndex(index)
+                        }
+                        aria-label={`Ampliar foto: ${work.title}`}
+                      >
+                        <div
+                          className={
+                            styles.photoImageWrap
+                          }
+                        >
+                          <Image
+                            src={work.image_url}
+                            alt={work.alt_text}
+                            fill
+                            sizes="(max-width: 639px) 100vw, (max-width: 959px) 50vw, 33vw"
+                            className={
+                              styles.photoImage
+                            }
+                          />
+                        </div>
+                      </button>
+
+                      <div
+                        className={styles.photoBody}
+                      >
+                        <h4
+                          className={
+                            styles.photoTitle
+                          }
+                        >
+                          {work.title}
+                        </h4>
+                      </div>
+                    </article>
+                  )
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.placeholder}>
+              <p
+                className={
+                  styles.placeholderTitle
+                }
+              >
+                Próximamente
+              </p>
+
+              <p
+                className={
+                  styles.placeholderText
+                }
+              >
+                Todavía no hay fotografías cargadas
+                en esta galería.
+              </p>
+            </div>
+          )}
         </div>
 
-        {galleryWorks.length > 0 ? (
-          <div className={styles.galleryScroll}>
-            <div className={styles.galleryGrid}>
-              {galleryWorks.map((work) => (
-                <article
-                  className={styles.photoCard}
-                  key={work.id}
-                >
-                  <div
-                    className={styles.photoImageWrap}
-                  >
-                    <Image
-                      src={work.image_url}
-                      alt={work.alt_text}
-                      fill
-                      sizes="(max-width: 639px) 100vw, (max-width: 959px) 50vw, 33vw"
-                      className={styles.photoImage}
-                    />
-                  </div>
-
-                  <div className={styles.photoBody}>
-                    <h4
-                      className={styles.photoTitle}
-                    >
-                      {work.title}
-                    </h4>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className={styles.placeholder}>
-            <p
-              className={styles.placeholderTitle}
-            >
-              Próximamente
-            </p>
-
-            <p
-              className={styles.placeholderText}
-            >
-              Todavía no hay fotografías cargadas
-              en esta galería.
-            </p>
-          </div>
-        )}
-      </div>
+        {lightboxIndex !== null ? (
+          <WorkGalleryLightbox
+            items={galleryWorks}
+            currentIndex={lightboxIndex}
+            onClose={() =>
+              setLightboxIndex(null)
+            }
+            onChange={setLightboxIndex}
+          />
+        ) : null}
+      </>
     );
   }
 
@@ -150,35 +197,48 @@ export function WorkGalleryBrowser({
             type="button"
             className={styles.folderButton}
             key={gallery.category}
-            onClick={() =>
-              setActiveCategory(gallery.category)
-            }
+            onClick={() => {
+              setLightboxIndex(null);
+              setActiveCategory(gallery.category);
+            }}
             aria-label={`Abrir galería ${gallery.title}`}
           >
             {cover ? (
               <div
-                className={styles.folderImageWrap}
+                className={
+                  styles.folderImageWrap
+                }
               >
                 <Image
                   src={cover.image_url}
                   alt={cover.alt_text}
                   fill
                   sizes="(max-width: 639px) 100vw, (max-width: 959px) 50vw, 25vw"
-                  className={styles.folderImage}
+                  className={
+                    styles.folderImage
+                  }
                 />
               </div>
             ) : (
-              <div className={styles.folderEmpty}>
+              <div
+                className={styles.folderEmpty}
+              >
                 Sin fotos cargadas
               </div>
             )}
 
-            <div className={styles.folderOverlay}>
-              <h3 className={styles.folderTitle}>
+            <div
+              className={styles.folderOverlay}
+            >
+              <h3
+                className={styles.folderTitle}
+              >
                 {gallery.title}
               </h3>
 
-              <span className={styles.folderCount}>
+              <span
+                className={styles.folderCount}
+              >
                 {galleryWorks.length} foto
                 {galleryWorks.length === 1
                   ? ""
