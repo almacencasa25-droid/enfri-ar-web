@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import CredencialTecnico from "./credencial/CredencialTecnico";
 import TecnicoEditor from "./TecnicoEditor";
 
 export const metadata = {
@@ -143,7 +144,8 @@ export default async function EquipoTecnicoPage() {
             }}
           >
             Administrá técnicos, matrícula,
-            vencimiento, disponibilidad y foto.
+            vencimiento, disponibilidad, foto y
+            credencial.
           </p>
         </header>
 
@@ -452,9 +454,23 @@ export default async function EquipoTecnicoPage() {
                         </div>
                       </div>
 
-                      <TecnicoEditor
-                        tecnico={tecnico}
-                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "10px",
+                          alignItems: "flex-start",
+                          marginTop: "14px",
+                        }}
+                      >
+                        <TecnicoEditor
+                          tecnico={tecnico}
+                        />
+
+                        <CredencialTecnico
+                          tecnico={tecnico}
+                        />
+                      </div>
                     </article>
                   );
                 }
