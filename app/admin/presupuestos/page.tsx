@@ -65,7 +65,7 @@ export default function PresupuestosPage() {
       titulo: "Técnicos",
       descripcion:
         "Administrar técnicos, matrícula, vencimiento, especialidad, foto y credencial.",
-      href: "/admin/presupuestos/tecnicos",
+      href: "/admin/presupuestos/equipo-tecnico",
       icono: HardHat,
     },
     {
