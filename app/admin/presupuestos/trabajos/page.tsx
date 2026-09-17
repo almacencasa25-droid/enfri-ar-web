@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import TrabajoEditor from "./TrabajoEditor";
+
 export const metadata = {
   title: "Trabajos y precios",
 };
@@ -29,6 +31,13 @@ export default async function TrabajosPreciosPage() {
       ascending: true,
     });
 
+  const cardStyle = {
+    border: "1px solid rgba(38, 40, 42, 0.12)",
+    borderRadius: "18px",
+    background: "rgba(255, 253, 248, 0.92)",
+    boxShadow: "0 14px 35px rgba(38, 40, 42, 0.08)",
+  };
+
   return (
     <main
       style={{
@@ -45,14 +54,8 @@ export default async function TrabajosPreciosPage() {
       >
         <header
           style={{
+            ...cardStyle,
             padding: "24px",
-            border:
-              "1px solid rgba(38, 40, 42, 0.12)",
-            borderRadius: "18px",
-            background:
-              "rgba(255, 253, 248, 0.92)",
-            boxShadow:
-              "0 14px 35px rgba(38, 40, 42, 0.08)",
           }}
         >
           <p
@@ -72,8 +75,7 @@ export default async function TrabajosPreciosPage() {
             style={{
               margin: 0,
               color: "var(--foreground)",
-              fontSize:
-                "clamp(1.8rem, 5vw, 2.5rem)",
+              fontSize: "clamp(1.8rem, 5vw, 2.5rem)",
             }}
           >
             Trabajos y precios
@@ -86,10 +88,41 @@ export default async function TrabajosPreciosPage() {
               lineHeight: 1.6,
             }}
           >
-            Base de trabajos precargados para utilizar
-            posteriormente al crear presupuestos.
+            Cargá y administrá los trabajos que después vas a seleccionar
+            automáticamente al crear un presupuesto.
           </p>
         </header>
+
+        <section
+          style={{
+            ...cardStyle,
+            marginTop: "20px",
+            padding: "22px",
+          }}
+        >
+          <h2
+            style={{
+              margin: "0 0 6px",
+              color: "var(--foreground)",
+              fontSize: "1.25rem",
+            }}
+          >
+            Agregar nuevo trabajo
+          </h2>
+
+          <p
+            style={{
+              margin: "0 0 18px",
+              color: "var(--muted)",
+              lineHeight: 1.5,
+            }}
+          >
+            El precio cargado acá será el valor sugerido. Después podrá
+            modificarse dentro de un presupuesto sin cambiar este precio base.
+          </p>
+
+          <TrabajoEditor />
+        </section>
 
         {error ? (
           <div
@@ -97,8 +130,7 @@ export default async function TrabajosPreciosPage() {
               marginTop: "20px",
               padding: "18px",
               borderRadius: "14px",
-              background:
-                "rgba(180, 40, 40, 0.08)",
+              background: "rgba(180, 40, 40, 0.08)",
               color: "#8b1f1f",
               fontWeight: 700,
             }}
@@ -109,26 +141,41 @@ export default async function TrabajosPreciosPage() {
 
         <section
           style={{
+            ...cardStyle,
             marginTop: "20px",
             padding: "22px",
-            border:
-              "1px solid rgba(38, 40, 42, 0.12)",
-            borderRadius: "18px",
-            background:
-              "rgba(255, 253, 248, 0.92)",
-            boxShadow:
-              "0 14px 35px rgba(38, 40, 42, 0.08)",
           }}
         >
-          <h2
+          <div
             style={{
-              margin: "0 0 16px",
-              color: "var(--foreground)",
-              fontSize: "1.25rem",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "10px",
+              marginBottom: "16px",
             }}
           >
-            Trabajos cargados
-          </h2>
+            <h2
+              style={{
+                margin: 0,
+                color: "var(--foreground)",
+                fontSize: "1.25rem",
+              }}
+            >
+              Trabajos cargados
+            </h2>
+
+            <span
+              style={{
+                color: "var(--muted)",
+                fontSize: "0.88rem",
+                fontWeight: 700,
+              }}
+            >
+              {trabajos?.length ?? 0} registrados
+            </span>
+          </div>
 
           {!trabajos || trabajos.length === 0 ? (
             <p
@@ -151,20 +198,19 @@ export default async function TrabajosPreciosPage() {
                   key={trabajo.id}
                   style={{
                     padding: "16px",
-                    border:
-                      "1px solid rgba(38, 40, 42, 0.1)",
+                    border: "1px solid rgba(38, 40, 42, 0.1)",
                     borderRadius: "13px",
-                    opacity: trabajo.activo
-                      ? 1
-                      : 0.6,
+                    background: trabajo.activo
+                      ? "rgba(255, 255, 255, 0.7)"
+                      : "rgba(38, 40, 42, 0.035)",
+                    opacity: trabajo.activo ? 1 : 0.72,
                   }}
                 >
                   <div
                     style={{
                       display: "flex",
                       flexWrap: "wrap",
-                      justifyContent:
-                        "space-between",
+                      justifyContent: "space-between",
                       gap: "10px",
                     }}
                   >
@@ -177,8 +223,7 @@ export default async function TrabajosPreciosPage() {
                       <h3
                         style={{
                           margin: "0 0 6px",
-                          color:
-                            "var(--foreground)",
+                          color: "var(--foreground)",
                           fontSize: "1rem",
                         }}
                       >
@@ -190,6 +235,7 @@ export default async function TrabajosPreciosPage() {
                           margin: 0,
                           color: "var(--muted)",
                           lineHeight: 1.5,
+                          overflowWrap: "anywhere",
                         }}
                       >
                         {trabajo.detalle}
@@ -198,15 +244,14 @@ export default async function TrabajosPreciosPage() {
 
                     <strong
                       style={{
-                        color:
-                          "var(--foreground)",
+                        color: "var(--foreground)",
                         whiteSpace: "nowrap",
                       }}
                     >
                       $
-                      {Number(
-                        trabajo.precio_unitario
-                      ).toLocaleString("es-AR")}
+                      {Number(trabajo.precio_unitario).toLocaleString(
+                        "es-AR"
+                      )}
                     </strong>
                   </div>
 
@@ -216,34 +261,36 @@ export default async function TrabajosPreciosPage() {
                       flexWrap: "wrap",
                       gap: "8px",
                       marginTop: "12px",
+                      color: "var(--muted)",
                       fontSize: "0.82rem",
                     }}
                   >
-                    <span>
-                      {trabajo.categoria ||
-                        "Sin categoría"}
-                    </span>
+                    <span>{trabajo.categoria || "Sin categoría"}</span>
 
                     <span>·</span>
 
                     <span>
-                      {trabajo.tipo ===
-                      "mano_obra"
+                      {trabajo.tipo === "mano_obra"
                         ? "Mano de obra"
-                        : trabajo.tipo ===
-                            "material"
+                        : trabajo.tipo === "material"
                           ? "Material"
                           : "Otro"}
                     </span>
 
                     <span>·</span>
 
-                    <strong>
-                      {trabajo.activo
-                        ? "Activo"
-                        : "Inactivo"}
+                    <strong
+                      style={{
+                        color: trabajo.activo
+                          ? "#236b43"
+                          : "#8a4f1d",
+                      }}
+                    >
+                      {trabajo.activo ? "Activo" : "Inactivo"}
                     </strong>
                   </div>
+
+                  <TrabajoEditor trabajo={trabajo} />
                 </article>
               ))}
             </div>
