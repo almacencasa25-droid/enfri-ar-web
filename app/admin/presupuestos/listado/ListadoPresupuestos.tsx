@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useRef,
@@ -42,16 +43,22 @@ function nombreEstado(estado: string) {
   switch (estado) {
     case "borrador":
       return "Borrador";
+
     case "enviado":
       return "Enviado";
+
     case "aceptado":
       return "Aceptado";
+
     case "rechazado":
       return "Rechazado";
+
     case "realizado":
       return "Realizado";
+
     case "anulado":
       return "Anulado";
+
     default:
       return estado;
   }
@@ -157,6 +164,7 @@ export default function ListadoPresupuestos() {
           resultado.error ||
             "No se pudo cambiar el estado."
         );
+
         return;
       }
 
@@ -194,6 +202,7 @@ export default function ListadoPresupuestos() {
           resultado.error ||
             "No se pudo duplicar el presupuesto."
         );
+
         return;
       }
 
@@ -231,6 +240,7 @@ export default function ListadoPresupuestos() {
           resultado.error ||
             "No se pudo anular el presupuesto."
         );
+
         return;
       }
 
@@ -278,6 +288,7 @@ export default function ListadoPresupuestos() {
           resultado.error ||
             "No se pudo eliminar el presupuesto."
         );
+
         return;
       }
 
@@ -299,6 +310,7 @@ export default function ListadoPresupuestos() {
       <section style={boxStyle}>
         <label style={labelStyle}>
           Buscar presupuesto
+
           <input
             value={busqueda}
             onChange={(event) =>
@@ -487,6 +499,13 @@ export default function ListadoPresupuestos() {
                       "center",
                   }}
                 >
+                  <Link
+                    href={`/admin/presupuestos/listado/${presupuesto.id}/editar`}
+                    style={linkButtonStyle}
+                  >
+                    Modificar
+                  </Link>
+
                   <select
                     value={
                       presupuesto.estado
@@ -566,7 +585,9 @@ export default function ListadoPresupuestos() {
                         presupuesto
                       )
                     }
-                    style={deleteButtonStyle}
+                    style={
+                      deleteButtonStyle
+                    }
                   >
                     Eliminar
                   </button>
@@ -641,6 +662,23 @@ const buttonStyle = {
   fontSize: "0.82rem",
   fontWeight: 800,
   cursor: "pointer",
+};
+
+const linkButtonStyle = {
+  minHeight: "38px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxSizing: "border-box" as const,
+  padding: "7px 12px",
+  border:
+    "1px solid rgba(38, 40, 42, 0.16)",
+  borderRadius: "9px",
+  background: "var(--foreground)",
+  color: "#ffffff",
+  fontSize: "0.82rem",
+  fontWeight: 800,
+  textDecoration: "none",
 };
 
 const deleteButtonStyle = {
