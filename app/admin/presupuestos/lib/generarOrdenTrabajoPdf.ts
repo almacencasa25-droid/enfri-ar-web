@@ -545,6 +545,11 @@ export async function generarOrdenTrabajoPdf(
       datos.numero_orden
     );
 
+  const numeroPresupuesto =
+    texto(
+      datos.numero_presupuesto
+    );
+
   const varianteVisible =
     variante === "original"
       ? "ORIGINAL"
@@ -646,6 +651,20 @@ export async function generarOrdenTrabajoPdf(
           COLOR_MUTED,
       }
     );
+
+    if (numeroPresupuesto) {
+      textoDerecha(
+        page,
+        `Según Presupuesto N° ${numeroPresupuesto}`,
+        PAGE_WIDTH -
+          MARGIN,
+        PAGE_HEIGHT -
+          59,
+        bold,
+        7,
+        COLOR_MUTED
+      );
+    }
 
     lineaHorizontal(
       page,
@@ -852,13 +871,29 @@ export async function generarOrdenTrabajoPdf(
     COLOR_MUTED
   );
 
+  if (numeroPresupuesto) {
+    page.drawText(
+      `Según Presupuesto N° ${numeroPresupuesto}`,
+      {
+        x: MARGIN,
+        y: y - 14,
+        size: 8,
+        font: bold,
+        color:
+          COLOR_MUTED,
+      }
+    );
+  }
+
   /*
    * =====================================================
    * DATOS CLIENTE
    * =====================================================
    */
 
-  y -= 20;
+  y -= numeroPresupuesto
+    ? 34
+    : 20;
 
   const clienteTop =
     y;
@@ -1232,25 +1267,6 @@ export async function generarOrdenTrabajoPdf(
     }
   );
 
-  const numeroPresupuesto =
-    texto(
-      datos.numero_presupuesto
-    );
-
-  if (numeroPresupuesto) {
-    textoDerecha(
-      page,
-      `Presupuesto Nº ${numeroPresupuesto}`,
-      PAGE_WIDTH -
-        MARGIN -
-        9,
-      y - 26,
-      regular,
-      7.5,
-      COLOR_MUTED
-    );
-  }
-
   y -= 46;
 
   /*
@@ -1529,11 +1545,17 @@ export async function generarOrdenTrabajoPdf(
       );
 
       const referencia =
-        `${numeroOrden} | ${varianteVisible} | Hoja ${
-          indice + 1
-        } de ${
-          paginas.length
-        }`;
+        numeroPresupuesto
+          ? `${numeroOrden} | Presupuesto N° ${numeroPresupuesto} | ${varianteVisible} | Hoja ${
+              indice + 1
+            } de ${
+              paginas.length
+            }`
+          : `${numeroOrden} | ${varianteVisible} | Hoja ${
+              indice + 1
+            } de ${
+              paginas.length
+            }`;
 
       textoDerecha(
         pagina,
