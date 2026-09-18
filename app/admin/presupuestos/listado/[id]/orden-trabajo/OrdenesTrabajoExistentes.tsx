@@ -74,8 +74,20 @@ export default function OrdenesTrabajoExistentes({
   ] = useState("");
 
   const [
+    modoProcesando,
+    setModoProcesando,
+  ] = useState<
+    "recuperar" | "regenerar" | ""
+  >("");
+
+  const [
     error,
     setError,
+  ] = useState("");
+
+  const [
+    mensaje,
+    setMensaje,
   ] = useState("");
 
   const [
@@ -94,19 +106,43 @@ export default function OrdenesTrabajoExistentes({
   ] = useState("");
 
   async function generarPdfs(
-    orden: OrdenExistente
+    orden: OrdenExistente,
+    regenerar = false
   ) {
     setError("");
+    setMensaje("");
+
+    if (regenerar) {
+      const confirmar =
+        window.confirm(
+          `¿Querés regenerar el ORIGINAL y la COPIA de ${orden.numeroOrden}? Se actualizarán los PDF de esta misma Orden de Trabajo, sin crear una nueva.`
+        );
+
+      if (!confirmar) {
+        return;
+      }
+    }
+
     setProcesandoId(
       orden.id
     );
 
+    setModoProcesando(
+      regenerar
+        ? "regenerar"
+        : "recuperar"
+    );
+
     const resultado =
       await generarOrdenTrabajoPdfsAction(
-        orden.id
+        orden.id,
+        {
+          regenerar,
+        }
       );
 
     setProcesandoId("");
+    setModoProcesando("");
 
     if (!resultado.ok) {
       setError(
@@ -143,6 +179,12 @@ export default function OrdenesTrabajoExistentes({
           },
         },
       })
+    );
+
+    setMensaje(
+      regenerar
+        ? `${orden.numeroOrden}: ORIGINAL y COPIA regenerados correctamente.`
+        : `${orden.numeroOrden}: ORIGINAL y COPIA disponibles.`
     );
   }
 
@@ -262,9 +304,9 @@ export default function OrdenesTrabajoExistentes({
             lineHeight: 1.5,
           }}
         >
-          Podés recuperar o
-          generar nuevamente los
-          documentos sin crear
+          Podés recuperar los
+          documentos existentes o
+          regenerarlos sin crear
           otra Orden de Trabajo.
         </p>
       </div>
@@ -276,6 +318,16 @@ export default function OrdenesTrabajoExistentes({
           }
         >
           {error}
+        </div>
+      ) : null}
+
+      {mensaje ? (
+        <div
+          style={
+            successStyle
+          }
+        >
+          {mensaje}
         </div>
       ) : null}
 
@@ -377,26 +429,59 @@ export default function OrdenesTrabajoExistentes({
                 </div>
 
                 {!pdfs ? (
-                  <button
-                    type="button"
-                    disabled={
-                      Boolean(
-                        procesandoId
-                      )
-                    }
-                    onClick={() =>
-                      generarPdfs(
-                        orden
-                      )
-                    }
+                  <div
                     style={
-                      primaryButtonStyle
+                      actionRowStyle
                     }
                   >
-                    {procesando
-                      ? "Generando ORIGINAL y COPIA..."
-                      : "Generar / recuperar PDFs"}
-                  </button>
+                    <button
+                      type="button"
+                      disabled={
+                        Boolean(
+                          procesandoId
+                        )
+                      }
+                      onClick={() =>
+                        generarPdfs(
+                          orden,
+                          false
+                        )
+                      }
+                      style={
+                        primaryButtonStyle
+                      }
+                    >
+                      {procesando &&
+                      modoProcesando ===
+                        "recuperar"
+                        ? "Recuperando PDFs..."
+                        : "Generar / recuperar PDFs"}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={
+                        Boolean(
+                          procesandoId
+                        )
+                      }
+                      onClick={() =>
+                        generarPdfs(
+                          orden,
+                          true
+                        )
+                      }
+                      style={
+                        regenerateButtonStyle
+                      }
+                    >
+                      {procesando &&
+                      modoProcesando ===
+                        "regenerar"
+                        ? "Regenerando PDFs..."
+                        : "Regenerar PDFs"}
+                    </button>
+                  </div>
                 ) : (
                   <div
                     style={{
@@ -515,6 +600,30 @@ export default function OrdenesTrabajoExistentes({
                         </button>
                       </div>
                     </div>
+
+                    <button
+                      type="button"
+                      disabled={
+                        Boolean(
+                          procesandoId
+                        )
+                      }
+                      onClick={() =>
+                        generarPdfs(
+                          orden,
+                          true
+                        )
+                      }
+                      style={
+                        regenerateButtonStyle
+                      }
+                    >
+                      {procesando &&
+                      modoProcesando ===
+                        "regenerar"
+                        ? "Regenerando ORIGINAL y COPIA..."
+                        : "Regenerar ORIGINAL y COPIA"}
+                    </button>
                   </div>
                 )}
               </article>
@@ -583,6 +692,15 @@ const datoStyle = {
     "0.85rem",
 };
 
+const actionRowStyle = {
+  display: "flex",
+
+  flexWrap:
+    "wrap" as const,
+
+  gap: "9px",
+};
+
 const primaryButtonStyle = {
   minHeight:
     "42px",
@@ -600,6 +718,33 @@ const primaryButtonStyle = {
 
   color:
     "#ffffff",
+
+  font:
+    "inherit",
+
+  fontWeight: 800,
+
+  cursor: "pointer",
+};
+
+const regenerateButtonStyle = {
+  minHeight:
+    "42px",
+
+  padding:
+    "9px 14px",
+
+  border:
+    "1px solid rgba(192, 110, 25, 0.35)",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "rgba(192, 110, 25, 0.10)",
+
+  color:
+    "#9a5814",
 
   font:
     "inherit",
