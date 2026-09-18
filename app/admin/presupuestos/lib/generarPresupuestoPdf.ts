@@ -82,21 +82,34 @@ export type PresupuestoPdfSnapshot = {
   empresa?: PresupuestoPdfEmpresa | null;
 };
 
-type FilaCalculada = {
-  item: PresupuestoPdfItem;
-  nombreLineas: string[];
-  detalleLineas: string[];
-  altura: number;
+type LineaServicio = {
+  texto: string;
+  negrita: boolean;
 };
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
 const MARGIN = 34;
+
 const CONTENT_WIDTH =
   PAGE_WIDTH - MARGIN * 2;
 
-const FOOTER_Y = 37;
+const FOOTER_LINE_Y = 55;
+const FOOTER_TEXT_Y = 37;
+
+/*
+ * Las páginas intermedias pueden aprovechar
+ * casi toda la hoja para detalles.
+ */
+const SERVICE_BOTTOM_NORMAL = 82;
+
+/*
+ * En la última hoja reservamos este espacio
+ * para condiciones y totales.
+ */
+const SUMMARY_TOP = 205;
+const SUMMARY_BOTTOM = 67;
 
 const COLOR_DARK = rgb(
   0.09,
@@ -147,12 +160,9 @@ function numero(
     | null
     | undefined
 ) {
-  const convertido =
-    Number(valor);
+  const convertido = Number(valor);
 
-  return Number.isFinite(
-    convertido
-  )
+  return Number.isFinite(convertido)
     ? convertido
     : 0;
 }
@@ -393,7 +403,7 @@ function envolverTexto(
     }
   }
 
-  return resultado.length
+  return resultado.length > 0
     ? resultado
     : [""];
 }
@@ -414,7 +424,9 @@ function textoDerecha(
     );
 
   page.drawText(valor, {
-    x: derecha - ancho,
+    x:
+      derecha -
+      ancho,
     y,
     font,
     size,
@@ -527,7 +539,8 @@ function dibujarTextoAjustado({
   sizeInicial: number;
   sizeMinimo: number;
 }) {
-  let size = sizeInicial;
+  let size =
+    sizeInicial;
 
   let lineas =
     envolverTexto(
@@ -538,7 +551,8 @@ function dibujarTextoAjustado({
     );
 
   while (
-    size > sizeMinimo
+    size >
+    sizeMinimo
   ) {
     const lineHeight =
       size + 2;
@@ -569,7 +583,8 @@ function dibujarTextoAjustado({
     Math.max(
       1,
       Math.floor(
-        alto / lineHeight
+        alto /
+          lineHeight
       )
     );
 
@@ -582,7 +597,7 @@ function dibujarTextoAjustado({
   if (
     lineas.length >
       maxLineas &&
-    visibles.length
+    visibles.length > 0
   ) {
     const ultima =
       visibles.length - 1;
@@ -598,7 +613,8 @@ function dibujarTextoAjustado({
 
   dibujarLineas({
     page,
-    lineas: visibles,
+    lineas:
+      visibles,
     x,
     y: yTop,
     font,
@@ -606,89 +622,6 @@ function dibujarTextoAjustado({
     lineHeight,
     color,
   });
-
-  return {
-    size,
-    lineas: visibles,
-  };
-}
-
-function calcularFilas({
-  items,
-  bold,
-  regular,
-  nombreSize,
-  detalleSize,
-  lineHeight,
-  anchoDetalle,
-}: {
-  items: PresupuestoPdfItem[];
-  bold: PDFFont;
-  regular: PDFFont;
-  nombreSize: number;
-  detalleSize: number;
-  lineHeight: number;
-  anchoDetalle: number;
-}) {
-  const filas:
-    FilaCalculada[] = [];
-
-  let alturaTotal = 0;
-
-  for (
-    const item of items
-  ) {
-    const nombreLineas =
-      envolverTexto(
-        texto(
-          item.nombre_corto
-        ) || "Trabajo",
-        bold,
-        nombreSize,
-        anchoDetalle
-      );
-
-    const detalle =
-      texto(
-        item.detalle
-      );
-
-    const detalleLineas =
-      detalle
-        ? envolverTexto(
-            detalle,
-            regular,
-            detalleSize,
-            anchoDetalle
-          )
-        : [];
-
-    const cantidadLineas =
-      nombreLineas.length +
-      detalleLineas.length;
-
-    const altura =
-      Math.max(
-        25,
-        10 +
-          cantidadLineas *
-            lineHeight
-      );
-
-    filas.push({
-      item,
-      nombreLineas,
-      detalleLineas,
-      altura,
-    });
-
-    alturaTotal += altura;
-  }
-
-  return {
-    filas,
-    alturaTotal,
-  };
 }
 
 export async function generarPresupuestoPdf(
@@ -711,12 +644,6 @@ export async function generarPresupuestoPdf(
 
   const logo =
     await cargarLogo(pdf);
-
-  const page =
-    pdf.addPage([
-      PAGE_WIDTH,
-      PAGE_HEIGHT,
-    ]);
 
   const empresa =
     snapshot.empresa || {};
@@ -758,6 +685,12 @@ export async function generarPresupuestoPdf(
     ) ||
     "Enfri.Ar Refrigeración";
 
+  const web =
+    texto(
+      empresa.website
+    ) ||
+    "www.enfriar.com.ar";
+
   pdf.setTitle(
     `Presupuesto ${numeroVisible}`
   );
@@ -776,430 +709,7 @@ export async function generarPresupuestoPdf(
 
   /*
    * =====================================================
-   * ENCABEZADO COMPACTO
-   * =====================================================
-   */
-
-  page.drawRectangle({
-    x: 0,
-    y:
-      PAGE_HEIGHT -
-      9,
-    width:
-      PAGE_WIDTH,
-    height: 9,
-    color:
-      COLOR_BLUE,
-  });
-
-  page.drawRectangle({
-    x:
-      PAGE_WIDTH -
-      135,
-    y: 0,
-    width: 135,
-    height: 5,
-    color:
-      COLOR_ORANGE,
-  });
-
-  if (logo) {
-    const escala =
-      Math.min(
-        105 /
-          logo.width,
-        43 /
-          logo.height
-      );
-
-    page.drawImage(
-      logo,
-      {
-        x: MARGIN,
-        y:
-          PAGE_HEIGHT -
-          64,
-        width:
-          logo.width *
-          escala,
-        height:
-          logo.height *
-          escala,
-      }
-    );
-  } else {
-    page.drawText(
-      "Enfri.Ar",
-      {
-        x: MARGIN,
-        y:
-          PAGE_HEIGHT -
-          54,
-        size: 20,
-        font: bold,
-        color:
-          COLOR_DARK,
-      }
-    );
-  }
-
-  let empresaY =
-    PAGE_HEIGHT -
-    32;
-
-  const empresaLineas = [
-    empresaNombre,
-    texto(
-      empresa.phone
-    )
-      ? `Tel.: ${texto(
-          empresa.phone
-        )}`
-      : "",
-    texto(
-      empresa.email
-    ),
-    texto(
-      empresa.website
-    ),
-  ].filter(Boolean);
-
-  for (
-    let i = 0;
-    i <
-    empresaLineas.length;
-    i += 1
-  ) {
-    textoDerecha(
-      page,
-      empresaLineas[i],
-      PAGE_WIDTH -
-        MARGIN,
-      empresaY,
-      i === 0
-        ? bold
-        : regular,
-      i === 0
-        ? 9
-        : 7.5,
-      i === 0
-        ? COLOR_DARK
-        : COLOR_MUTED
-    );
-
-    empresaY -=
-      i === 0
-        ? 12
-        : 10;
-  }
-
-  let y =
-    PAGE_HEIGHT -
-    87;
-
-  lineaHorizontal(
-    page,
-    y,
-    COLOR_BLUE
-  );
-
-  y -= 24;
-
-  page.drawText(
-    "PRESUPUESTO",
-    {
-      x: MARGIN,
-      y,
-      size: 18,
-      font: bold,
-      color:
-        COLOR_DARK,
-    }
-  );
-
-  textoDerecha(
-    page,
-    `Nro. ${numeroVisible}`,
-    PAGE_WIDTH -
-      MARGIN,
-    y + 1,
-    bold,
-    13,
-    COLOR_BLUE
-  );
-
-  y -= 18;
-
-  page.drawText(
-    `Fecha: ${fechaArgentina(
-      snapshot.fecha
-    )}`,
-    {
-      x: MARGIN,
-      y,
-      size: 8,
-      font: regular,
-      color:
-        COLOR_MUTED,
-    }
-  );
-
-  textoDerecha(
-    page,
-    `Version ${version}`,
-    PAGE_WIDTH -
-      MARGIN,
-    y,
-    regular,
-    8,
-    COLOR_MUTED
-  );
-
-  /*
-   * =====================================================
-   * CLIENTE COMPACTO
-   * =====================================================
-   */
-
-  y -= 18;
-
-  const clienteTop =
-    y;
-
-  const clienteHeight =
-    67;
-
-  page.drawRectangle({
-    x: MARGIN,
-    y:
-      clienteTop -
-      clienteHeight,
-    width:
-      CONTENT_WIDTH,
-    height:
-      clienteHeight,
-    color:
-      COLOR_LIGHT,
-    borderColor:
-      COLOR_BORDER,
-    borderWidth: 0.6,
-  });
-
-  const nombre =
-    nombreCliente(
-      cliente
-    );
-
-  const documento =
-    texto(
-      cliente.cuit
-    )
-      ? `CUIT: ${texto(
-          cliente.cuit
-        )}`
-      : texto(
-            cliente.dni
-          )
-        ? `DNI: ${texto(
-            cliente.dni
-          )}`
-        : "";
-
-  const direccion = [
-    texto(
-      cliente.direccion
-    ),
-    texto(
-      cliente.localidad
-    ),
-  ]
-    .filter(Boolean)
-    .join(" - ");
-
-  const contacto = [
-    texto(
-      cliente.telefono
-    ),
-    texto(
-      cliente.email
-    ),
-  ]
-    .filter(Boolean)
-    .join(" - ");
-
-  page.drawText(
-    "CLIENTE",
-    {
-      x:
-        MARGIN +
-        9,
-      y:
-        clienteTop -
-        14,
-      size: 6.8,
-      font: bold,
-      color:
-        COLOR_MUTED,
-    }
-  );
-
-  page.drawText(
-    nombre,
-    {
-      x:
-        MARGIN +
-        9,
-      y:
-        clienteTop -
-        27,
-      size: 9,
-      font: bold,
-      color:
-        COLOR_TEXT,
-    }
-  );
-
-  if (documento) {
-    page.drawText(
-      documento,
-      {
-        x:
-          MARGIN +
-          280,
-        y:
-          clienteTop -
-          27,
-        size: 8,
-        font: regular,
-        color:
-          COLOR_TEXT,
-      }
-    );
-  }
-
-  if (direccion) {
-    dibujarTextoAjustado({
-      page,
-      valor:
-        `Direccion: ${direccion}`,
-      x:
-        MARGIN +
-        9,
-      yTop:
-        clienteTop -
-        45,
-      ancho: 250,
-      alto: 18,
-      font: regular,
-      color:
-        COLOR_MUTED,
-      sizeInicial: 7.5,
-      sizeMinimo: 6,
-    });
-  }
-
-  if (contacto) {
-    dibujarTextoAjustado({
-      page,
-      valor:
-        `Contacto: ${contacto}`,
-      x:
-        MARGIN +
-        280,
-      yTop:
-        clienteTop -
-        45,
-      ancho:
-        CONTENT_WIDTH -
-        289,
-      alto: 18,
-      font: regular,
-      color:
-        COLOR_MUTED,
-      sizeInicial: 7.5,
-      sizeMinimo: 6,
-    });
-  }
-
-  y =
-    clienteTop -
-    clienteHeight -
-    12;
-
-  /*
-   * =====================================================
-   * DETALLE GENERAL
-   * =====================================================
-   */
-
-  if (
-    texto(
-      snapshot.detalle_corto
-    )
-  ) {
-    page.drawText(
-      "DETALLE GENERAL",
-      {
-        x: MARGIN,
-        y,
-        size: 6.8,
-        font: bold,
-        color:
-          COLOR_MUTED,
-      }
-    );
-
-    y -= 11;
-
-    const detalleGeneral =
-      envolverTexto(
-        texto(
-          snapshot.detalle_corto
-        ),
-        regular,
-        7.5,
-        CONTENT_WIDTH
-      );
-
-    const lineas =
-      detalleGeneral.slice(
-        0,
-        3
-      );
-
-    y =
-      dibujarLineas({
-        page,
-        lineas,
-        x: MARGIN,
-        y,
-        font: regular,
-        size: 7.5,
-        lineHeight: 9,
-        color:
-          COLOR_TEXT,
-      });
-
-    y -= 7;
-  }
-
-  /*
-   * =====================================================
-   * RESERVA INFERIOR
-   * =====================================================
-   */
-
-  const bottomTop = 205;
-
-  const tablaDisponible =
-    Math.max(
-      120,
-      y - bottomTop
-    );
-
-  /*
-   * =====================================================
-   * TABLA ADAPTABLE
+   * COLUMNAS DE SERVICIOS
    * =====================================================
    */
 
@@ -1212,104 +722,6 @@ export async function generarPresupuestoPdf(
     qtyWidth -
     unitWidth -
     subtotalWidth;
-
-  let nombreSize = 8;
-  let detalleSize = 7.2;
-  let lineHeight = 8.7;
-
-  let calculo =
-    calcularFilas({
-      items,
-      bold,
-      regular,
-      nombreSize,
-      detalleSize,
-      lineHeight,
-      anchoDetalle:
-        descWidth -
-        12,
-    });
-
-  const headerHeight =
-    21;
-
-  const tamanos = [
-    {
-      nombre: 8,
-      detalle: 7.2,
-      linea: 8.7,
-    },
-    {
-      nombre: 7.5,
-      detalle: 6.8,
-      linea: 8.1,
-    },
-    {
-      nombre: 7,
-      detalle: 6.3,
-      linea: 7.5,
-    },
-    {
-      nombre: 6.5,
-      detalle: 5.9,
-      linea: 7,
-    },
-    {
-      nombre: 6,
-      detalle: 5.5,
-      linea: 6.5,
-    },
-  ];
-
-  for (
-    const tamano of tamanos
-  ) {
-    nombreSize =
-      tamano.nombre;
-
-    detalleSize =
-      tamano.detalle;
-
-    lineHeight =
-      tamano.linea;
-
-    calculo =
-      calcularFilas({
-        items,
-        bold,
-        regular,
-        nombreSize,
-        detalleSize,
-        lineHeight,
-        anchoDetalle:
-          descWidth -
-          12,
-      });
-
-    if (
-      calculo.alturaTotal +
-        headerHeight <=
-      tablaDisponible
-    ) {
-      break;
-    }
-  }
-
-  const tablaTop =
-    y;
-
-  page.drawRectangle({
-    x: MARGIN,
-    y:
-      tablaTop -
-      headerHeight,
-    width:
-      CONTENT_WIDTH,
-    height:
-      headerHeight,
-    color:
-      COLOR_DARK,
-  });
 
   const xQty =
     MARGIN;
@@ -1326,96 +738,977 @@ export async function generarPresupuestoPdf(
     xUnit +
     unitWidth;
 
-  page.drawText(
-    "Cant.",
-    {
-      x:
-        xQty +
-        7,
+  const SERVICE_NAME_SIZE = 7.8;
+  const SERVICE_DETAIL_SIZE = 7;
+  const SERVICE_LINE_HEIGHT = 8.6;
+
+  /*
+   * Guarda cuáles páginas continúan
+   * detalles en la página siguiente.
+   */
+  const paginasConContinuacion =
+    new Set<number>();
+
+  /*
+   * =====================================================
+   * CABECERA DE TABLA
+   * =====================================================
+   */
+
+  function dibujarCabeceraTabla(
+    page: PDFPage,
+    y: number
+  ) {
+    const altura = 21;
+
+    page.drawRectangle({
+      x: MARGIN,
       y:
-        tablaTop -
-        14,
-      size: 7,
+        y -
+        altura,
+      width:
+        CONTENT_WIDTH,
+      height:
+        altura,
+      color:
+        COLOR_DARK,
+    });
+
+    page.drawText(
+      "Cant.",
+      {
+        x:
+          xQty +
+          7,
+        y:
+          y -
+          14,
+        size: 7,
+        font: bold,
+        color:
+          rgb(
+            1,
+            1,
+            1
+          ),
+      }
+    );
+
+    page.drawText(
+      "Servicio / detalle",
+      {
+        x:
+          xDesc +
+          6,
+        y:
+          y -
+          14,
+        size: 7,
+        font: bold,
+        color:
+          rgb(
+            1,
+            1,
+            1
+          ),
+      }
+    );
+
+    page.drawText(
+      "Precio",
+      {
+        x:
+          xUnit +
+          8,
+        y:
+          y -
+          14,
+        size: 7,
+        font: bold,
+        color:
+          rgb(
+            1,
+            1,
+            1
+          ),
+      }
+    );
+
+    page.drawText(
+      "Subtotal",
+      {
+        x:
+          xSubtotal +
+          8,
+        y:
+          y -
+          14,
+        size: 7,
+        font: bold,
+        color:
+          rgb(
+            1,
+            1,
+            1
+          ),
+      }
+    );
+
+    return y - altura;
+  }
+
+  /*
+   * =====================================================
+   * PRIMERA PÁGINA
+   * =====================================================
+   */
+
+  function crearPaginaPrincipal() {
+    const page =
+      pdf.addPage([
+        PAGE_WIDTH,
+        PAGE_HEIGHT,
+      ]);
+
+    page.drawRectangle({
+      x: 0,
+      y:
+        PAGE_HEIGHT -
+        9,
+      width:
+        PAGE_WIDTH,
+      height: 9,
+      color:
+        COLOR_BLUE,
+    });
+
+    page.drawRectangle({
+      x:
+        PAGE_WIDTH -
+        135,
+      y: 0,
+      width: 135,
+      height: 5,
+      color:
+        COLOR_ORANGE,
+    });
+
+    /*
+     * Logo deliberadamente compacto
+     * para ganar espacio útil.
+     */
+    if (logo) {
+      const escala =
+        Math.min(
+          105 /
+            logo.width,
+          43 /
+            logo.height
+        );
+
+      page.drawImage(
+        logo,
+        {
+          x: MARGIN,
+          y:
+            PAGE_HEIGHT -
+            64,
+          width:
+            logo.width *
+            escala,
+          height:
+            logo.height *
+            escala,
+        }
+      );
+    } else {
+      page.drawText(
+        "Enfri.Ar",
+        {
+          x: MARGIN,
+          y:
+            PAGE_HEIGHT -
+            54,
+          size: 20,
+          font: bold,
+          color:
+            COLOR_DARK,
+        }
+      );
+    }
+
+    let empresaY =
+      PAGE_HEIGHT -
+      32;
+
+    const empresaLineas = [
+      empresaNombre,
+      texto(
+        empresa.phone
+      )
+        ? `Tel.: ${texto(
+            empresa.phone
+          )}`
+        : "",
+      texto(
+        empresa.email
+      ),
+      web,
+    ].filter(Boolean);
+
+    for (
+      let i = 0;
+      i <
+      empresaLineas.length;
+      i += 1
+    ) {
+      textoDerecha(
+        page,
+        empresaLineas[i],
+        PAGE_WIDTH -
+          MARGIN,
+        empresaY,
+        i === 0
+          ? bold
+          : regular,
+        i === 0
+          ? 9
+          : 7.5,
+        i === 0
+          ? COLOR_DARK
+          : COLOR_MUTED
+      );
+
+      empresaY -=
+        i === 0
+          ? 12
+          : 10;
+    }
+
+    let y =
+      PAGE_HEIGHT -
+      87;
+
+    lineaHorizontal(
+      page,
+      y,
+      COLOR_BLUE
+    );
+
+    y -= 24;
+
+    page.drawText(
+      "PRESUPUESTO",
+      {
+        x: MARGIN,
+        y,
+        size: 18,
+        font: bold,
+        color:
+          COLOR_DARK,
+      }
+    );
+
+    textoDerecha(
+      page,
+      `Nro. ${numeroVisible}`,
+      PAGE_WIDTH -
+        MARGIN,
+      y + 1,
+      bold,
+      13,
+      COLOR_BLUE
+    );
+
+    y -= 18;
+
+    page.drawText(
+      `Fecha: ${fechaArgentina(
+        snapshot.fecha
+      )}`,
+      {
+        x: MARGIN,
+        y,
+        size: 8,
+        font: regular,
+        color:
+          COLOR_MUTED,
+      }
+    );
+
+    textoDerecha(
+      page,
+      `Version ${version}`,
+      PAGE_WIDTH -
+        MARGIN,
+      y,
+      regular,
+      8,
+      COLOR_MUTED
+    );
+
+    /*
+     * CLIENTE
+     */
+
+    y -= 18;
+
+    const clienteTop =
+      y;
+
+    const clienteHeight =
+      67;
+
+    page.drawRectangle({
+      x: MARGIN,
+      y:
+        clienteTop -
+        clienteHeight,
+      width:
+        CONTENT_WIDTH,
+      height:
+        clienteHeight,
+      color:
+        COLOR_LIGHT,
+      borderColor:
+        COLOR_BORDER,
+      borderWidth:
+        0.6,
+    });
+
+    const nombre =
+      nombreCliente(
+        cliente
+      );
+
+    const documento =
+      texto(
+        cliente.cuit
+      )
+        ? `CUIT: ${texto(
+            cliente.cuit
+          )}`
+        : texto(
+              cliente.dni
+            )
+          ? `DNI: ${texto(
+              cliente.dni
+            )}`
+          : "";
+
+    const direccion = [
+      texto(
+        cliente.direccion
+      ),
+      texto(
+        cliente.localidad
+      ),
+    ]
+      .filter(Boolean)
+      .join(" - ");
+
+    const contacto = [
+      texto(
+        cliente.telefono
+      ),
+      texto(
+        cliente.email
+      ),
+    ]
+      .filter(Boolean)
+      .join(" - ");
+
+    page.drawText(
+      "CLIENTE",
+      {
+        x:
+          MARGIN +
+          9,
+        y:
+          clienteTop -
+          14,
+        size: 6.8,
+        font: bold,
+        color:
+          COLOR_MUTED,
+      }
+    );
+
+    dibujarTextoAjustado({
+      page,
+      valor:
+        nombre,
+      x:
+        MARGIN +
+        9,
+      yTop:
+        clienteTop -
+        27,
+      ancho: 250,
+      alto: 14,
       font: bold,
+      color:
+        COLOR_TEXT,
+      sizeInicial: 9,
+      sizeMinimo: 7,
+    });
+
+    if (documento) {
+      dibujarTextoAjustado({
+        page,
+        valor:
+          documento,
+        x:
+          MARGIN +
+          280,
+        yTop:
+          clienteTop -
+          27,
+        ancho:
+          CONTENT_WIDTH -
+          289,
+        alto: 14,
+        font:
+          regular,
+        color:
+          COLOR_TEXT,
+        sizeInicial: 8,
+        sizeMinimo: 6.5,
+      });
+    }
+
+    if (direccion) {
+      dibujarTextoAjustado({
+        page,
+        valor:
+          `Direccion: ${direccion}`,
+        x:
+          MARGIN +
+          9,
+        yTop:
+          clienteTop -
+          45,
+        ancho: 250,
+        alto: 18,
+        font:
+          regular,
+        color:
+          COLOR_MUTED,
+        sizeInicial: 7.5,
+        sizeMinimo: 6,
+      });
+    }
+
+    if (contacto) {
+      dibujarTextoAjustado({
+        page,
+        valor:
+          `Contacto: ${contacto}`,
+        x:
+          MARGIN +
+          280,
+        yTop:
+          clienteTop -
+          45,
+        ancho:
+          CONTENT_WIDTH -
+          289,
+        alto: 18,
+        font:
+          regular,
+        color:
+          COLOR_MUTED,
+        sizeInicial: 7.5,
+        sizeMinimo: 6,
+      });
+    }
+
+    y =
+      clienteTop -
+      clienteHeight -
+      12;
+
+    /*
+     * DETALLE GENERAL
+     */
+
+    if (
+      texto(
+        snapshot.detalle_corto
+      )
+    ) {
+      page.drawText(
+        "DETALLE GENERAL",
+        {
+          x: MARGIN,
+          y,
+          size: 6.8,
+          font: bold,
+          color:
+            COLOR_MUTED,
+        }
+      );
+
+      y -= 11;
+
+      const detalleGeneral =
+        envolverTexto(
+          texto(
+            snapshot.detalle_corto
+          ),
+          regular,
+          7.5,
+          CONTENT_WIDTH
+        );
+
+      const lineas =
+        detalleGeneral.slice(
+          0,
+          3
+        );
+
+      y =
+        dibujarLineas({
+          page,
+          lineas,
+          x: MARGIN,
+          y,
+          font:
+            regular,
+          size: 7.5,
+          lineHeight: 9,
+          color:
+            COLOR_TEXT,
+        });
+
+      y -= 7;
+    }
+
+    return {
+      page,
+      y:
+        dibujarCabeceraTabla(
+          page,
+          y
+        ),
+    };
+  }
+
+  /*
+   * =====================================================
+   * PÁGINAS DE CONTINUACIÓN
+   * =====================================================
+   */
+
+  function crearPaginaContinuacion() {
+    const page =
+      pdf.addPage([
+        PAGE_WIDTH,
+        PAGE_HEIGHT,
+      ]);
+
+    page.drawRectangle({
+      x: 0,
+      y:
+        PAGE_HEIGHT -
+        9,
+      width:
+        PAGE_WIDTH,
+      height: 9,
+      color:
+        COLOR_BLUE,
+    });
+
+    page.drawRectangle({
+      x:
+        PAGE_WIDTH -
+        135,
+      y: 0,
+      width: 135,
+      height: 5,
+      color:
+        COLOR_ORANGE,
+    });
+
+    page.drawText(
+      empresaNombre,
+      {
+        x: MARGIN,
+        y:
+          PAGE_HEIGHT -
+          39,
+        size: 10,
+        font: bold,
+        color:
+          COLOR_DARK,
+      }
+    );
+
+    textoDerecha(
+      page,
+      `Presupuesto Nro. ${numeroVisible}`,
+      PAGE_WIDTH -
+        MARGIN,
+      PAGE_HEIGHT -
+        39,
+      bold,
+      9,
+      COLOR_BLUE
+    );
+
+    page.drawText(
+      "CONTINUACION DE SERVICIOS",
+      {
+        x: MARGIN,
+        y:
+          PAGE_HEIGHT -
+          61,
+        size: 7.5,
+        font: bold,
+        color:
+          COLOR_MUTED,
+      }
+    );
+
+    textoDerecha(
+      page,
+      `Version ${version}`,
+      PAGE_WIDTH -
+        MARGIN,
+      PAGE_HEIGHT -
+        61,
+      regular,
+      7.5,
+      COLOR_MUTED
+    );
+
+    lineaHorizontal(
+      page,
+      PAGE_HEIGHT -
+        70,
+      COLOR_BLUE
+    );
+
+    const y =
+      dibujarCabeceraTabla(
+        page,
+        PAGE_HEIGHT -
+          87
+      );
+
+    return {
+      page,
+      y,
+    };
+  }
+
+  let actual =
+    crearPaginaPrincipal();
+
+  let page =
+    actual.page;
+
+  let y =
+    actual.y;
+
+  /*
+   * =====================================================
+   * DIBUJAR UN FRAGMENTO DE SERVICIO
+   * =====================================================
+   */
+
+  function dibujarFragmentoServicio({
+    page,
+    y,
+    altura,
+    lineas,
+    cantidad,
+    precioUnitario,
+    subtotalItem,
+    esPrimerFragmento,
+    etiquetaContinuacion,
+  }: {
+    page: PDFPage;
+    y: number;
+    altura: number;
+    lineas: LineaServicio[];
+    cantidad: number;
+    precioUnitario: number;
+    subtotalItem: number;
+    esPrimerFragmento: boolean;
+    etiquetaContinuacion: string[];
+  }) {
+    const rowBottom =
+      y - altura;
+
+    page.drawRectangle({
+      x: MARGIN,
+      y:
+        rowBottom,
+      width:
+        CONTENT_WIDTH,
+      height:
+        altura,
       color:
         rgb(
           1,
           1,
           1
         ),
-    }
-  );
+      borderColor:
+        COLOR_BORDER,
+      borderWidth:
+        0.45,
+    });
 
-  page.drawText(
-    "Servicio / detalle",
-    {
-      x:
-        xDesc +
-        6,
-      y:
-        tablaTop -
-        14,
-      size: 7,
-      font: bold,
+    page.drawLine({
+      start: {
+        x: xDesc,
+        y:
+          rowBottom,
+      },
+      end: {
+        x: xDesc,
+        y,
+      },
+      thickness:
+        0.4,
       color:
-        rgb(
-          1,
-          1,
-          1
-        ),
-    }
-  );
+        COLOR_BORDER,
+    });
 
-  page.drawText(
-    "Precio",
-    {
-      x:
-        xUnit +
-        8,
-      y:
-        tablaTop -
-        14,
-      size: 7,
-      font: bold,
+    page.drawLine({
+      start: {
+        x: xUnit,
+        y:
+          rowBottom,
+      },
+      end: {
+        x: xUnit,
+        y,
+      },
+      thickness:
+        0.4,
       color:
-        rgb(
-          1,
-          1,
-          1
-        ),
-    }
-  );
+        COLOR_BORDER,
+    });
 
-  page.drawText(
-    "Subtotal",
-    {
-      x:
-        xSubtotal +
-        8,
-      y:
-        tablaTop -
-        14,
-      size: 7,
-      font: bold,
+    page.drawLine({
+      start: {
+        x: xSubtotal,
+        y:
+          rowBottom,
+      },
+      end: {
+        x: xSubtotal,
+        y,
+      },
+      thickness:
+        0.4,
       color:
-        rgb(
-          1,
-          1,
-          1
-        ),
-    }
-  );
+        COLOR_BORDER,
+    });
 
-  y =
-    tablaTop -
-    headerHeight;
+    if (
+      esPrimerFragmento
+    ) {
+      const cantidadTexto =
+        cantidad.toLocaleString(
+          "es-AR",
+          {
+            maximumFractionDigits:
+              2,
+          }
+        );
+
+      const cantidadAncho =
+        regular.widthOfTextAtSize(
+          cantidadTexto,
+          SERVICE_DETAIL_SIZE
+        );
+
+      page.drawText(
+        cantidadTexto,
+        {
+          x:
+            xQty +
+            (
+              qtyWidth -
+              cantidadAncho
+            ) /
+              2,
+          y:
+            y -
+            15,
+          size:
+            SERVICE_DETAIL_SIZE,
+          font:
+            regular,
+          color:
+            COLOR_TEXT,
+        }
+      );
+
+      textoDerecha(
+        page,
+        dinero(
+          precioUnitario,
+          moneda
+        ),
+        xSubtotal -
+          5,
+        y - 15,
+        regular,
+        SERVICE_DETAIL_SIZE,
+        COLOR_TEXT
+      );
+
+      textoDerecha(
+        page,
+        dinero(
+          subtotalItem,
+          moneda
+        ),
+        PAGE_WIDTH -
+          MARGIN -
+          5,
+        y - 15,
+        bold,
+        SERVICE_DETAIL_SIZE,
+        COLOR_TEXT
+      );
+    }
+
+    let textoY =
+      y - 12;
+
+    if (
+      !esPrimerFragmento
+    ) {
+      for (
+        const linea
+        of etiquetaContinuacion
+      ) {
+        page.drawText(
+          linea,
+          {
+            x:
+              xDesc +
+              6,
+            y:
+              textoY,
+            size: 6.7,
+            font: bold,
+            color:
+              COLOR_ORANGE,
+          }
+        );
+
+        textoY -=
+          SERVICE_LINE_HEIGHT;
+      }
+    }
+
+    for (
+      const linea of lineas
+    ) {
+      page.drawText(
+        linea.texto,
+        {
+          x:
+            xDesc +
+            6,
+          y:
+            textoY,
+          size:
+            linea.negrita
+              ? SERVICE_NAME_SIZE
+              : SERVICE_DETAIL_SIZE,
+          font:
+            linea.negrita
+              ? bold
+              : regular,
+          color:
+            linea.negrita
+              ? COLOR_TEXT
+              : COLOR_MUTED,
+        }
+      );
+
+      textoY -=
+        SERVICE_LINE_HEIGHT;
+    }
+
+    return rowBottom;
+  }
+
+  /*
+   * =====================================================
+   * SERVICIOS
+   * =====================================================
+   */
 
   for (
-    const fila of
-    calculo.filas
+    let itemIndex = 0;
+    itemIndex <
+    items.length;
+    itemIndex += 1
   ) {
     const item =
-      fila.item;
+      items[itemIndex];
+
+    const esUltimoItem =
+      itemIndex ===
+      items.length - 1;
+
+    const nombreServicio =
+      texto(
+        item.nombre_corto
+      ) || "Servicio";
+
+    const nombreLineas =
+      envolverTexto(
+        nombreServicio,
+        bold,
+        SERVICE_NAME_SIZE,
+        descWidth - 12
+      ).map(
+        (linea) => ({
+          texto:
+            linea,
+          negrita:
+            true,
+        })
+      );
+
+    const detalleTexto =
+      texto(
+        item.detalle
+      );
+
+    const detalleLineas =
+      detalleTexto
+        ? envolverTexto(
+            detalleTexto,
+            regular,
+            SERVICE_DETAIL_SIZE,
+            descWidth -
+              12
+          ).map(
+            (linea) => ({
+              texto:
+                linea,
+              negrita:
+                false,
+            })
+          )
+        : [];
+
+    const lineasCompletas:
+      LineaServicio[] = [
+        ...nombreLineas,
+        ...detalleLineas,
+      ];
 
     const cantidad =
       numero(
@@ -1438,32 +1731,176 @@ export async function generarPresupuestoPdf(
         : cantidad *
           precioUnitario;
 
-    let altura =
-      fila.altura;
+    let indiceLinea = 0;
 
-    const espacioRestante =
-      y - bottomTop;
+    let primerFragmento =
+      true;
 
-    if (
-      altura >
-      espacioRestante
+    while (
+      indiceLinea <
+      lineasCompletas.length
     ) {
-      altura =
-        Math.max(
-          22,
-          espacioRestante
-        );
-    }
+      /*
+       * Si este es el último servicio,
+       * reservamos abajo el espacio fijo
+       * para condiciones y valores.
+       *
+       * Si no entra, continúa en otra hoja.
+       */
+      const limiteInferior =
+        esUltimoItem
+          ? SUMMARY_TOP +
+            8
+          : SERVICE_BOTTOM_NORMAL;
 
-    const rowBottom =
-      y - altura;
+      const etiquetaContinuacion =
+        primerFragmento
+          ? []
+          : envolverTexto(
+              `Continuacion - ${nombreServicio}`,
+              bold,
+              6.7,
+              descWidth -
+                12
+            );
+
+      const lineasEtiqueta =
+        etiquetaContinuacion.length;
+
+      const espacioDisponible =
+        y -
+        limiteInferior;
+
+      const lineasQueEntran =
+        Math.floor(
+          (
+            espacioDisponible -
+            10
+          ) /
+            SERVICE_LINE_HEIGHT
+        ) -
+        lineasEtiqueta;
+
+      /*
+       * No queda lugar suficiente:
+       * pasamos a una hoja nueva.
+       */
+      if (
+        lineasQueEntran <
+        1
+      ) {
+        paginasConContinuacion.add(
+          pdf.getPageCount() -
+            1
+        );
+
+        actual =
+          crearPaginaContinuacion();
+
+        page =
+          actual.page;
+
+        y =
+          actual.y;
+
+        continue;
+      }
+
+      const restantes =
+        lineasCompletas.length -
+        indiceLinea;
+
+      const cantidadTomar =
+        Math.min(
+          restantes,
+          lineasQueEntran
+        );
+
+      const fragmento =
+        lineasCompletas.slice(
+          indiceLinea,
+          indiceLinea +
+            cantidadTomar
+        );
+
+      const cantidadLineasVisuales =
+        fragmento.length +
+        lineasEtiqueta;
+
+      const altura =
+        Math.max(
+          26,
+          10 +
+            cantidadLineasVisuales *
+              SERVICE_LINE_HEIGHT
+        );
+
+      y =
+        dibujarFragmentoServicio({
+          page,
+          y,
+          altura,
+          lineas:
+            fragmento,
+          cantidad,
+          precioUnitario,
+          subtotalItem,
+          esPrimerFragmento:
+            primerFragmento,
+          etiquetaContinuacion,
+        });
+
+      indiceLinea +=
+        cantidadTomar;
+
+      primerFragmento =
+        false;
+
+      /*
+       * Este servicio todavía tiene texto.
+       * La hoja actual queda vinculada
+       * explícitamente con la siguiente.
+       */
+      if (
+        indiceLinea <
+        lineasCompletas.length
+      ) {
+        paginasConContinuacion.add(
+          pdf.getPageCount() -
+            1
+        );
+
+        actual =
+          crearPaginaContinuacion();
+
+        page =
+          actual.page;
+
+        y =
+          actual.y;
+      }
+    }
+  }
+
+  /*
+   * Si excepcionalmente no hubo servicios,
+   * conservamos igualmente una presentación
+   * coherente.
+   */
+  if (
+    items.length === 0
+  ) {
+    const altura = 30;
 
     page.drawRectangle({
       x: MARGIN,
-      y: rowBottom,
+      y:
+        y -
+        altura,
       width:
         CONTENT_WIDTH,
-      height: altura,
+      height:
+        altura,
       color:
         rgb(
           1,
@@ -1472,218 +1909,64 @@ export async function generarPresupuestoPdf(
         ),
       borderColor:
         COLOR_BORDER,
-      borderWidth: 0.45,
+      borderWidth:
+        0.45,
     });
-
-    page.drawLine({
-      start: {
-        x: xDesc,
-        y: rowBottom,
-      },
-      end: {
-        x: xDesc,
-        y,
-      },
-      thickness: 0.4,
-      color:
-        COLOR_BORDER,
-    });
-
-    page.drawLine({
-      start: {
-        x: xUnit,
-        y: rowBottom,
-      },
-      end: {
-        x: xUnit,
-        y,
-      },
-      thickness: 0.4,
-      color:
-        COLOR_BORDER,
-    });
-
-    page.drawLine({
-      start: {
-        x: xSubtotal,
-        y: rowBottom,
-      },
-      end: {
-        x: xSubtotal,
-        y,
-      },
-      thickness: 0.4,
-      color:
-        COLOR_BORDER,
-    });
-
-    const cantidadTexto =
-      cantidad.toLocaleString(
-        "es-AR",
-        {
-          maximumFractionDigits: 2,
-        }
-      );
-
-    const cantidadAncho =
-      regular.widthOfTextAtSize(
-        cantidadTexto,
-        detalleSize
-      );
 
     page.drawText(
-      cantidadTexto,
+      "Sin servicios cargados.",
       {
         x:
-          xQty +
-          (
-            qtyWidth -
-            cantidadAncho
-          ) /
-            2,
+          xDesc +
+          6,
         y:
           y -
-          15,
-        size:
-          detalleSize,
+          18,
+        size: 7.5,
         font:
           regular,
         color:
-          COLOR_TEXT,
+          COLOR_MUTED,
       }
     );
 
-    let textoY =
-      y - 12;
-
-    const altoTexto =
-      Math.max(
-        10,
-        altura - 8
-      );
-
-    const lineasNombre =
-      fila.nombreLineas;
-
-    const lineasDetalle =
-      fila.detalleLineas;
-
-    const totalLineas =
-      [
-        ...lineasNombre,
-        ...lineasDetalle,
-      ];
-
-    const maxLineas =
-      Math.max(
-        1,
-        Math.floor(
-          altoTexto /
-            lineHeight
-        )
-      );
-
-    const visibles =
-      totalLineas.slice(
-        0,
-        maxLineas
-      );
-
-    const nombreCantidad =
-      Math.min(
-        lineasNombre.length,
-        visibles.length
-      );
-
-    for (
-      let indice = 0;
-      indice <
-      visibles.length;
-      indice += 1
-    ) {
-      const esNombre =
-        indice <
-        nombreCantidad;
-
-      page.drawText(
-        visibles[indice],
-        {
-          x:
-            xDesc +
-            6,
-          y:
-            textoY,
-          size:
-            esNombre
-              ? nombreSize
-              : detalleSize,
-          font:
-            esNombre
-              ? bold
-              : regular,
-          color:
-            esNombre
-              ? COLOR_TEXT
-              : COLOR_MUTED,
-        }
-      );
-
-      textoY -=
-        lineHeight;
-    }
-
-    textoDerecha(
-      page,
-      dinero(
-        precioUnitario,
-        moneda
-      ),
-      xSubtotal - 5,
-      y - 15,
-      regular,
-      detalleSize,
-      COLOR_TEXT
-    );
-
-    textoDerecha(
-      page,
-      dinero(
-        subtotalItem,
-        moneda
-      ),
-      PAGE_WIDTH -
-        MARGIN -
-        5,
-      y - 15,
-      bold,
-      detalleSize,
-      COLOR_TEXT
-    );
-
-    y =
-      rowBottom;
-
-    if (
-      y <=
-      bottomTop
-    ) {
-      break;
-    }
+    y -= altura;
   }
 
   /*
    * =====================================================
-   * PARTE INFERIOR
-   * CONDICIONES IZQUIERDA
-   * TOTALES DERECHA
+   * CONDICIONES Y TOTALES
+   * SIEMPRE EN LA ÚLTIMA HOJA
+   * EN LA MISMA POSICIÓN.
    * =====================================================
    */
 
+  if (
+    y <
+    SUMMARY_TOP +
+      8
+  ) {
+    paginasConContinuacion.add(
+      pdf.getPageCount() -
+        1
+    );
+
+    actual =
+      crearPaginaContinuacion();
+
+    page =
+      actual.page;
+
+    y =
+      actual.y;
+  }
+
   const inferiorTop =
-    bottomTop - 8;
+    SUMMARY_TOP -
+    8;
 
   const inferiorBottom =
-    67;
+    SUMMARY_BOTTOM;
 
   const inferiorHeight =
     inferiorTop -
@@ -1720,7 +2003,8 @@ export async function generarPresupuestoPdf(
       COLOR_LIGHT,
     borderColor:
       COLOR_BORDER,
-    borderWidth: 0.6,
+    borderWidth:
+      0.6,
   });
 
   page.drawText(
@@ -1739,8 +2023,8 @@ export async function generarPresupuestoPdf(
     }
   );
 
-  const condiciones: string[] =
-    [];
+  const condiciones:
+    string[] = [];
 
   if (
     texto(
@@ -1854,9 +2138,7 @@ export async function generarPresupuestoPdf(
   });
 
   /*
-   * =====================================================
    * TOTALES
-   * =====================================================
    */
 
   const subtotal =
@@ -1912,21 +2194,22 @@ export async function generarPresupuestoPdf(
       snapshot.total
     );
 
-  const filasTotales: Array<{
-    etiqueta: string;
-    valor: string;
-    destacado?: boolean;
-  }> = [
-    {
-      etiqueta:
-        "Subtotal",
-      valor:
-        dinero(
-          subtotal,
-          moneda
-        ),
-    },
-  ];
+  const filasTotales:
+    Array<{
+      etiqueta: string;
+      valor: string;
+      destacado?: boolean;
+    }> = [
+      {
+        etiqueta:
+          "Subtotal",
+        valor:
+          dinero(
+            subtotal,
+            moneda
+          ),
+      },
+    ];
 
   if (
     descuentoMonto > 0
@@ -1937,7 +2220,8 @@ export async function generarPresupuestoPdf(
         ? ` (${descuentoValor.toLocaleString(
             "es-AR",
             {
-              maximumFractionDigits: 2,
+              maximumFractionDigits:
+                2,
             }
           )}%)`
         : "";
@@ -1962,7 +2246,8 @@ export async function generarPresupuestoPdf(
         ? ` (${recargoValor.toLocaleString(
             "es-AR",
             {
-              maximumFractionDigits: 2,
+              maximumFractionDigits:
+                2,
             }
           )}%)`
         : "";
@@ -2043,16 +2328,15 @@ export async function generarPresupuestoPdf(
         y:
           totalY -
           altura +
-          (
-            altura /
-            2
-          ) -
+          altura /
+            2 -
           3,
         size:
           fila.destacado
             ? 9
             : 7.5,
-        font: bold,
+        font:
+          bold,
         color:
           fila.destacado
             ? rgb(
@@ -2072,10 +2356,8 @@ export async function generarPresupuestoPdf(
         8,
       totalY -
         altura +
-        (
-          altura /
-          2
-        ) -
+        altura /
+          2 -
         3,
       bold,
       fila.destacado
@@ -2096,43 +2378,89 @@ export async function generarPresupuestoPdf(
 
   /*
    * =====================================================
-   * PIE
+   * RELACIÓN ENTRE TODAS LAS HOJAS
    * =====================================================
+   *
+   * Se realiza al final porque recién ahora
+   * sabemos cuántas páginas tiene el PDF.
    */
 
-  lineaHorizontal(
-    page,
-    55
-  );
+  const paginas =
+    pdf.getPages();
 
-  page.drawText(
-    "Este documento no es valido como factura.",
-    {
-      x: MARGIN,
-      y:
-        FOOTER_Y,
-      size: 7.2,
-      font: bold,
-      color:
-        COLOR_DARK,
+  const totalPaginas =
+    paginas.length;
+
+  paginas.forEach(
+    (
+      pagina,
+      indice
+    ) => {
+      /*
+       * Aviso de continuación.
+       */
+      if (
+        paginasConContinuacion.has(
+          indice
+        ) &&
+        indice <
+          totalPaginas -
+            1
+      ) {
+        const aviso =
+          `Detalle continua en hoja ${
+            indice + 2
+          } ->`;
+
+        textoDerecha(
+          pagina,
+          aviso,
+          PAGE_WIDTH -
+            MARGIN,
+          66,
+          bold,
+          7,
+          COLOR_ORANGE
+        );
+      }
+
+      /*
+       * Línea del pie.
+       */
+      lineaHorizontal(
+        pagina,
+        FOOTER_LINE_Y
+      );
+
+      pagina.drawText(
+        "Este documento no es valido como factura.",
+        {
+          x: MARGIN,
+          y:
+            FOOTER_TEXT_Y,
+          size: 7.1,
+          font: bold,
+          color:
+            COLOR_DARK,
+        }
+      );
+
+      const referencia =
+        `${web} | Presupuesto Nro. ${numeroVisible} | Hoja ${
+          indice + 1
+        } de ${totalPaginas}`;
+
+      textoDerecha(
+        pagina,
+        referencia,
+        PAGE_WIDTH -
+          MARGIN,
+        FOOTER_TEXT_Y,
+        regular,
+        6.5,
+        COLOR_MUTED
+      );
     }
-  );
-
-  const web =
-    texto(
-      empresa.website
-    ) ||
-    "www.enfriar.com.ar";
-
-  textoDerecha(
-    page,
-    web,
-    PAGE_WIDTH -
-      MARGIN,
-    FOOTER_Y,
-    regular,
-    7,
-    COLOR_MUTED
   );
 
   return await pdf.save();
