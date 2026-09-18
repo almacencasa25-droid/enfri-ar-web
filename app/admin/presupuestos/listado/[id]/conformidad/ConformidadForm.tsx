@@ -11,6 +11,10 @@ import {
   crearConformidadAction,
 } from "./actions";
 
+import {
+  generarConformidadPdfAction,
+} from "./pdf/actions";
+
 type OrdenTrabajo = {
   id: string;
   numeroOrden: string;
@@ -31,6 +35,11 @@ type Props = {
   cliente: string;
 
   ordenes?: OrdenTrabajo[];
+};
+
+type DocumentoPdf = {
+  url: string;
+  nombreArchivo: string;
 };
 
 export default function ConformidadForm({
@@ -72,6 +81,19 @@ export default function ConformidadForm({
   } | null>(null);
 
   const [
+    documento,
+    setDocumento,
+  ] =
+    useState<DocumentoPdf | null>(
+      null
+    );
+
+  const [
+    descargando,
+    setDescargando,
+  ] = useState(false);
+
+  const [
     procesando,
     startTransition,
   ] = useTransition();
@@ -104,9 +126,120 @@ export default function ConformidadForm({
       ]
     );
 
+  function verPdf(
+    archivo: DocumentoPdf
+  ) {
+    window.open(
+      archivo.url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  async function descargarPdf(
+    archivo: DocumentoPdf
+  ) {
+    setError("");
+    setDescargando(true);
+
+    try {
+      const respuesta =
+        await fetch(
+          archivo.url
+        );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          "No se pudo descargar el PDF."
+        );
+      }
+
+      const blob =
+        await respuesta.blob();
+
+      const urlTemporal =
+        URL.createObjectURL(
+          blob
+        );
+
+      const enlace =
+        document.createElement(
+          "a"
+        );
+
+      enlace.href =
+        urlTemporal;
+
+      enlace.download =
+        archivo.nombreArchivo;
+
+      document.body.appendChild(
+        enlace
+      );
+
+      enlace.click();
+
+      enlace.remove();
+
+      URL.revokeObjectURL(
+        urlTemporal
+      );
+    } catch (
+      downloadError
+    ) {
+      console.error(
+        downloadError
+      );
+
+      setError(
+        "No se pudo descargar el PDF. Probá nuevamente."
+      );
+    } finally {
+      setDescargando(false);
+    }
+  }
+
+  async function generarPdf(
+    conformidadId: string,
+    numeroConformidad: string,
+    regenerar = false
+  ) {
+    const resultadoPdf =
+      await generarConformidadPdfAction(
+        conformidadId,
+        {
+          regenerar,
+        }
+      );
+
+    if (!resultadoPdf.ok) {
+      setError(
+        resultadoPdf.error ||
+          "La conformidad existe, pero no se pudo generar el PDF."
+      );
+
+      return false;
+    }
+
+    setDocumento({
+      url:
+        resultadoPdf.url,
+
+      nombreArchivo:
+        resultadoPdf.nombreArchivo,
+    });
+
+    setMensaje(
+      `Conformidad ${numeroConformidad} creada correctamente. PDF guardado.`
+    );
+
+    return true;
+  }
+
   function generarConformidad() {
     setMensaje("");
     setError("");
+    setDocumento(null);
 
     if (
       ordenes.length === 0
@@ -178,7 +311,7 @@ export default function ConformidadForm({
           return;
         }
 
-        setConformidadCreada({
+        const conformidad = {
           id:
             resultado.data.id,
 
@@ -193,10 +326,72 @@ export default function ConformidadForm({
           matricula:
             resultado.data
               .matricula,
-        });
+        };
+
+        setConformidadCreada(
+          conformidad
+        );
 
         setMensaje(
-          `Conformidad ${resultado.data.numeroConformidad} creada correctamente.`
+          `Conformidad ${conformidad.numeroConformidad} creada correctamente. Generando PDF...`
+        );
+
+        const pdfOk =
+          await generarPdf(
+            conformidad.id,
+            conformidad.numeroConformidad
+          );
+
+        if (!pdfOk) {
+          setMensaje(
+            `Conformidad ${conformidad.numeroConformidad} creada correctamente.`
+          );
+        }
+      }
+    );
+  }
+
+  function recuperarPdf() {
+    if (!conformidadCreada) {
+      return;
+    }
+
+    setMensaje("");
+    setError("");
+
+    startTransition(
+      async () => {
+        await generarPdf(
+          conformidadCreada.id,
+          conformidadCreada.numeroConformidad
+        );
+      }
+    );
+  }
+
+  function regenerarPdf() {
+    if (!conformidadCreada) {
+      return;
+    }
+
+    const confirmar =
+      window.confirm(
+        `¿Querés regenerar el PDF de ${conformidadCreada.numeroConformidad}? Se reemplazará solamente el PDF de esta misma conformidad.`
+      );
+
+    if (!confirmar) {
+      return;
+    }
+
+    setMensaje("");
+    setError("");
+
+    startTransition(
+      async () => {
+        await generarPdf(
+          conformidadCreada.id,
+          conformidadCreada.numeroConformidad,
+          true
         );
       }
     );
@@ -537,7 +732,137 @@ export default function ConformidadForm({
               : "Generar Conformidad"}
           </button>
         ) : null}
+
+        {conformidadCreada &&
+        !documento ? (
+          <button
+            type="button"
+            disabled={
+              procesando
+            }
+            onClick={
+              recuperarPdf
+            }
+            style={
+              secondaryButtonStyle
+            }
+          >
+            {procesando
+              ? "Generando PDF..."
+              : "Generar / recuperar PDF"}
+          </button>
+        ) : null}
       </section>
+
+      {documento &&
+      conformidadCreada ? (
+        <section
+          style={boxStyle}
+        >
+          <div>
+            <span
+              style={
+                labelSmallStyle
+              }
+            >
+              DOCUMENTO GENERADO
+            </span>
+
+            <h2
+              style={{
+                margin:
+                  "5px 0 0",
+
+                color:
+                  "var(--foreground)",
+
+                fontSize:
+                  "1.15rem",
+              }}
+            >
+              {
+                conformidadCreada.numeroConformidad
+              }
+            </h2>
+          </div>
+
+          <div
+            style={
+              documentoCardStyle
+            }
+          >
+            <strong>
+              PDF DE CONFORMIDAD
+            </strong>
+
+            <span
+              style={
+                archivoNombreStyle
+              }
+            >
+              {
+                documento.nombreArchivo
+              }
+            </span>
+
+            <div
+              style={
+                buttonsRowStyle
+              }
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  verPdf(
+                    documento
+                  )
+                }
+                style={
+                  secondaryButtonStyle
+                }
+              >
+                Ver PDF
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  descargando
+                }
+                onClick={() =>
+                  descargarPdf(
+                    documento
+                  )
+                }
+                style={
+                  downloadButtonStyle
+                }
+              >
+                {descargando
+                  ? "Descargando..."
+                  : "Descargar PDF"}
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  procesando
+                }
+                onClick={
+                  regenerarPdf
+                }
+                style={
+                  regenerateButtonStyle
+                }
+              >
+                {procesando
+                  ? "Regenerando..."
+                  : "Regenerar PDF"}
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -681,6 +1006,99 @@ const primaryButtonStyle = {
   fontWeight: 800,
 
   cursor: "pointer",
+};
+
+const secondaryButtonStyle = {
+  minHeight:
+    "40px",
+
+  padding:
+    "8px 13px",
+
+  border:
+    "1px solid rgba(38, 40, 42, 0.18)",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "#ffffff",
+
+  color:
+    "var(--foreground)",
+
+  font:
+    "inherit",
+
+  fontSize:
+    "0.82rem",
+
+  fontWeight: 800,
+
+  cursor: "pointer",
+};
+
+const downloadButtonStyle = {
+  ...secondaryButtonStyle,
+
+  border: "none",
+
+  background:
+    "#236b43",
+
+  color:
+    "#ffffff",
+};
+
+const regenerateButtonStyle = {
+  ...secondaryButtonStyle,
+
+  border:
+    "1px solid rgba(20, 110, 160, 0.32)",
+
+  background:
+    "rgba(20, 110, 160, 0.08)",
+
+  color:
+    "#146e9f",
+};
+
+const documentoCardStyle = {
+  display: "grid",
+
+  gap: "10px",
+
+  padding:
+    "15px",
+
+  border:
+    "1px solid rgba(38, 40, 42, 0.12)",
+
+  borderRadius:
+    "12px",
+
+  background:
+    "#ffffff",
+};
+
+const archivoNombreStyle = {
+  color:
+    "var(--muted)",
+
+  fontSize:
+    "0.78rem",
+
+  wordBreak:
+    "break-word" as const,
+};
+
+const buttonsRowStyle = {
+  display: "flex",
+
+  flexWrap:
+    "wrap" as const,
+
+  gap: "8px",
 };
 
 const successStyle = {
