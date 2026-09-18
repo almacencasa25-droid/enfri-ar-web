@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 import DocumentoPdfAcciones from "./DocumentoPdfAcciones";
+import DocumentoOrdenTrabajoAcciones from "./DocumentoOrdenTrabajoAcciones";
+
 import {
+  listarDocumentosOrdenTrabajoAction,
   listarDocumentosPresupuestoAction,
 } from "./actions";
 
@@ -60,19 +63,52 @@ function fechaHoraArgentina(
   ).format(valor);
 }
 
+function varianteVisible(
+  variante: string
+) {
+  if (
+    variante === "original"
+  ) {
+    return "ORIGINAL";
+  }
+
+  if (
+    variante === "copia"
+  ) {
+    return "COPIA";
+  }
+
+  return variante.toUpperCase();
+}
+
 export default async function DocumentosPage() {
-  const resultado =
-    await listarDocumentosPresupuestoAction();
+  const [
+    resultadoPresupuestos,
+    resultadoOrdenes,
+  ] = await Promise.all([
+    listarDocumentosPresupuestoAction(),
+    listarDocumentosOrdenTrabajoAction(),
+  ]);
 
   const documentos =
-    resultado.ok
-      ? resultado.data
+    resultadoPresupuestos.ok
+      ? resultadoPresupuestos.data
       : [];
 
-  const error =
-    resultado.ok
+  const ordenes =
+    resultadoOrdenes.ok
+      ? resultadoOrdenes.data
+      : [];
+
+  const errorPresupuestos =
+    resultadoPresupuestos.ok
       ? ""
-      : resultado.error;
+      : resultadoPresupuestos.error;
+
+  const errorOrdenes =
+    resultadoOrdenes.ok
+      ? ""
+      : resultadoOrdenes.error;
 
   return (
     <main
@@ -120,7 +156,7 @@ export default async function DocumentosPage() {
                 "uppercase",
             }}
           >
-            Presupuestos ·
+            Presupuestos y trabajos ·
             Enfri.Ar
           </p>
 
@@ -147,87 +183,57 @@ export default async function DocumentosPage() {
             }}
           >
             Historial de
-            presupuestos emitidos.
-            Podés revisar cada
-            versión antes de
-            decidir si querés
-            descargarla.
+            presupuestos emitidos y
+            Órdenes de Trabajo.
+            Podés revisar los PDF
+            antes de descargarlos.
           </p>
         </header>
 
-        {error ? (
+        {errorPresupuestos ? (
           <div
-            style={{
-              marginTop:
-                "18px",
-              padding:
-                "14px 16px",
-              borderRadius:
-                "12px",
-              background:
-                "rgba(180, 40, 40, 0.08)",
-              color:
-                "#982828",
-              fontWeight:
-                800,
-            }}
+            style={errorBoxStyle}
           >
-            {error}
+            Presupuestos:{" "}
+            {errorPresupuestos}
           </div>
         ) : null}
 
+        {errorOrdenes ? (
+          <div
+            style={errorBoxStyle}
+          >
+            Órdenes de Trabajo:{" "}
+            {errorOrdenes}
+          </div>
+        ) : null}
+
+        {/* =========================================
+            PRESUPUESTOS
+        ========================================= */}
+
         <section
-          style={{
-            marginTop:
-              "20px",
-            padding:
-              "22px",
-            border:
-              "1px solid rgba(38, 40, 42, 0.12)",
-            borderRadius:
-              "18px",
-            background:
-              "rgba(255, 253, 248, 0.92)",
-          }}
+          style={sectionStyle}
         >
           <div
-            style={{
-              display:
-                "flex",
-              flexWrap:
-                "wrap",
-              justifyContent:
-                "space-between",
-              alignItems:
-                "center",
-              gap: "10px",
-              marginBottom:
-                "18px",
-            }}
+            style={
+              sectionHeaderStyle
+            }
           >
             <div>
               <h2
-                style={{
-                  margin: 0,
-                  color:
-                    "var(--foreground)",
-                  fontSize:
-                    "1.15rem",
-                }}
+                style={
+                  sectionTitleStyle
+                }
               >
                 Presupuestos
                 emitidos
               </h2>
 
               <p
-                style={{
-                  margin:
-                    "5px 0 0",
-                  color:
-                    "var(--muted)",
-                  fontSize:
-                    "0.84rem",
-                }}
+                style={
+                  sectionDescriptionStyle
+                }
               >
                 Cada versión se
                 conserva como
@@ -237,12 +243,9 @@ export default async function DocumentosPage() {
             </div>
 
             <strong
-              style={{
-                color:
-                  "var(--foreground)",
-                fontSize:
-                  "0.85rem",
-              }}
+              style={
+                counterStyle
+              }
             >
               {
                 documentos.length
@@ -254,18 +257,9 @@ export default async function DocumentosPage() {
           {documentos.length ===
           0 ? (
             <div
-              style={{
-                padding:
-                  "18px",
-                border:
-                  "1px dashed rgba(38, 40, 42, 0.18)",
-                borderRadius:
-                  "12px",
-                color:
-                  "var(--muted)",
-                lineHeight:
-                  1.6,
-              }}
+              style={
+                emptyStyle
+              }
             >
               Todavía no hay
               presupuestos
@@ -274,11 +268,9 @@ export default async function DocumentosPage() {
             </div>
           ) : (
             <div
-              style={{
-                display:
-                  "grid",
-                gap: "12px",
-              }}
+              style={
+                listStyle
+              }
             >
               {documentos.map(
                 (
@@ -288,44 +280,20 @@ export default async function DocumentosPage() {
                     key={
                       documento.id
                     }
-                    style={{
-                      display:
-                        "grid",
-                      gap: "14px",
-                      padding:
-                        "16px",
-                      border:
-                        "1px solid rgba(38, 40, 42, 0.1)",
-                      borderRadius:
-                        "14px",
-                      background:
-                        "rgba(255,255,255,0.75)",
-                    }}
+                    style={
+                      cardStyle
+                    }
                   >
                     <div
-                      style={{
-                        display:
-                          "flex",
-                        flexWrap:
-                          "wrap",
-                        justifyContent:
-                          "space-between",
-                        alignItems:
-                          "flex-start",
-                        gap:
-                          "14px",
-                      }}
+                      style={
+                        cardHeaderStyle
+                      }
                     >
                       <div>
                         <strong
-                          style={{
-                            display:
-                              "block",
-                            color:
-                              "var(--foreground)",
-                            fontSize:
-                              "1rem",
-                          }}
+                          style={
+                            cardTitleStyle
+                          }
                         >
                           Presupuesto
                           Nº{" "}
@@ -335,18 +303,9 @@ export default async function DocumentosPage() {
                         </strong>
 
                         <span
-                          style={{
-                            display:
-                              "block",
-                            marginTop:
-                              "4px",
-                            color:
-                              "var(--brand-blue)",
-                            fontSize:
-                              "0.82rem",
-                            fontWeight:
-                              800,
-                          }}
+                          style={
+                            versionStyle
+                          }
                         >
                           Versión{" "}
                           {
@@ -357,39 +316,17 @@ export default async function DocumentosPage() {
 
                       {documento.storage_path ? (
                         <span
-                          style={{
-                            padding:
-                              "5px 9px",
-                            borderRadius:
-                              "999px",
-                            background:
-                              "rgba(35, 107, 67, 0.09)",
-                            color:
-                              "#236b43",
-                            fontSize:
-                              "0.76rem",
-                            fontWeight:
-                              800,
-                          }}
+                          style={
+                            savedBadgeStyle
+                          }
                         >
                           PDF guardado
                         </span>
                       ) : (
                         <span
-                          style={{
-                            padding:
-                              "5px 9px",
-                            borderRadius:
-                              "999px",
-                            background:
-                              "rgba(180, 120, 20, 0.1)",
-                            color:
-                              "#8a6215",
-                            fontSize:
-                              "0.76rem",
-                            fontWeight:
-                              800,
-                          }}
+                          style={
+                            pendingBadgeStyle
+                          }
                         >
                           PDF pendiente
                         </span>
@@ -397,20 +334,9 @@ export default async function DocumentosPage() {
                     </div>
 
                     <div
-                      style={{
-                        display:
-                          "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fit, minmax(180px, 1fr))",
-                        gap:
-                          "10px",
-                        color:
-                          "var(--muted)",
-                        fontSize:
-                          "0.84rem",
-                        lineHeight:
-                          1.5,
-                      }}
+                      style={
+                        dataGridStyle
+                      }
                     >
                       <div>
                         <span>
@@ -418,12 +344,9 @@ export default async function DocumentosPage() {
                         </span>
 
                         <strong
-                          style={{
-                            display:
-                              "block",
-                            color:
-                              "var(--foreground)",
-                          }}
+                          style={
+                            dataStrongStyle
+                          }
                         >
                           {
                             documento.cliente
@@ -438,12 +361,9 @@ export default async function DocumentosPage() {
                         </span>
 
                         <strong
-                          style={{
-                            display:
-                              "block",
-                            color:
-                              "var(--foreground)",
-                          }}
+                          style={
+                            dataStrongStyle
+                          }
                         >
                           {fechaArgentina(
                             documento.fecha_presupuesto
@@ -457,12 +377,9 @@ export default async function DocumentosPage() {
                         </span>
 
                         <strong
-                          style={{
-                            display:
-                              "block",
-                            color:
-                              "var(--foreground)",
-                          }}
+                          style={
+                            dataStrongStyle
+                          }
                         >
                           {fechaHoraArgentina(
                             documento.creado_en
@@ -479,12 +396,9 @@ export default async function DocumentosPage() {
                       />
                     ) : (
                       <span
-                        style={{
-                          color:
-                            "var(--muted)",
-                          fontSize:
-                            "0.82rem",
-                        }}
+                        style={
+                          pendingTextStyle
+                        }
                       >
                         Esta versión
                         todavía no
@@ -492,6 +406,223 @@ export default async function DocumentosPage() {
                         asociado.
                       </span>
                     )}
+                  </article>
+                )
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* =========================================
+            ÓRDENES DE TRABAJO
+        ========================================= */}
+
+        <section
+          style={sectionStyle}
+        >
+          <div
+            style={
+              sectionHeaderStyle
+            }
+          >
+            <div>
+              <h2
+                style={
+                  sectionTitleStyle
+                }
+              >
+                Órdenes de Trabajo
+              </h2>
+
+              <p
+                style={
+                  sectionDescriptionStyle
+                }
+              >
+                ORIGINAL y COPIA de
+                cada Orden de Trabajo
+                quedan identificados
+                individualmente.
+              </p>
+            </div>
+
+            <strong
+              style={
+                counterStyle
+              }
+            >
+              {
+                ordenes.length
+              }{" "}
+              documentos
+            </strong>
+          </div>
+
+          {ordenes.length ===
+          0 ? (
+            <div
+              style={
+                emptyStyle
+              }
+            >
+              Todavía no hay PDF de
+              Órdenes de Trabajo
+              guardados.
+            </div>
+          ) : (
+            <div
+              style={
+                listStyle
+              }
+            >
+              {ordenes.map(
+                (orden) => (
+                  <article
+                    key={
+                      orden.id
+                    }
+                    style={
+                      cardStyle
+                    }
+                  >
+                    <div
+                      style={
+                        cardHeaderStyle
+                      }
+                    >
+                      <div>
+                        <strong
+                          style={
+                            cardTitleStyle
+                          }
+                        >
+                          {
+                            orden.numero_orden
+                          }
+                        </strong>
+
+                        <span
+                          style={
+                            orderVariantStyle
+                          }
+                        >
+                          {varianteVisible(
+                            orden.variante
+                          )}
+                        </span>
+                      </div>
+
+                      <span
+                        style={
+                          savedBadgeStyle
+                        }
+                      >
+                        PDF guardado
+                      </span>
+                    </div>
+
+                    <div
+                      style={
+                        relationBoxStyle
+                      }
+                    >
+                      Según Presupuesto
+                      Nº{" "}
+                      <strong>
+                        {
+                          orden.numero_presupuesto
+                        }
+                      </strong>
+                    </div>
+
+                    <div
+                      style={
+                        dataGridStyle
+                      }
+                    >
+                      <div>
+                        <span>
+                          Cliente
+                        </span>
+
+                        <strong
+                          style={
+                            dataStrongStyle
+                          }
+                        >
+                          {
+                            orden.cliente
+                          }
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          Técnico
+                        </span>
+
+                        <strong
+                          style={
+                            dataStrongStyle
+                          }
+                        >
+                          {
+                            orden.tecnico
+                          }
+                        </strong>
+
+                        {orden.matricula ? (
+                          <span
+                            style={
+                              subDataStyle
+                            }
+                          >
+                            Matrícula{" "}
+                            {
+                              orden.matricula
+                            }
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div>
+                        <span>
+                          Fecha de la OT
+                        </span>
+
+                        <strong
+                          style={
+                            dataStrongStyle
+                          }
+                        >
+                          {fechaArgentina(
+                            orden.fecha_orden
+                          )}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          PDF guardado
+                        </span>
+
+                        <strong
+                          style={
+                            dataStrongStyle
+                          }
+                        >
+                          {fechaHoraArgentina(
+                            orden.creado_en
+                          )}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <DocumentoOrdenTrabajoAcciones
+                      storagePath={
+                        orden.storage_path
+                      }
+                    />
                   </article>
                 )
               )}
@@ -512,14 +643,9 @@ export default async function DocumentosPage() {
         >
           <Link
             href="/admin/presupuestos/listado"
-            style={{
-              color:
-                "var(--foreground)",
-              fontWeight:
-                800,
-              textDecoration:
-                "none",
-            }}
+            style={
+              backLinkStyle
+            }
           >
             ← Presupuestos
             realizados
@@ -527,14 +653,9 @@ export default async function DocumentosPage() {
 
           <Link
             href="/admin/presupuestos"
-            style={{
-              color:
-                "var(--foreground)",
-              fontWeight:
-                800,
-              textDecoration:
-                "none",
-            }}
+            style={
+              backLinkStyle
+            }
           >
             Volver a
             Presupuestos y
@@ -545,3 +666,294 @@ export default async function DocumentosPage() {
     </main>
   );
 }
+
+const sectionStyle = {
+  marginTop:
+    "20px",
+
+  padding:
+    "22px",
+
+  border:
+    "1px solid rgba(38, 40, 42, 0.12)",
+
+  borderRadius:
+    "18px",
+
+  background:
+    "rgba(255, 253, 248, 0.92)",
+};
+
+const sectionHeaderStyle = {
+  display: "flex",
+
+  flexWrap:
+    "wrap" as const,
+
+  justifyContent:
+    "space-between",
+
+  alignItems:
+    "center",
+
+  gap: "10px",
+
+  marginBottom:
+    "18px",
+};
+
+const sectionTitleStyle = {
+  margin: 0,
+
+  color:
+    "var(--foreground)",
+
+  fontSize:
+    "1.15rem",
+};
+
+const sectionDescriptionStyle = {
+  margin:
+    "5px 0 0",
+
+  color:
+    "var(--muted)",
+
+  fontSize:
+    "0.84rem",
+
+  lineHeight: 1.5,
+};
+
+const counterStyle = {
+  color:
+    "var(--foreground)",
+
+  fontSize:
+    "0.85rem",
+};
+
+const emptyStyle = {
+  padding:
+    "18px",
+
+  border:
+    "1px dashed rgba(38, 40, 42, 0.18)",
+
+  borderRadius:
+    "12px",
+
+  color:
+    "var(--muted)",
+
+  lineHeight: 1.6,
+};
+
+const listStyle = {
+  display:
+    "grid",
+
+  gap: "12px",
+};
+
+const cardStyle = {
+  display:
+    "grid",
+
+  gap: "14px",
+
+  padding:
+    "16px",
+
+  border:
+    "1px solid rgba(38, 40, 42, 0.1)",
+
+  borderRadius:
+    "14px",
+
+  background:
+    "rgba(255,255,255,0.75)",
+};
+
+const cardHeaderStyle = {
+  display:
+    "flex",
+
+  flexWrap:
+    "wrap" as const,
+
+  justifyContent:
+    "space-between",
+
+  alignItems:
+    "flex-start",
+
+  gap: "14px",
+};
+
+const cardTitleStyle = {
+  display:
+    "block",
+
+  color:
+    "var(--foreground)",
+
+  fontSize:
+    "1rem",
+};
+
+const versionStyle = {
+  display:
+    "block",
+
+  marginTop:
+    "4px",
+
+  color:
+    "var(--brand-blue)",
+
+  fontSize:
+    "0.82rem",
+
+  fontWeight: 800,
+};
+
+const orderVariantStyle = {
+  ...versionStyle,
+
+  color:
+    "#9a5814",
+};
+
+const savedBadgeStyle = {
+  padding:
+    "5px 9px",
+
+  borderRadius:
+    "999px",
+
+  background:
+    "rgba(35, 107, 67, 0.09)",
+
+  color:
+    "#236b43",
+
+  fontSize:
+    "0.76rem",
+
+  fontWeight: 800,
+};
+
+const pendingBadgeStyle = {
+  padding:
+    "5px 9px",
+
+  borderRadius:
+    "999px",
+
+  background:
+    "rgba(180, 120, 20, 0.1)",
+
+  color:
+    "#8a6215",
+
+  fontSize:
+    "0.76rem",
+
+  fontWeight: 800,
+};
+
+const relationBoxStyle = {
+  padding:
+    "9px 11px",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "rgba(38, 111, 164, 0.06)",
+
+  color:
+    "var(--foreground)",
+
+  fontSize:
+    "0.84rem",
+};
+
+const dataGridStyle = {
+  display:
+    "grid",
+
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(180px, 1fr))",
+
+  gap:
+    "10px",
+
+  color:
+    "var(--muted)",
+
+  fontSize:
+    "0.84rem",
+
+  lineHeight: 1.5,
+};
+
+const dataStrongStyle = {
+  display:
+    "block",
+
+  color:
+    "var(--foreground)",
+};
+
+const subDataStyle = {
+  display:
+    "block",
+
+  marginTop:
+    "2px",
+
+  color:
+    "var(--muted)",
+
+  fontSize:
+    "0.78rem",
+};
+
+const pendingTextStyle = {
+  color:
+    "var(--muted)",
+
+  fontSize:
+    "0.82rem",
+};
+
+const errorBoxStyle = {
+  marginTop:
+    "18px",
+
+  padding:
+    "14px 16px",
+
+  borderRadius:
+    "12px",
+
+  background:
+    "rgba(180, 40, 40, 0.08)",
+
+  color:
+    "#982828",
+
+  fontWeight: 800,
+};
+
+const backLinkStyle = {
+  color:
+    "var(--foreground)",
+
+  fontWeight: 800,
+
+  textDecoration:
+    "none",
+};
