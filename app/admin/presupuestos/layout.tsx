@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/auth/admin";
 
 import BackButton from "./BackButton";
+import ModuleNavigation from "./ModuleNavigation";
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,8 @@ export default async function PresupuestosLayout({
         }}
       >
         <BackButton />
+
+        <ModuleNavigation />
       </div>
 
       {children}
