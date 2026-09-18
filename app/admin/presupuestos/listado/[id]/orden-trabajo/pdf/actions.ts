@@ -11,27 +11,19 @@ import {
   type OrdenTrabajoVariante,
 } from "../../../../lib/generarOrdenTrabajoPdf";
 
-const BUCKET =
-  "trabajos-enfri-ar";
+const BUCKET = "trabajos-enfri-ar";
 
 type ArchivoExistente = {
   id: string;
-  documento_variante:
-    | string
-    | null;
+  documento_variante: string | null;
   storage_path: string;
-  nombre_original:
-    | string
-    | null;
+  nombre_original: string | null;
 };
 
-function mensajeError(
-  error: unknown
-) {
+function mensajeError(error: unknown) {
   if (
     error &&
-    typeof error ===
-      "object" &&
+    typeof error === "object" &&
     "message" in error
   ) {
     return String(
@@ -46,55 +38,40 @@ function mensajeError(
   return "Ocurrió un error inesperado.";
 }
 
-function limpiarNombre(
-  valor: string
-) {
+function limpiarNombre(valor: string) {
   return valor
     .trim()
-    .replace(
-      /[^a-zA-Z0-9_-]/g,
-      "-"
-    );
+    .replace(/[^a-zA-Z0-9_-]/g, "-");
 }
 
-function esArchivoExistente(
-  error: unknown
-) {
+function esArchivoExistente(error: unknown) {
   if (
     !error ||
-    typeof error !==
-      "object"
+    typeof error !== "object"
   ) {
     return false;
   }
 
-  const dato =
-    error as {
-      message?: unknown;
-      statusCode?: unknown;
-      status?: unknown;
-    };
+  const dato = error as {
+    message?: unknown;
+    statusCode?: unknown;
+    status?: unknown;
+  };
 
-  const estado =
-    Number(
-      dato.statusCode ??
-        dato.status ??
-        0
-    );
+  const estado = Number(
+    dato.statusCode ??
+      dato.status ??
+      0
+  );
 
-  const mensaje =
-    String(
-      dato.message ?? ""
-    ).toLowerCase();
+  const mensaje = String(
+    dato.message ?? ""
+  ).toLowerCase();
 
   return (
     estado === 409 ||
-    mensaje.includes(
-      "already exists"
-    ) ||
-    mensaje.includes(
-      "duplicate"
-    ) ||
+    mensaje.includes("already exists") ||
+    mensaje.includes("duplicate") ||
     mensaje.includes(
       "resource already exists"
     )
@@ -108,10 +85,7 @@ async function crearEnlace(
   const supabase =
     await createSupabaseServerClient();
 
-  const {
-    data,
-    error,
-  } =
+  const { data, error } =
     await supabase.storage
       .from(BUCKET)
       .createSignedUrl(
@@ -133,8 +107,7 @@ async function crearEnlace(
 
   return {
     ok: true as const,
-    url:
-      data.signedUrl,
+    url: data.signedUrl,
   };
 }
 
@@ -144,10 +117,9 @@ export async function generarOrdenTrabajoPdfsAction(
   try {
     await requireAdminUser();
 
-    const id =
-      String(
-        planillaId ?? ""
-      ).trim();
+    const id = String(
+      planillaId ?? ""
+    ).trim();
 
     if (!id) {
       return {
@@ -170,9 +142,7 @@ export async function generarOrdenTrabajoPdfsAction(
       data: planilla,
       error: planillaError,
     } = await supabase
-      .from(
-        "planillas_trabajo"
-      )
+      .from("planillas_trabajo")
       .select(`
         id,
         presupuesto_id,
@@ -199,10 +169,7 @@ export async function generarOrdenTrabajoPdfsAction(
         observaciones,
         empresa_snapshot
       `)
-      .eq(
-        "id",
-        id
-      )
+      .eq("id", id)
       .single();
 
     if (
@@ -218,6 +185,14 @@ export async function generarOrdenTrabajoPdfsAction(
     }
 
     /*
+     * Guardamos la planilla ya validada en una constante.
+     * Así TypeScript mantiene correctamente que no es null
+     * también dentro de las funciones internas.
+     */
+    const planillaSegura =
+      planilla;
+
+    /*
      * =========================================
      * NÚMERO DEL PRESUPUESTO RELACIONADO
      * =========================================
@@ -225,8 +200,7 @@ export async function generarOrdenTrabajoPdfsAction(
 
     const {
       data: presupuesto,
-      error:
-        presupuestoError,
+      error: presupuestoError,
     } = await supabase
       .from("presupuestos")
       .select(`
@@ -235,7 +209,7 @@ export async function generarOrdenTrabajoPdfsAction(
       `)
       .eq(
         "id",
-        planilla.presupuesto_id
+        planillaSegura.presupuesto_id
       )
       .single();
 
@@ -251,79 +225,79 @@ export async function generarOrdenTrabajoPdfsAction(
       };
     }
 
-    const datosPdf:
-      OrdenTrabajoPdfDatos = {
+    const datosPdf: OrdenTrabajoPdfDatos =
+      {
         numero_orden:
-          planilla.numero_orden,
+          planillaSegura.numero_orden,
 
         presupuesto_id:
-          planilla.presupuesto_id,
+          planillaSegura.presupuesto_id,
 
         numero_presupuesto:
           presupuesto.numero,
 
         fecha:
-          planilla.fecha,
+          planillaSegura.fecha,
 
         cliente_nombre:
-          planilla.cliente_nombre,
+          planillaSegura.cliente_nombre,
 
         cliente_apellido:
-          planilla.cliente_apellido,
+          planillaSegura.cliente_apellido,
 
         cliente_razon_social:
-          planilla.cliente_razon_social,
+          planillaSegura.cliente_razon_social,
 
         cliente_dni:
-          planilla.cliente_dni,
+          planillaSegura.cliente_dni,
 
         cliente_cuit:
-          planilla.cliente_cuit,
+          planillaSegura.cliente_cuit,
 
         cliente_telefono:
-          planilla.cliente_telefono,
+          planillaSegura.cliente_telefono,
 
         cliente_direccion:
-          planilla.cliente_direccion,
+          planillaSegura.cliente_direccion,
 
         cliente_localidad:
-          planilla.cliente_localidad,
+          planillaSegura.cliente_localidad,
 
         tecnico_nombre:
-          planilla.tecnico_nombre,
+          planillaSegura.tecnico_nombre,
 
         tecnico_apellido:
-          planilla.tecnico_apellido,
+          planillaSegura.tecnico_apellido,
 
         tecnico_dni:
-          planilla.tecnico_dni,
+          planillaSegura.tecnico_dni,
 
         tecnico_telefono:
-          planilla.tecnico_telefono,
+          planillaSegura.tecnico_telefono,
 
         tecnico_matricula:
-          planilla.tecnico_matricula,
+          planillaSegura.tecnico_matricula,
 
         tecnico_direccion:
-          planilla.tecnico_direccion,
+          planillaSegura.tecnico_direccion,
 
         tecnico_localidad:
-          planilla.tecnico_localidad,
+          planillaSegura.tecnico_localidad,
 
         trabajo_detalle:
-          planilla.trabajo_detalle,
+          planillaSegura.trabajo_detalle,
 
         fecha_programada:
-          planilla.fecha_programada,
+          planillaSegura.fecha_programada,
 
         hora_programada:
-          planilla.hora_programada,
+          planillaSegura.hora_programada,
 
         observaciones:
-          planilla.observaciones,
+          planillaSegura.observaciones,
 
         empresa_snapshot:
-          planilla.empresa_snapshot,
+          planillaSegura.empresa_snapshot,
       };
 
     /*
@@ -334,12 +308,9 @@ export async function generarOrdenTrabajoPdfsAction(
 
     const {
       data: archivosActuales,
-      error:
-        archivosError,
+      error: archivosError,
     } = await supabase
-      .from(
-        "archivos_trabajo"
-      )
+      .from("archivos_trabajo")
       .select(`
         id,
         documento_variante,
@@ -369,12 +340,11 @@ export async function generarOrdenTrabajoPdfsAction(
 
     const numeroSeguro =
       limpiarNombre(
-        planilla.numero_orden
+        planillaSegura.numero_orden
       );
 
     async function asegurarPdf(
-      variante:
-        OrdenTrabajoVariante
+      variante: OrdenTrabajoVariante
     ) {
       const existente =
         existentes.find(
@@ -445,18 +415,13 @@ export async function generarOrdenTrabajoPdfsAction(
           .from(BUCKET)
           .upload(
             storagePath,
-            Buffer.from(
-              bytes
-            ),
+            Buffer.from(bytes),
             {
               contentType:
                 "application/pdf",
-
               cacheControl:
                 "3600",
-
-              upsert:
-                false,
+              upsert: false,
             }
           );
 
@@ -480,17 +445,13 @@ export async function generarOrdenTrabajoPdfsAction(
        */
 
       const {
-        data:
-          archivoCreado,
-        error:
-          insertarError,
+        data: archivoCreado,
+        error: insertarError,
       } = await supabase
-        .from(
-          "archivos_trabajo"
-        )
+        .from("archivos_trabajo")
         .insert({
           presupuesto_id:
-            planilla.presupuesto_id,
+            planillaSegura.presupuesto_id,
 
           tipo:
             "documento",
@@ -511,7 +472,7 @@ export async function generarOrdenTrabajoPdfsAction(
             bytes.byteLength,
 
           descripcion:
-            `Orden de Trabajo ${planilla.numero_orden} - ${
+            `Orden de Trabajo ${planillaSegura.numero_orden} - ${
               variante ===
               "original"
                 ? "ORIGINAL"
@@ -569,11 +530,8 @@ export async function generarOrdenTrabajoPdfsAction(
         ok: true as const,
         archivoId:
           archivoCreado.id,
-
         storagePath,
-
         nombreArchivo,
-
         url:
           enlace.url,
       };
@@ -619,12 +577,9 @@ export async function generarOrdenTrabajoPdfsAction(
 
     return {
       ok: true as const,
-
       numeroOrden:
-        planilla.numero_orden,
-
+        planillaSegura.numero_orden,
       original,
-
       copia,
     };
   } catch (error) {
