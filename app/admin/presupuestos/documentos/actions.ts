@@ -3,7 +3,8 @@
 import { requireAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const BUCKET = "presupuestos-enfri-ar";
+const BUCKET =
+  "presupuestos-enfri-ar";
 
 export type DocumentoPresupuestoListado = {
   id: string;
@@ -17,14 +18,27 @@ export type DocumentoPresupuestoListado = {
 };
 
 type SnapshotDocumento = {
-  numero?: string | number | null;
+  numero?:
+    | string
+    | number
+    | null;
 
-  fecha?: string | null;
+  fecha?:
+    | string
+    | null;
 
   cliente?: {
-    nombre?: string | null;
-    apellido?: string | null;
-    razon_social?: string | null;
+    nombre?:
+      | string
+      | null;
+
+    apellido?:
+      | string
+      | null;
+
+    razon_social?:
+      | string
+      | null;
   } | null;
 };
 
@@ -33,7 +47,8 @@ function obtenerMensajeError(
 ) {
   if (
     error &&
-    typeof error === "object" &&
+    typeof error ===
+      "object" &&
     "message" in error
   ) {
     return String(
@@ -49,7 +64,8 @@ function obtenerMensajeError(
 }
 
 function obtenerCliente(
-  snapshot: SnapshotDocumento
+  snapshot:
+    SnapshotDocumento
 ) {
   const cliente =
     snapshot.cliente;
@@ -60,7 +76,8 @@ function obtenerCliente(
 
   const razonSocial =
     String(
-      cliente.razon_social ?? ""
+      cliente.razon_social ??
+        ""
     ).trim();
 
   if (razonSocial) {
@@ -88,6 +105,39 @@ function obtenerCliente(
     completo ||
     "Cliente sin nombre"
   );
+}
+
+function nombreArchivoDesdeRuta(
+  ruta: string
+) {
+  return (
+    ruta
+      .split("/")
+      .pop() ||
+    "presupuesto.pdf"
+  );
+}
+
+async function validarRutaDocumento(
+  storagePath: string
+) {
+  const ruta =
+    String(
+      storagePath || ""
+    ).trim();
+
+  if (!ruta) {
+    return {
+      ok: false as const,
+      error:
+        "Este documento todavía no tiene un PDF guardado.",
+    };
+  }
+
+  return {
+    ok: true as const,
+    ruta,
+  };
 }
 
 export async function listarDocumentosPresupuestoAction() {
@@ -200,33 +250,23 @@ export async function listarDocumentosPresupuestoAction() {
   }
 }
 
-export async function descargarDocumentoPresupuestoAction(
+export async function verDocumentoPresupuestoAction(
   storagePath: string
 ) {
   try {
     await requireAdminUser();
 
-    const ruta =
-      String(
-        storagePath || ""
-      ).trim();
+    const validacion =
+      await validarRutaDocumento(
+        storagePath
+      );
 
-    if (!ruta) {
-      return {
-        ok: false as const,
-        error:
-          "Este documento todavía no tiene un PDF guardado.",
-      };
+    if (!validacion.ok) {
+      return validacion;
     }
 
     const supabase =
       await createSupabaseServerClient();
-
-    const nombreArchivo =
-      ruta
-        .split("/")
-        .pop() ||
-      "presupuesto.pdf";
 
     const {
       data,
@@ -235,7 +275,69 @@ export async function descargarDocumentoPresupuestoAction(
       await supabase.storage
         .from(BUCKET)
         .createSignedUrl(
-          ruta,
+          validacion.ruta,
+          300
+        );
+
+    if (
+      error ||
+      !data?.signedUrl
+    ) {
+      return {
+        ok: false as const,
+        error:
+          error?.message ||
+          "No se pudo abrir la vista previa del PDF.",
+      };
+    }
+
+    return {
+      ok: true as const,
+      url:
+        data.signedUrl,
+    };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error:
+        obtenerMensajeError(
+          error
+        ),
+    };
+  }
+}
+
+export async function descargarDocumentoPresupuestoAction(
+  storagePath: string
+) {
+  try {
+    await requireAdminUser();
+
+    const validacion =
+      await validarRutaDocumento(
+        storagePath
+      );
+
+    if (!validacion.ok) {
+      return validacion;
+    }
+
+    const supabase =
+      await createSupabaseServerClient();
+
+    const nombreArchivo =
+      nombreArchivoDesdeRuta(
+        validacion.ruta
+      );
+
+    const {
+      data,
+      error,
+    } =
+      await supabase.storage
+        .from(BUCKET)
+        .createSignedUrl(
+          validacion.ruta,
           300,
           {
             download:
