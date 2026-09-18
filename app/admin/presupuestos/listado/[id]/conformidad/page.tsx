@@ -256,36 +256,34 @@ export default async function ConformidadPage({
   }
 
   const {
-    data: tecnicos,
+    data: ordenesActuales,
     error:
-      tecnicosError,
+      ordenesError,
   } = await supabase
-    .from("tecnicos")
+    .from(
+      "planillas_trabajo"
+    )
     .select(`
       id,
-      nombre,
-      apellido,
-      numero_matricula,
-      estado
+      numero_orden,
+      tecnico_id,
+      tecnico_nombre,
+      tecnico_apellido,
+      tecnico_matricula,
+      secuencia
     `)
-    .neq(
-      "estado",
-      "inactivo"
+    .eq(
+      "presupuesto_id",
+      presupuesto.id
     )
     .order(
-      "apellido",
-      {
-        ascending: true,
-      }
-    )
-    .order(
-      "nombre",
+      "secuencia",
       {
         ascending: true,
       }
     );
 
-  if (tecnicosError) {
+  if (ordenesError) {
     return (
       <main
         style={{
@@ -327,12 +325,40 @@ export default async function ConformidadPage({
             }}
           >
             No se pudieron cargar
-            los técnicos.
+            las Órdenes de Trabajo
+            del presupuesto.
           </div>
         </div>
       </main>
     );
   }
+
+  const ordenes =
+    (ordenesActuales || [])
+      .map(
+        (orden) => ({
+          id:
+            orden.id,
+
+          numeroOrden:
+            orden.numero_orden,
+
+          tecnicoId:
+            orden.tecnico_id,
+
+          tecnico:
+            [
+              orden.tecnico_nombre,
+              orden.tecnico_apellido,
+            ]
+              .filter(Boolean)
+              .join(" ") ||
+            "Técnico sin nombre",
+
+          matricula:
+            orden.tecnico_matricula,
+        })
+      );
 
   return (
     <main
@@ -446,8 +472,8 @@ export default async function ConformidadPage({
           cliente={
             cliente
           }
-          tecnicos={
-            tecnicos || []
+          ordenes={
+            ordenes
           }
         />
 
