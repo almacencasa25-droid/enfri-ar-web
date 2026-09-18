@@ -528,243 +528,240 @@ export default function ListadoPresupuestos() {
           {presupuestos.map(
             (
               presupuesto
-            ) => (
-              <article
-                key={
-                  presupuesto.id
-                }
-                style={
-                  presupuestoStyle
-                }
-              >
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    flexWrap:
-                      "wrap",
-                    justifyContent:
-                      "space-between",
-                    gap: "14px",
-                  }}
+            ) => {
+              const permiteOrden =
+                presupuesto.estado ===
+                  "aceptado" ||
+                presupuesto.estado ===
+                  "realizado";
+
+              return (
+                <article
+                  key={
+                    presupuesto.id
+                  }
+                  style={
+                    presupuestoStyle
+                  }
                 >
-                  <div>
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      flexWrap:
+                        "wrap",
+                      justifyContent:
+                        "space-between",
+                      gap: "14px",
+                    }}
+                  >
+                    <div>
+                      <strong
+                        style={{
+                          display:
+                            "block",
+                          fontSize:
+                            "1rem",
+                          color:
+                            "var(--foreground)",
+                        }}
+                      >
+                        Presupuesto Nº{" "}
+                        {
+                          presupuesto.numero
+                        }
+                      </strong>
+
+                      <span
+                        style={
+                          ayudaStyle
+                        }
+                      >
+                        {fechaArgentina(
+                          presupuesto.fecha
+                        )}
+                      </span>
+                    </div>
+
                     <strong
                       style={{
-                        display:
-                          "block",
                         fontSize:
-                          "1rem",
+                          "1.05rem",
                         color:
                           "var(--foreground)",
                       }}
                     >
-                      Presupuesto
-                      Nº{" "}
-                      {
-                        presupuesto.numero
-                      }
-                    </strong>
-
-                    <span
-                      style={
-                        ayudaStyle
-                      }
-                    >
-                      {fechaArgentina(
-                        presupuesto.fecha
+                      {moneda(
+                        presupuesto.total
                       )}
-                    </span>
+                    </strong>
                   </div>
 
-                  <strong
+                  <div
                     style={{
+                      display:
+                        "grid",
+                      gap: "4px",
                       fontSize:
-                        "1.05rem",
+                        "0.86rem",
                       color:
-                        "var(--foreground)",
+                        "var(--muted)",
                     }}
                   >
-                    {moneda(
-                      presupuesto.total
-                    )}
-                  </strong>
-                </div>
-
-                <div
-                  style={{
-                    display:
-                      "grid",
-                    gap: "4px",
-                    fontSize:
-                      "0.86rem",
-                    color:
-                      "var(--muted)",
-                  }}
-                >
-                  <span>
-                    Cliente:{" "}
-                    <strong>
-                      {presupuesto.cliente ||
-                        "Sin nombre"}
-                    </strong>
-                  </span>
-
-                  {presupuesto.dni_cuit ? (
                     <span>
-                      DNI/CUIT:{" "}
-                      {
-                        presupuesto.dni_cuit
-                      }
+                      Cliente:{" "}
+                      <strong>
+                        {presupuesto.cliente ||
+                          "Sin nombre"}
+                      </strong>
                     </span>
-                  ) : null}
 
-                  {presupuesto.detalle_corto ? (
+                    {presupuesto.dni_cuit ? (
+                      <span>
+                        DNI/CUIT:{" "}
+                        {
+                          presupuesto.dni_cuit
+                        }
+                      </span>
+                    ) : null}
+
+                    {presupuesto.detalle_corto ? (
+                      <span>
+                        Detalle:{" "}
+                        {
+                          presupuesto.detalle_corto
+                        }
+                      </span>
+                    ) : null}
+
                     <span>
-                      Detalle:{" "}
-                      {
-                        presupuesto.detalle_corto
-                      }
+                      Estado:{" "}
+                      <strong>
+                        {nombreEstado(
+                          presupuesto.estado
+                        )}
+                      </strong>
                     </span>
-                  ) : null}
 
-                  <span>
-                    Estado:{" "}
-                    <strong>
-                      {nombreEstado(
-                        presupuesto.estado
-                      )}
-                    </strong>
-                  </span>
+                    {presupuesto.trabajo_realizado ? (
+                      <span
+                        style={{
+                          color:
+                            "#236b43",
+                          fontWeight:
+                            800,
+                        }}
+                      >
+                        Trabajo realizado
+                      </span>
+                    ) : null}
+                  </div>
 
-                  {presupuesto.trabajo_realizado ? (
-                    <span
-                      style={{
-                        color:
-                          "#236b43",
-                        fontWeight:
-                          800,
-                      }}
-                    >
-                      Trabajo
-                      realizado
-                    </span>
-                  ) : null}
-                </div>
-
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    flexWrap:
-                      "wrap",
-                    gap: "8px",
-                    alignItems:
-                      "center",
-                  }}
-                >
-                  <Link
-                    href={`/admin/presupuestos/listado/${presupuesto.id}/editar`}
-                    style={
-                      linkButtonStyle
-                    }
-                  >
-                    Modificar
-                  </Link>
-
-                  <button
-                    type="button"
-                    disabled={
-                      procesando
-                    }
-                    onClick={() =>
-                      emitirPdf(
-                        presupuesto
-                      )
-                    }
-                    style={
-                      pdfButtonStyle
-                    }
-                  >
-                    {procesando
-                      ? "Procesando..."
-                      : "Emitir PDF"}
-                  </button>
-
-                  <select
-                    value={
-                      presupuesto.estado
-                    }
-                    disabled={
-                      procesando
-                    }
-                    onChange={(
-                      event
-                    ) =>
-                      cambiarEstado(
-                        presupuesto.id,
-                        event.target
-                          .value
-                      )
-                    }
+                  <div
                     style={{
-                      ...inputStyle,
-                      width: "auto",
-                      minWidth:
-                        "145px",
+                      display:
+                        "flex",
+                      flexWrap:
+                        "wrap",
+                      gap: "8px",
+                      alignItems:
+                        "center",
                     }}
                   >
-                    <option value="borrador">
-                      Borrador
-                    </option>
+                    <Link
+                      href={`/admin/presupuestos/listado/${presupuesto.id}/editar`}
+                      style={
+                        linkButtonStyle
+                      }
+                    >
+                      Modificar
+                    </Link>
 
-                    <option value="enviado">
-                      Enviado
-                    </option>
+                    {permiteOrden ? (
+                      <Link
+                        href={`/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`}
+                        style={
+                          orderButtonStyle
+                        }
+                      >
+                        Orden de Trabajo
+                      </Link>
+                    ) : null}
 
-                    <option value="aceptado">
-                      Aceptado
-                    </option>
-
-                    <option value="rechazado">
-                      Rechazado
-                    </option>
-
-                    <option value="realizado">
-                      Realizado
-                    </option>
-
-                    <option value="anulado">
-                      Anulado
-                    </option>
-                  </select>
-
-                  <button
-                    type="button"
-                    disabled={
-                      procesando
-                    }
-                    onClick={() =>
-                      duplicar(
-                        presupuesto
-                      )
-                    }
-                    style={
-                      buttonStyle
-                    }
-                  >
-                    Duplicar
-                  </button>
-
-                  {presupuesto.estado !==
-                  "anulado" ? (
                     <button
                       type="button"
                       disabled={
                         procesando
                       }
                       onClick={() =>
-                        anular(
+                        emitirPdf(
+                          presupuesto
+                        )
+                      }
+                      style={
+                        pdfButtonStyle
+                      }
+                    >
+                      {procesando
+                        ? "Procesando..."
+                        : "Emitir PDF"}
+                    </button>
+
+                    <select
+                      value={
+                        presupuesto.estado
+                      }
+                      disabled={
+                        procesando
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        cambiarEstado(
+                          presupuesto.id,
+                          event.target
+                            .value
+                        )
+                      }
+                      style={{
+                        ...inputStyle,
+                        width: "auto",
+                        minWidth:
+                          "145px",
+                      }}
+                    >
+                      <option value="borrador">
+                        Borrador
+                      </option>
+
+                      <option value="enviado">
+                        Enviado
+                      </option>
+
+                      <option value="aceptado">
+                        Aceptado
+                      </option>
+
+                      <option value="rechazado">
+                        Rechazado
+                      </option>
+
+                      <option value="realizado">
+                        Realizado
+                      </option>
+
+                      <option value="anulado">
+                        Anulado
+                      </option>
+                    </select>
+
+                    <button
+                      type="button"
+                      disabled={
+                        procesando
+                      }
+                      onClick={() =>
+                        duplicar(
                           presupuesto
                         )
                       }
@@ -772,29 +769,49 @@ export default function ListadoPresupuestos() {
                         buttonStyle
                       }
                     >
-                      Anular
+                      Duplicar
                     </button>
-                  ) : null}
 
-                  <button
-                    type="button"
-                    disabled={
-                      procesando
-                    }
-                    onClick={() =>
-                      eliminar(
-                        presupuesto
-                      )
-                    }
-                    style={
-                      deleteButtonStyle
-                    }
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            )
+                    {presupuesto.estado !==
+                    "anulado" ? (
+                      <button
+                        type="button"
+                        disabled={
+                          procesando
+                        }
+                        onClick={() =>
+                          anular(
+                            presupuesto
+                          )
+                        }
+                        style={
+                          buttonStyle
+                        }
+                      >
+                        Anular
+                      </button>
+                    ) : null}
+
+                    <button
+                      type="button"
+                      disabled={
+                        procesando
+                      }
+                      onClick={() =>
+                        eliminar(
+                          presupuesto
+                        )
+                      }
+                      style={
+                        deleteButtonStyle
+                      }
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </article>
+              );
+            }
           )}
         </div>
       </section>
@@ -891,6 +908,15 @@ const linkButtonStyle = {
   textDecoration: "none",
 };
 
+const orderButtonStyle = {
+  ...linkButtonStyle,
+  background:
+    "rgba(224, 130, 35, 0.11)",
+  border:
+    "1px solid rgba(224, 130, 35, 0.32)",
+  color: "#a55a18",
+};
+
 const pdfButtonStyle = {
   ...buttonStyle,
   border:
@@ -911,7 +937,8 @@ const deleteButtonStyle = {
 
 const successStyle = {
   padding: "13px",
-  borderRadius: "11px",
+  borderRadius:
+    "11px",
   background:
     "rgba(35, 107, 67, 0.08)",
   color: "#236b43",
@@ -920,7 +947,8 @@ const successStyle = {
 
 const errorStyle = {
   padding: "13px",
-  borderRadius: "11px",
+  borderRadius:
+    "11px",
   background:
     "rgba(180, 40, 40, 0.08)",
   color: "#982828",
