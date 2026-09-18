@@ -31,32 +31,6 @@ type Props = {
   tecnicos: Tecnico[];
 };
 
-function fechaLocalHoy() {
-  const hoy =
-    new Date();
-
-  const anio =
-    hoy.getFullYear();
-
-  const mes =
-    String(
-      hoy.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
-
-  const dia =
-    String(
-      hoy.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
-
-  return `${anio}-${mes}-${dia}`;
-}
-
 export default function ConformidadForm({
   presupuestoId,
   numeroPresupuesto,
@@ -69,27 +43,8 @@ export default function ConformidadForm({
   ] = useState("");
 
   const [
-    fecha,
-    setFecha,
-  ] = useState(
-    fechaLocalHoy()
-  );
-
-  const [
-    fechaFinalizacion,
-    setFechaFinalizacion,
-  ] = useState(
-    fechaLocalHoy()
-  );
-
-  const [
     observaciones,
     setObservaciones,
-  ] = useState("");
-
-  const [
-    nombreAclaracionCliente,
-    setNombreAclaracionCliente,
   ] = useState("");
 
   const [
@@ -131,43 +86,6 @@ export default function ConformidadForm({
       return;
     }
 
-    if (!fecha) {
-      setError(
-        "La fecha es obligatoria."
-      );
-
-      return;
-    }
-
-    if (!fechaFinalizacion) {
-      setError(
-        "La fecha de finalización es obligatoria."
-      );
-
-      return;
-    }
-
-    if (
-      fechaFinalizacion <
-      fecha
-    ) {
-      setError(
-        "La fecha de finalización no puede ser anterior a la fecha de la conformidad."
-      );
-
-      return;
-    }
-
-    if (
-      !nombreAclaracionCliente.trim()
-    ) {
-      setError(
-        "Ingresá el nombre y aclaración del cliente."
-      );
-
-      return;
-    }
-
     const confirmar =
       window.confirm(
         `¿Querés generar la conformidad del presupuesto Nº ${numeroPresupuesto}?`
@@ -186,16 +104,16 @@ export default function ConformidadForm({
 
               tecnicoId,
 
-              fecha,
+              fecha: null,
 
-              fechaFinalizacion,
+              fechaFinalizacion:
+                null,
 
               observaciones:
                 observaciones ||
                 null,
 
               nombreAclaracionCliente:
-                nombreAclaracionCliente ||
                 null,
             }
           );
@@ -280,7 +198,7 @@ export default function ConformidadForm({
               labelSmallStyle
             }
           >
-            CLIENTE
+            CLIENTE / ESTABLECIMIENTO
           </span>
 
           <strong
@@ -370,105 +288,6 @@ export default function ConformidadForm({
           </select>
         </label>
 
-        <div
-          style={{
-            display:
-              "grid",
-
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(180px, 1fr))",
-
-            gap: "12px",
-          }}
-        >
-          <label
-            style={labelStyle}
-          >
-            Fecha de conformidad *
-
-            <input
-              type="date"
-              value={fecha}
-              onChange={(
-                event
-              ) =>
-                setFecha(
-                  event.target
-                    .value
-                )
-              }
-              disabled={
-                procesando ||
-                Boolean(
-                  conformidadCreada
-                )
-              }
-              style={
-                inputStyle
-              }
-            />
-          </label>
-
-          <label
-            style={labelStyle}
-          >
-            Fecha de finalización *
-
-            <input
-              type="date"
-              value={
-                fechaFinalizacion
-              }
-              onChange={(
-                event
-              ) =>
-                setFechaFinalizacion(
-                  event.target
-                    .value
-                )
-              }
-              disabled={
-                procesando ||
-                Boolean(
-                  conformidadCreada
-                )
-              }
-              style={
-                inputStyle
-              }
-            />
-          </label>
-        </div>
-
-        <label
-          style={labelStyle}
-        >
-          Nombre y aclaración del cliente *
-
-          <input
-            type="text"
-            value={
-              nombreAclaracionCliente
-            }
-            onChange={(
-              event
-            ) =>
-              setNombreAclaracionCliente(
-                event.target
-                  .value
-              )
-            }
-            disabled={
-              procesando ||
-              Boolean(
-                conformidadCreada
-              )
-            }
-            placeholder="Nombre completo de quien presta conformidad"
-            style={inputStyle}
-          />
-        </label>
-
         <label
           style={labelStyle}
         >
@@ -493,7 +312,7 @@ export default function ConformidadForm({
               )
             }
             rows={5}
-            placeholder="Observaciones sobre el trabajo realizado o la conformidad."
+            placeholder="Observaciones sobre el trabajo realizado."
             style={{
               ...inputStyle,
 
@@ -508,13 +327,15 @@ export default function ConformidadForm({
 
         <div
           style={
-            warningStyle
+            infoStyle
           }
         >
-          La firma del cliente se incorporará
-          en el siguiente paso. Primero vamos
-          a comprobar la creación correcta de
-          la conformidad y su numeración.
+          La fecha de conformidad, fecha de
+          finalización, datos del responsable
+          del establecimiento, DNI, cargo,
+          firma y aclaración se completarán
+          manualmente sobre el documento
+          impreso.
         </div>
 
         {error ? (
@@ -710,17 +531,17 @@ const errorStyle = {
   fontWeight: 800,
 };
 
-const warningStyle = {
+const infoStyle = {
   padding: "13px",
 
   borderRadius:
     "11px",
 
   background:
-    "rgba(180, 120, 20, 0.08)",
+    "rgba(38, 111, 164, 0.08)",
 
   color:
-    "#805d18",
+    "#266fa4",
 
   fontSize:
     "0.82rem",
