@@ -62,6 +62,9 @@ const FOOTER_TEXT_Y = 37;
 
 const CONTENT_BOTTOM = 78;
 
+const MANUAL_HEIGHT = 167;
+const MANUAL_TOP_GAP = 12;
+
 const COLOR_DARK = rgb(
   0.09,
   0.24,
@@ -314,7 +317,9 @@ function textoDerecha(
     );
 
   page.drawText(valor, {
-    x: derecha - ancho,
+    x:
+      derecha -
+      ancho,
     y,
     font,
     size,
@@ -348,14 +353,17 @@ async function cargarLogo(
   pdf: PDFDocument
 ): Promise<PDFImage | null> {
   try {
-    const ruta = path.join(
-      process.cwd(),
-      "public",
-      "logo-enfri-ar.png"
-    );
+    const ruta =
+      path.join(
+        process.cwd(),
+        "public",
+        "logo-enfri-ar.png"
+      );
 
     const bytes =
-      await readFile(ruta);
+      await readFile(
+        ruta
+      );
 
     return await pdf.embedPng(
       bytes
@@ -400,7 +408,8 @@ function dibujarTextoAjustado({
     );
 
   while (
-    size > sizeMinimo
+    size >
+    sizeMinimo
   ) {
     const lineHeight =
       size + 2;
@@ -442,18 +451,23 @@ function dibujarTextoAjustado({
       cantidadMaxima
     );
 
-  let actualY = y;
+  let actualY =
+    y;
 
   for (
     const linea of visibles
   ) {
-    page.drawText(linea, {
-      x,
-      y: actualY,
-      size,
-      font,
-      color,
-    });
+    page.drawText(
+      linea,
+      {
+        x,
+        y:
+          actualY,
+        size,
+        font,
+        color,
+      }
+    );
 
     actualY -=
       lineHeight;
@@ -479,7 +493,9 @@ function dibujarCampoManual({
   page.drawText(
     etiquetaVisible,
     {
-      x: MARGIN + 10,
+      x:
+        MARGIN +
+        10,
       y,
       size: 7.4,
       font: bold,
@@ -505,17 +521,24 @@ function dibujarCampoManual({
         MARGIN -
         10,
       inicioLinea +
-        (anchoLinea ?? 300)
+        (
+          anchoLinea ??
+          300
+        )
     );
 
   page.drawLine({
     start: {
-      x: inicioLinea,
-      y: y - 2,
+      x:
+        inicioLinea,
+      y:
+        y - 2,
     },
     end: {
-      x: finLinea,
-      y: y - 2,
+      x:
+        finLinea,
+      y:
+        y - 2,
     },
     thickness: 0.55,
     color:
@@ -540,7 +563,9 @@ export async function generarConformidadPdf(
     );
 
   const logo =
-    await cargarLogo(pdf);
+    await cargarLogo(
+      pdf
+    );
 
   const empresa =
     datos.empresa_snapshot ||
@@ -588,35 +613,43 @@ export async function generarConformidadPdf(
   );
 
   function dibujarPie(
-    page: PDFPage
+    pagina: PDFPage
   ) {
     lineaHorizontal(
-      page,
+      pagina,
       FOOTER_LINE_Y
     );
 
-    page.drawText(
+    pagina.drawText(
       "Conformidad de trabajo - Documento operativo.",
       {
-        x: MARGIN,
+        x:
+          MARGIN,
         y:
           FOOTER_TEXT_Y,
-        size: 6.8,
-        font: bold,
+        size:
+          6.8,
+        font:
+          bold,
         color:
           COLOR_DARK,
       }
     );
   }
 
-  function crearPaginaContinuacion() {
-    const page =
+  function crearPaginaContinuacion(
+    titulo:
+      | "detalle"
+      | "documento" =
+      "documento"
+  ) {
+    const pagina =
       pdf.addPage([
         PAGE_WIDTH,
         PAGE_HEIGHT,
       ]);
 
-    page.drawRectangle({
+    pagina.drawRectangle({
       x: 0,
       y:
         PAGE_HEIGHT -
@@ -628,22 +661,24 @@ export async function generarConformidadPdf(
         COLOR_BLUE,
     });
 
-    page.drawText(
+    pagina.drawText(
       empresaNombre,
       {
-        x: MARGIN,
+        x:
+          MARGIN,
         y:
           PAGE_HEIGHT -
           38,
         size: 10,
-        font: bold,
+        font:
+          bold,
         color:
           COLOR_DARK,
       }
     );
 
     textoDerecha(
-      page,
+      pagina,
       numeroConformidad,
       PAGE_WIDTH -
         MARGIN,
@@ -654,23 +689,31 @@ export async function generarConformidadPdf(
       COLOR_BLUE
     );
 
-    page.drawText(
-      "CONTINUACION DEL DETALLE",
+    pagina.drawText(
+      titulo ===
+        "detalle"
+        ? "CONTINUACION DEL DETALLE"
+        : "CONTINUACION DE LA CONFORMIDAD",
       {
-        x: MARGIN,
+        x:
+          MARGIN,
         y:
           PAGE_HEIGHT -
           59,
-        size: 7.2,
-        font: bold,
+        size:
+          7.2,
+        font:
+          bold,
         color:
           COLOR_MUTED,
       }
     );
 
-    if (numeroPresupuesto) {
+    if (
+      numeroPresupuesto
+    ) {
       textoDerecha(
-        page,
+        pagina,
         `Segun Presupuesto N° ${numeroPresupuesto}`,
         PAGE_WIDTH -
           MARGIN,
@@ -683,16 +726,19 @@ export async function generarConformidadPdf(
     }
 
     lineaHorizontal(
-      page,
+      pagina,
       PAGE_HEIGHT -
         69,
       COLOR_BLUE
     );
 
-    dibujarPie(page);
+    dibujarPie(
+      pagina
+    );
 
     return {
-      page,
+      page:
+        pagina,
       y:
         PAGE_HEIGHT -
         91,
@@ -740,7 +786,8 @@ export async function generarConformidadPdf(
     page.drawImage(
       logo,
       {
-        x: MARGIN,
+        x:
+          MARGIN,
         y:
           PAGE_HEIGHT -
           64,
@@ -756,12 +803,14 @@ export async function generarConformidadPdf(
     page.drawText(
       "Enfri.Ar",
       {
-        x: MARGIN,
+        x:
+          MARGIN,
         y:
           PAGE_HEIGHT -
           53,
         size: 20,
-        font: bold,
+        font:
+          bold,
         color:
           COLOR_DARK,
       }
@@ -788,7 +837,9 @@ export async function generarConformidadPdf(
     ),
 
     web,
-  ].filter(Boolean);
+  ].filter(
+    Boolean
+  );
 
   for (
     let i = 0;
@@ -834,10 +885,12 @@ export async function generarConformidadPdf(
   page.drawText(
     "CONFORMIDAD",
     {
-      x: MARGIN,
+      x:
+        MARGIN,
       y,
       size: 18,
-      font: bold,
+      font:
+        bold,
       color:
         COLOR_DARK,
     }
@@ -856,14 +909,18 @@ export async function generarConformidadPdf(
 
   y -= 20;
 
-  if (numeroPresupuesto) {
+  if (
+    numeroPresupuesto
+  ) {
     page.drawText(
       `Segun Presupuesto N° ${numeroPresupuesto}`,
       {
-        x: MARGIN,
+        x:
+          MARGIN,
         y,
         size: 8,
-        font: bold,
+        font:
+          bold,
         color:
           COLOR_MUTED,
       }
@@ -885,7 +942,8 @@ export async function generarConformidadPdf(
     76;
 
   page.drawRectangle({
-    x: MARGIN,
+    x:
+      MARGIN,
     y:
       clienteTop -
       clienteHeight,
@@ -897,7 +955,8 @@ export async function generarConformidadPdf(
       COLOR_LIGHT,
     borderColor:
       COLOR_BORDER,
-    borderWidth: 0.6,
+    borderWidth:
+      0.6,
   });
 
   page.drawText(
@@ -909,8 +968,10 @@ export async function generarConformidadPdf(
       y:
         clienteTop -
         14,
-      size: 6.8,
-      font: bold,
+      size:
+        6.8,
+      font:
+        bold,
       color:
         COLOR_MUTED,
     }
@@ -919,18 +980,25 @@ export async function generarConformidadPdf(
   dibujarTextoAjustado({
     page,
     valor:
-      nombreCliente(datos),
+      nombreCliente(
+        datos
+      ),
     x:
       MARGIN +
       9,
     y:
       clienteTop -
       27,
-    ancho: 250,
-    alto: 14,
-    font: bold,
-    sizeInicial: 9,
-    sizeMinimo: 7,
+    ancho:
+      250,
+    alto:
+      14,
+    font:
+      bold,
+    sizeInicial:
+      9,
+    sizeMinimo:
+      7,
     color:
       COLOR_TEXT,
   });
@@ -963,11 +1031,14 @@ export async function generarConformidadPdf(
     ancho:
       CONTENT_WIDTH -
       295,
-    alto: 14,
+    alto:
+      14,
     font:
       regular,
-    sizeInicial: 8,
-    sizeMinimo: 6.5,
+    sizeInicial:
+      8,
+    sizeMinimo:
+      6.5,
     color:
       COLOR_TEXT,
   });
@@ -980,7 +1051,9 @@ export async function generarConformidadPdf(
       datos.cliente_localidad
     ),
   ]
-    .filter(Boolean)
+    .filter(
+      Boolean
+    )
     .join(" - ");
 
   dibujarTextoAjustado({
@@ -996,12 +1069,16 @@ export async function generarConformidadPdf(
     y:
       clienteTop -
       47,
-    ancho: 260,
-    alto: 22,
+    ancho:
+      260,
+    alto:
+      22,
     font:
       regular,
-    sizeInicial: 7.5,
-    sizeMinimo: 6,
+    sizeInicial:
+      7.5,
+    sizeMinimo:
+      6,
     color:
       COLOR_MUTED,
   });
@@ -1023,18 +1100,21 @@ export async function generarConformidadPdf(
     ancho:
       CONTENT_WIDTH -
       295,
-    alto: 22,
+    alto:
+      22,
     font:
       regular,
-    sizeInicial: 7.5,
-    sizeMinimo: 6,
+    sizeInicial:
+      7.5,
+    sizeMinimo:
+      6,
     color:
       COLOR_MUTED,
   });
 
   /*
    * =========================================
-   * TECNICO
+   * TECNICO RESPONSABLE
    * =========================================
    */
 
@@ -1050,7 +1130,8 @@ export async function generarConformidadPdf(
     66;
 
   page.drawRectangle({
-    x: MARGIN,
+    x:
+      MARGIN,
     y:
       tecnicoTop -
       tecnicoHeight,
@@ -1066,7 +1147,8 @@ export async function generarConformidadPdf(
       ),
     borderColor:
       COLOR_BORDER,
-    borderWidth: 0.6,
+    borderWidth:
+      0.6,
   });
 
   page.drawText(
@@ -1078,15 +1160,19 @@ export async function generarConformidadPdf(
       y:
         tecnicoTop -
         14,
-      size: 6.8,
-      font: bold,
+      size:
+        6.8,
+      font:
+        bold,
       color:
         COLOR_MUTED,
     }
   );
 
   page.drawText(
-    nombreTecnico(datos),
+    nombreTecnico(
+      datos
+    ),
     {
       x:
         MARGIN +
@@ -1094,8 +1180,10 @@ export async function generarConformidadPdf(
       y:
         tecnicoTop -
         28,
-      size: 8.8,
-      font: bold,
+      size:
+        8.8,
+      font:
+        bold,
       color:
         COLOR_TEXT,
     }
@@ -1118,7 +1206,9 @@ export async function generarConformidadPdf(
         )}`
       : "",
   ]
-    .filter(Boolean)
+    .filter(
+      Boolean
+    )
     .join(" | ");
 
   dibujarTextoAjustado({
@@ -1135,11 +1225,14 @@ export async function generarConformidadPdf(
     ancho:
       CONTENT_WIDTH -
       295,
-    alto: 14,
+    alto:
+      14,
     font:
       regular,
-    sizeInicial: 7.5,
-    sizeMinimo: 6,
+    sizeInicial:
+      7.5,
+    sizeMinimo:
+      6,
     color:
       COLOR_TEXT,
   });
@@ -1161,18 +1254,21 @@ export async function generarConformidadPdf(
     ancho:
       CONTENT_WIDTH -
       18,
-    alto: 14,
+    alto:
+      14,
     font:
       regular,
-    sizeInicial: 7,
-    sizeMinimo: 5.8,
+    sizeInicial:
+      7,
+    sizeMinimo:
+      5.8,
     color:
       COLOR_MUTED,
   });
 
   /*
    * =========================================
-   * TRABAJO REALIZADO
+   * PREPARAR TRABAJO REALIZADO
    * =========================================
    */
 
@@ -1184,10 +1280,13 @@ export async function generarConformidadPdf(
   page.drawText(
     "TRABAJO REALIZADO",
     {
-      x: MARGIN,
+      x:
+        MARGIN,
       y,
-      size: 7.2,
-      font: bold,
+      size:
+        7.2,
+      font:
+        bold,
       color:
         COLOR_MUTED,
     }
@@ -1202,10 +1301,17 @@ export async function generarConformidadPdf(
     texto(
       datos.trabajo_realizado
     )
-      .replace(/\r/g, "")
-      .split("\n")
+      .replace(
+        /\r/g,
+        ""
+      )
+      .split(
+        "\n"
+      )
       .filter(
-        (linea) =>
+        (
+          linea
+        ) =>
           linea.trim()
       );
 
@@ -1237,8 +1343,68 @@ export async function generarConformidadPdf(
     );
   }
 
-  let primeraLineaPagina =
-    true;
+  const observaciones =
+    texto(
+      datos.observaciones
+    );
+
+  const lineasObservacion =
+    observaciones
+      ? envolverTexto(
+          observaciones,
+          regular,
+          7.5,
+          CONTENT_WIDTH -
+            18
+        )
+      : [];
+
+  const alturaObservaciones =
+    observaciones
+      ? 31 +
+        lineasObservacion.length *
+          9
+      : 0;
+
+  const alturaDetalleTotal =
+    detalleLineas.reduce(
+      (
+        total,
+        linea
+      ) =>
+        total +
+        (
+          linea
+            ? 10
+            : 5
+        ),
+      0
+    );
+
+  const espacioNecesarioCompleto =
+    alturaDetalleTotal +
+    (
+      observaciones
+        ? 7 +
+          alturaObservaciones
+        : 0
+    ) +
+    MANUAL_TOP_GAP +
+    MANUAL_HEIGHT;
+
+  const entraTodoEnPrimeraHoja =
+    y -
+      espacioNecesarioCompleto >=
+    CONTENT_BOTTOM;
+
+  /*
+   * =========================================
+   * DIBUJAR TRABAJO REALIZADO
+   * =========================================
+   */
+
+  let detalleContinuo =
+    false;
 
   for (
     let indice = 0;
@@ -1247,29 +1413,50 @@ export async function generarConformidadPdf(
     indice += 1
   ) {
     const linea =
-      detalleLineas[indice];
+      detalleLineas[
+        indice
+      ];
 
+    const espacioLinea =
+      linea
+        ? 10
+        : 5;
+
+    /*
+     * Si TODO entra, no hacemos ningún
+     * salto anticipado.
+     *
+     * Si NO entra todo, aprovechamos la
+     * hoja hasta abajo antes de crear otra.
+     */
     if (
-      y <
-      CONTENT_BOTTOM +
-        185
+      !entraTodoEnPrimeraHoja &&
+      y -
+        espacioLinea <
+        CONTENT_BOTTOM +
+          18
     ) {
       page.drawText(
-        "Detalle continua en la hoja siguiente.",
+        "El detalle continua en la hoja siguiente.",
         {
-          x: MARGIN,
+          x:
+            MARGIN,
           y:
             CONTENT_BOTTOM +
-            5,
-          size: 6.5,
-          font: bold,
+            2,
+          size:
+            6.5,
+          font:
+            bold,
           color:
             COLOR_ORANGE,
         }
       );
 
       const nueva =
-        crearPaginaContinuacion();
+        crearPaginaContinuacion(
+          "detalle"
+        );
 
       page =
         nueva.page;
@@ -1277,31 +1464,25 @@ export async function generarConformidadPdf(
       y =
         nueva.y;
 
-      primeraLineaPagina =
+      detalleContinuo =
         true;
-    }
 
-    if (
-      primeraLineaPagina &&
-      pdf.getPageCount() >
-        1
-    ) {
       page.drawText(
         "Continuacion:",
         {
-          x: MARGIN,
+          x:
+            MARGIN,
           y,
-          size: 7,
-          font: bold,
+          size:
+            7,
+          font:
+            bold,
           color:
             COLOR_ORANGE,
         }
       );
 
       y -= 13;
-
-      primeraLineaPagina =
-        false;
     }
 
     if (!linea) {
@@ -1316,7 +1497,8 @@ export async function generarConformidadPdf(
           MARGIN +
           8,
         y,
-        size: 8,
+        size:
+          8,
         font:
           regular,
         color:
@@ -1333,34 +1515,40 @@ export async function generarConformidadPdf(
    * =========================================
    */
 
-  const observaciones =
-    texto(
-      datos.observaciones
-    );
+  if (
+    observaciones
+  ) {
+    const espacioConManual =
+      7 +
+      alturaObservaciones +
+      MANUAL_TOP_GAP +
+      MANUAL_HEIGHT;
 
-  if (observaciones) {
-    const lineasObservacion =
-      envolverTexto(
-        observaciones,
-        regular,
-        7.5,
-        CONTENT_WIDTH -
-          18
-      );
-
-    const alturaNecesaria =
-      31 +
-      lineasObservacion.length *
-        9;
-
+    /*
+     * Si observaciones + bloque manual
+     * entran juntos, los dejamos juntos
+     * en esta hoja.
+     *
+     * Si no entran, la observación puede
+     * pasar completa a una hoja nueva.
+     */
     if (
       y -
-        alturaNecesaria <
-      CONTENT_BOTTOM +
-        165
+        espacioConManual <
+        CONTENT_BOTTOM &&
+      y -
+        (
+          7 +
+          alturaObservaciones
+        ) <
+        CONTENT_BOTTOM
     ) {
       const nueva =
-        crearPaginaContinuacion();
+        crearPaginaContinuacion(
+          detalleContinuo
+            ? "detalle"
+            : "documento"
+        );
 
       page =
         nueva.page;
@@ -1372,19 +1560,21 @@ export async function generarConformidadPdf(
     y -= 7;
 
     page.drawRectangle({
-      x: MARGIN,
+      x:
+        MARGIN,
       y:
         y -
-        alturaNecesaria,
+        alturaObservaciones,
       width:
         CONTENT_WIDTH,
       height:
-        alturaNecesaria,
+        alturaObservaciones,
       color:
         COLOR_LIGHT,
       borderColor:
         COLOR_BORDER,
-      borderWidth: 0.6,
+      borderWidth:
+        0.6,
     });
 
     page.drawText(
@@ -1396,15 +1586,18 @@ export async function generarConformidadPdf(
         y:
           y -
           15,
-        size: 6.8,
-        font: bold,
+        size:
+          6.8,
+        font:
+          bold,
         color:
           COLOR_MUTED,
       }
     );
 
     let observacionY =
-      y - 29;
+      y -
+      29;
 
     for (
       const linea
@@ -1418,7 +1611,8 @@ export async function generarConformidadPdf(
             9,
           y:
             observacionY,
-          size: 7.5,
+          size:
+            7.5,
           font:
             regular,
           color:
@@ -1426,29 +1620,32 @@ export async function generarConformidadPdf(
         }
       );
 
-      observacionY -= 9;
+      observacionY -=
+        9;
     }
 
     y -=
-      alturaNecesaria;
+      alturaObservaciones;
   }
 
   /*
    * =========================================
    * CAMPOS MANUALES
    * =========================================
+   *
+   * Este bloque nunca se divide.
    */
-
-  const alturaManual =
-    167;
 
   if (
     y -
-      alturaManual <
+      MANUAL_TOP_GAP -
+      MANUAL_HEIGHT <
     CONTENT_BOTTOM
   ) {
     const nueva =
-      crearPaginaContinuacion();
+      crearPaginaContinuacion(
+        "documento"
+      );
 
     page =
       nueva.page;
@@ -1457,17 +1654,19 @@ export async function generarConformidadPdf(
       nueva.y;
   }
 
-  y -= 12;
+  y -=
+    MANUAL_TOP_GAP;
 
   page.drawRectangle({
-    x: MARGIN,
+    x:
+      MARGIN,
     y:
       y -
-      alturaManual,
+      MANUAL_HEIGHT,
     width:
       CONTENT_WIDTH,
     height:
-      alturaManual,
+      MANUAL_HEIGHT,
     color:
       rgb(
         1,
@@ -1476,7 +1675,8 @@ export async function generarConformidadPdf(
       ),
     borderColor:
       COLOR_BORDER,
-    borderWidth: 0.7,
+    borderWidth:
+      0.7,
   });
 
   page.drawText(
@@ -1488,15 +1688,18 @@ export async function generarConformidadPdf(
       y:
         y -
         16,
-      size: 7,
-      font: bold,
+      size:
+        7,
+      font:
+        bold,
       color:
         COLOR_BLUE,
     }
   );
 
   let manualY =
-    y - 37;
+    y -
+    37;
 
   dibujarCampoManual({
     page,
@@ -1505,7 +1708,8 @@ export async function generarConformidadPdf(
     y:
       manualY,
     bold,
-    anchoLinea: 130,
+    anchoLinea:
+      130,
   });
 
   manualY -= 24;
@@ -1517,7 +1721,8 @@ export async function generarConformidadPdf(
     y:
       manualY,
     bold,
-    anchoLinea: 130,
+    anchoLinea:
+      130,
   });
 
   manualY -= 31;
@@ -1530,8 +1735,10 @@ export async function generarConformidadPdf(
         10,
       y:
         manualY,
-      size: 7,
-      font: bold,
+      size:
+        7,
+      font:
+        bold,
       color:
         COLOR_DARK,
     }
@@ -1557,7 +1764,8 @@ export async function generarConformidadPdf(
     y:
       manualY,
     bold,
-    anchoLinea: 190,
+    anchoLinea:
+      190,
   });
 
   manualY -= 21;
@@ -1595,7 +1803,7 @@ export async function generarConformidadPdf(
 
   /*
    * =========================================
-   * PIE Y NUMERACION
+   * PIE Y NUMERACION DE HOJAS
    * =========================================
    */
 
