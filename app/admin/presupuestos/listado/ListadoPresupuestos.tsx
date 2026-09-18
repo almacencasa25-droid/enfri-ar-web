@@ -17,29 +17,47 @@ import {
   type PresupuestoBusqueda,
 } from "./actions";
 
+import {
+  emitirPresupuestoPdfAction,
+} from "./pdf/actions";
+
 function moneda(valor: number) {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 2,
-  }).format(Number(valor || 0));
+  return new Intl.NumberFormat(
+    "es-AR",
+    {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 2,
+    }
+  ).format(
+    Number(valor || 0)
+  );
 }
 
-function fechaArgentina(fecha: string) {
+function fechaArgentina(
+  fecha: string
+) {
   if (!fecha) {
     return "";
   }
 
-  const [anio, mes, dia] = fecha.split("-");
+  const [anio, mes, dia] =
+    fecha.split("-");
 
-  if (!anio || !mes || !dia) {
+  if (
+    !anio ||
+    !mes ||
+    !dia
+  ) {
     return fecha;
   }
 
   return `${dia}/${mes}/${anio}`;
 }
 
-function nombreEstado(estado: string) {
+function nombreEstado(
+  estado: string
+) {
   switch (estado) {
     case "borrador":
       return "Borrador";
@@ -65,25 +83,41 @@ function nombreEstado(estado: string) {
 }
 
 export default function ListadoPresupuestos() {
-  const [busqueda, setBusqueda] =
-    useState("");
+  const [
+    busqueda,
+    setBusqueda,
+  ] = useState("");
 
-  const [presupuestos, setPresupuestos] =
-    useState<PresupuestoBusqueda[]>([]);
+  const [
+    presupuestos,
+    setPresupuestos,
+  ] =
+    useState<
+      PresupuestoBusqueda[]
+    >([]);
 
-  const [cargando, setCargando] =
-    useState(true);
+  const [
+    cargando,
+    setCargando,
+  ] = useState(true);
 
-  const [mensaje, setMensaje] =
-    useState("");
+  const [
+    mensaje,
+    setMensaje,
+  ] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-  const [procesando, startTransition] =
-    useTransition();
+  const [
+    procesando,
+    startTransition,
+  ] = useTransition();
 
-  const busquedaActual = useRef(0);
+  const busquedaActual =
+    useRef(0);
 
   async function cargarPresupuestos(
     texto: string
@@ -126,11 +160,14 @@ export default function ListadoPresupuestos() {
 
   useEffect(() => {
     const temporizador =
-      window.setTimeout(() => {
-        void cargarPresupuestos(
-          busqueda
-        );
-      }, 350);
+      window.setTimeout(
+        () => {
+          void cargarPresupuestos(
+            busqueda
+          );
+        },
+        350
+      );
 
     return () => {
       window.clearTimeout(
@@ -152,32 +189,35 @@ export default function ListadoPresupuestos() {
     setMensaje("");
     setError("");
 
-    startTransition(async () => {
-      const resultado =
-        await cambiarEstadoPresupuestoAction(
-          presupuestoId,
-          estado
+    startTransition(
+      async () => {
+        const resultado =
+          await cambiarEstadoPresupuestoAction(
+            presupuestoId,
+            estado
+          );
+
+        if (!resultado.ok) {
+          setError(
+            resultado.error ||
+              "No se pudo cambiar el estado."
+          );
+
+          return;
+        }
+
+        setMensaje(
+          "Estado actualizado."
         );
 
-      if (!resultado.ok) {
-        setError(
-          resultado.error ||
-            "No se pudo cambiar el estado."
-        );
-
-        return;
+        refrescar();
       }
-
-      setMensaje(
-        "Estado actualizado."
-      );
-
-      refrescar();
-    });
+    );
   }
 
   function duplicar(
-    presupuesto: PresupuestoBusqueda
+    presupuesto:
+      PresupuestoBusqueda
   ) {
     const confirmar =
       window.confirm(
@@ -191,31 +231,34 @@ export default function ListadoPresupuestos() {
     setMensaje("");
     setError("");
 
-    startTransition(async () => {
-      const resultado =
-        await duplicarPresupuestoAction(
-          presupuesto.id
+    startTransition(
+      async () => {
+        const resultado =
+          await duplicarPresupuestoAction(
+            presupuesto.id
+          );
+
+        if (!resultado.ok) {
+          setError(
+            resultado.error ||
+              "No se pudo duplicar el presupuesto."
+          );
+
+          return;
+        }
+
+        setMensaje(
+          "Presupuesto duplicado correctamente."
         );
 
-      if (!resultado.ok) {
-        setError(
-          resultado.error ||
-            "No se pudo duplicar el presupuesto."
-        );
-
-        return;
+        refrescar();
       }
-
-      setMensaje(
-        "Presupuesto duplicado correctamente."
-      );
-
-      refrescar();
-    });
+    );
   }
 
   function anular(
-    presupuesto: PresupuestoBusqueda
+    presupuesto:
+      PresupuestoBusqueda
   ) {
     const confirmar =
       window.confirm(
@@ -229,38 +272,43 @@ export default function ListadoPresupuestos() {
     setMensaje("");
     setError("");
 
-    startTransition(async () => {
-      const resultado =
-        await anularPresupuestoAction(
-          presupuesto.id
+    startTransition(
+      async () => {
+        const resultado =
+          await anularPresupuestoAction(
+            presupuesto.id
+          );
+
+        if (!resultado.ok) {
+          setError(
+            resultado.error ||
+              "No se pudo anular el presupuesto."
+          );
+
+          return;
+        }
+
+        setMensaje(
+          "Presupuesto anulado."
         );
 
-      if (!resultado.ok) {
-        setError(
-          resultado.error ||
-            "No se pudo anular el presupuesto."
-        );
-
-        return;
+        refrescar();
       }
-
-      setMensaje(
-        "Presupuesto anulado."
-      );
-
-      refrescar();
-    });
+    );
   }
 
   function eliminar(
-    presupuesto: PresupuestoBusqueda
+    presupuesto:
+      PresupuestoBusqueda
   ) {
     const primeraConfirmacion =
       window.confirm(
         `¿Querés eliminar el presupuesto Nº ${presupuesto.numero} del listado?`
       );
 
-    if (!primeraConfirmacion) {
+    if (
+      !primeraConfirmacion
+    ) {
       return;
     }
 
@@ -269,35 +317,102 @@ export default function ListadoPresupuestos() {
         "SEGUNDA CONFIRMACIÓN: el presupuesto quedará eliminado lógicamente, pero su número e historial se conservarán. ¿Continuar?"
       );
 
-    if (!segundaConfirmacion) {
+    if (
+      !segundaConfirmacion
+    ) {
       return;
     }
 
     setMensaje("");
     setError("");
 
-    startTransition(async () => {
-      const resultado =
-        await eliminarPresupuestoAction(
-          presupuesto.id,
-          "ELIMINAR"
+    startTransition(
+      async () => {
+        const resultado =
+          await eliminarPresupuestoAction(
+            presupuesto.id,
+            "ELIMINAR"
+          );
+
+        if (!resultado.ok) {
+          setError(
+            resultado.error ||
+              "No se pudo eliminar el presupuesto."
+          );
+
+          return;
+        }
+
+        setMensaje(
+          "Presupuesto eliminado del listado."
         );
 
-      if (!resultado.ok) {
-        setError(
-          resultado.error ||
-            "No se pudo eliminar el presupuesto."
-        );
-
-        return;
+        refrescar();
       }
+    );
+  }
 
-      setMensaje(
-        "Presupuesto eliminado del listado."
+  function emitirPdf(
+    presupuesto:
+      PresupuestoBusqueda
+  ) {
+    const confirmar =
+      window.confirm(
+        `¿Querés emitir el PDF del presupuesto Nº ${presupuesto.numero}? Se guardará una versión histórica.`
       );
 
-      refrescar();
-    });
+    if (!confirmar) {
+      return;
+    }
+
+    setMensaje("");
+    setError("");
+
+    startTransition(
+      async () => {
+        const resultado =
+          await emitirPresupuestoPdfAction(
+            presupuesto.id
+          );
+
+        if (!resultado.ok) {
+          setError(
+            resultado.error ||
+              "No se pudo generar el PDF."
+          );
+
+          return;
+        }
+
+        setMensaje(
+          `PDF emitido correctamente. Versión ${resultado.version}.`
+        );
+
+        const enlace =
+          document.createElement(
+            "a"
+          );
+
+        enlace.href =
+          resultado.url;
+
+        enlace.download =
+          resultado.nombreArchivo;
+
+        enlace.rel =
+          "noopener noreferrer";
+
+        document.body.appendChild(
+          enlace
+        );
+
+        enlace.click();
+
+        enlace.remove();
+
+        refrescar();
+      }
+    );
   }
 
   return (
@@ -307,15 +422,22 @@ export default function ListadoPresupuestos() {
         gap: "16px",
       }}
     >
-      <section style={boxStyle}>
-        <label style={labelStyle}>
+      <section
+        style={boxStyle}
+      >
+        <label
+          style={labelStyle}
+        >
           Buscar presupuesto
 
           <input
             value={busqueda}
-            onChange={(event) =>
+            onChange={(
+              event
+            ) =>
               setBusqueda(
-                event.target.value
+                event.target
+                  .value
               )
             }
             placeholder="Número, cliente, DNI, CUIT, dirección, detalle o estado"
@@ -323,40 +445,53 @@ export default function ListadoPresupuestos() {
           />
         </label>
 
-        <p style={ayudaStyle}>
-          La búsqueda se actualiza
-          automáticamente mientras
-          escribís.
+        <p
+          style={ayudaStyle}
+        >
+          La búsqueda se
+          actualiza
+          automáticamente
+          mientras escribís.
         </p>
       </section>
 
       {mensaje ? (
-        <div style={successStyle}>
+        <div
+          style={
+            successStyle
+          }
+        >
           {mensaje}
         </div>
       ) : null}
 
       {error ? (
-        <div style={errorStyle}>
+        <div
+          style={errorStyle}
+        >
           {error}
         </div>
       ) : null}
 
-      <section style={boxStyle}>
+      <section
+        style={boxStyle}
+      >
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
             justifyContent:
               "space-between",
-            alignItems: "center",
+            alignItems:
+              "center",
             gap: "10px",
           }}
         >
           <h2
             style={{
               margin: 0,
-              fontSize: "1.15rem",
+              fontSize:
+                "1.15rem",
               color:
                 "var(--foreground)",
             }}
@@ -364,7 +499,9 @@ export default function ListadoPresupuestos() {
             Presupuestos
           </h2>
 
-          <span style={ayudaStyle}>
+          <span
+            style={ayudaStyle}
+          >
             {cargando
               ? "Cargando..."
               : `${presupuestos.length} encontrados`}
@@ -372,10 +509,13 @@ export default function ListadoPresupuestos() {
         </div>
 
         {!cargando &&
-        presupuestos.length === 0 ? (
-          <p style={ayudaStyle}>
-            No hay presupuestos para
-            mostrar.
+        presupuestos.length ===
+          0 ? (
+          <p
+            style={ayudaStyle}
+          >
+            No hay presupuestos
+            para mostrar.
           </p>
         ) : null}
 
@@ -386,15 +526,23 @@ export default function ListadoPresupuestos() {
           }}
         >
           {presupuestos.map(
-            (presupuesto) => (
+            (
+              presupuesto
+            ) => (
               <article
-                key={presupuesto.id}
-                style={presupuestoStyle}
+                key={
+                  presupuesto.id
+                }
+                style={
+                  presupuestoStyle
+                }
               >
                 <div
                   style={{
-                    display: "flex",
-                    flexWrap: "wrap",
+                    display:
+                      "flex",
+                    flexWrap:
+                      "wrap",
                     justifyContent:
                       "space-between",
                     gap: "14px",
@@ -403,18 +551,25 @@ export default function ListadoPresupuestos() {
                   <div>
                     <strong
                       style={{
-                        display: "block",
-                        fontSize: "1rem",
+                        display:
+                          "block",
+                        fontSize:
+                          "1rem",
                         color:
                           "var(--foreground)",
                       }}
                     >
-                      Presupuesto Nº{" "}
-                      {presupuesto.numero}
+                      Presupuesto
+                      Nº{" "}
+                      {
+                        presupuesto.numero
+                      }
                     </strong>
 
                     <span
-                      style={ayudaStyle}
+                      style={
+                        ayudaStyle
+                      }
                     >
                       {fechaArgentina(
                         presupuesto.fecha
@@ -424,7 +579,8 @@ export default function ListadoPresupuestos() {
 
                   <strong
                     style={{
-                      fontSize: "1.05rem",
+                      fontSize:
+                        "1.05rem",
                       color:
                         "var(--foreground)",
                     }}
@@ -437,10 +593,13 @@ export default function ListadoPresupuestos() {
 
                 <div
                   style={{
-                    display: "grid",
+                    display:
+                      "grid",
                     gap: "4px",
-                    fontSize: "0.86rem",
-                    color: "var(--muted)",
+                    fontSize:
+                      "0.86rem",
+                    color:
+                      "var(--muted)",
                   }}
                 >
                   <span>
@@ -481,19 +640,24 @@ export default function ListadoPresupuestos() {
                   {presupuesto.trabajo_realizado ? (
                     <span
                       style={{
-                        color: "#236b43",
-                        fontWeight: 800,
+                        color:
+                          "#236b43",
+                        fontWeight:
+                          800,
                       }}
                     >
-                      Trabajo realizado
+                      Trabajo
+                      realizado
                     </span>
                   ) : null}
                 </div>
 
                 <div
                   style={{
-                    display: "flex",
-                    flexWrap: "wrap",
+                    display:
+                      "flex",
+                    flexWrap:
+                      "wrap",
                     gap: "8px",
                     alignItems:
                       "center",
@@ -501,26 +665,53 @@ export default function ListadoPresupuestos() {
                 >
                   <Link
                     href={`/admin/presupuestos/listado/${presupuesto.id}/editar`}
-                    style={linkButtonStyle}
+                    style={
+                      linkButtonStyle
+                    }
                   >
                     Modificar
                   </Link>
+
+                  <button
+                    type="button"
+                    disabled={
+                      procesando
+                    }
+                    onClick={() =>
+                      emitirPdf(
+                        presupuesto
+                      )
+                    }
+                    style={
+                      pdfButtonStyle
+                    }
+                  >
+                    {procesando
+                      ? "Procesando..."
+                      : "Emitir PDF"}
+                  </button>
 
                   <select
                     value={
                       presupuesto.estado
                     }
-                    disabled={procesando}
-                    onChange={(event) =>
+                    disabled={
+                      procesando
+                    }
+                    onChange={(
+                      event
+                    ) =>
                       cambiarEstado(
                         presupuesto.id,
-                        event.target.value
+                        event.target
+                          .value
                       )
                     }
                     style={{
                       ...inputStyle,
                       width: "auto",
-                      minWidth: "145px",
+                      minWidth:
+                        "145px",
                     }}
                   >
                     <option value="borrador">
@@ -550,13 +741,17 @@ export default function ListadoPresupuestos() {
 
                   <button
                     type="button"
-                    disabled={procesando}
+                    disabled={
+                      procesando
+                    }
                     onClick={() =>
                       duplicar(
                         presupuesto
                       )
                     }
-                    style={buttonStyle}
+                    style={
+                      buttonStyle
+                    }
                   >
                     Duplicar
                   </button>
@@ -565,13 +760,17 @@ export default function ListadoPresupuestos() {
                   "anulado" ? (
                     <button
                       type="button"
-                      disabled={procesando}
+                      disabled={
+                        procesando
+                      }
                       onClick={() =>
                         anular(
                           presupuesto
                         )
                       }
-                      style={buttonStyle}
+                      style={
+                        buttonStyle
+                      }
                     >
                       Anular
                     </button>
@@ -579,7 +778,9 @@ export default function ListadoPresupuestos() {
 
                   <button
                     type="button"
-                    disabled={procesando}
+                    disabled={
+                      procesando
+                    }
                     onClick={() =>
                       eliminar(
                         presupuesto
@@ -615,7 +816,8 @@ const boxStyle = {
 const labelStyle = {
   display: "grid",
   gap: "6px",
-  color: "var(--foreground)",
+  color:
+    "var(--foreground)",
   fontSize: "0.86rem",
   fontWeight: 800,
 };
@@ -623,19 +825,22 @@ const labelStyle = {
 const inputStyle = {
   width: "100%",
   minHeight: "42px",
-  boxSizing: "border-box" as const,
+  boxSizing:
+    "border-box" as const,
   padding: "9px 11px",
   border:
     "1px solid rgba(38, 40, 42, 0.18)",
   borderRadius: "9px",
   background: "#ffffff",
-  color: "var(--foreground)",
+  color:
+    "var(--foreground)",
   font: "inherit",
 };
 
 const ayudaStyle = {
   margin: 0,
-  color: "var(--muted)",
+  color:
+    "var(--muted)",
   fontSize: "0.82rem",
 };
 
@@ -657,7 +862,8 @@ const buttonStyle = {
     "1px solid rgba(38, 40, 42, 0.16)",
   borderRadius: "9px",
   background: "#ffffff",
-  color: "var(--foreground)",
+  color:
+    "var(--foreground)",
   font: "inherit",
   fontSize: "0.82rem",
   fontWeight: 800,
@@ -666,19 +872,32 @@ const buttonStyle = {
 
 const linkButtonStyle = {
   minHeight: "38px",
-  display: "inline-flex",
+  display:
+    "inline-flex",
   alignItems: "center",
-  justifyContent: "center",
-  boxSizing: "border-box" as const,
+  justifyContent:
+    "center",
+  boxSizing:
+    "border-box" as const,
   padding: "7px 12px",
   border:
     "1px solid rgba(38, 40, 42, 0.16)",
   borderRadius: "9px",
-  background: "var(--foreground)",
+  background:
+    "var(--foreground)",
   color: "#ffffff",
   fontSize: "0.82rem",
   fontWeight: 800,
   textDecoration: "none",
+};
+
+const pdfButtonStyle = {
+  ...buttonStyle,
+  border:
+    "1px solid rgba(20, 110, 160, 0.32)",
+  background:
+    "rgba(20, 110, 160, 0.08)",
+  color: "#146e9f",
 };
 
 const deleteButtonStyle = {
