@@ -82,12 +82,21 @@ export type PresupuestoPdfSnapshot = {
   empresa?: PresupuestoPdfEmpresa | null;
 };
 
+type FilaCalculada = {
+  item: PresupuestoPdfItem;
+  nombreLineas: string[];
+  detalleLineas: string[];
+  altura: number;
+};
+
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
-const MARGIN = 42;
+const MARGIN = 34;
 const CONTENT_WIDTH =
   PAGE_WIDTH - MARGIN * 2;
+
+const FOOTER_Y = 37;
 
 const COLOR_DARK = rgb(
   0.09,
@@ -126,7 +135,7 @@ const COLOR_BORDER = rgb(
 );
 
 const COLOR_LIGHT = rgb(
-  0.96,
+  0.965,
   0.98,
   0.99
 );
@@ -138,9 +147,12 @@ function numero(
     | null
     | undefined
 ) {
-  const convertido = Number(valor);
+  const convertido =
+    Number(valor);
 
-  return Number.isFinite(convertido)
+  return Number.isFinite(
+    convertido
+  )
     ? convertido
     : 0;
 }
@@ -178,7 +190,9 @@ function fechaArgentina(
   const partes =
     fecha.split("-");
 
-  if (partes.length !== 3) {
+  if (
+    partes.length !== 3
+  ) {
     return valor;
   }
 
@@ -211,9 +225,16 @@ function dinero(
           moneda || "ARS",
         maximumFractionDigits: 2,
       }
-    ).format(valor);
+    )
+      .format(valor)
+      .replace(
+        /\u00a0/g,
+        " "
+      );
   } catch {
-    return `$ ${valor.toFixed(2)}`;
+    return `$ ${valor.toFixed(
+      2
+    )}`;
   }
 }
 
@@ -244,7 +265,9 @@ function nombreCliente(
     .filter(Boolean)
     .join(" ");
 
-  return nombre || "Cliente";
+  return (
+    nombre || "Cliente"
+  );
 }
 
 function partirPalabraLarga(
@@ -253,7 +276,8 @@ function partirPalabraLarga(
   size: number,
   anchoMaximo: number
 ) {
-  const partes: string[] = [];
+  const partes: string[] =
+    [];
 
   let actual = "";
 
@@ -314,7 +338,8 @@ function envolverTexto(
     let linea = "";
 
     for (
-      const palabraOriginal of palabras
+      const palabraOriginal
+      of palabras
     ) {
       let partes = [
         palabraOriginal,
@@ -336,7 +361,8 @@ function envolverTexto(
       }
 
       for (
-        const palabra of partes
+        const palabra
+        of partes
       ) {
         const prueba =
           linea.length > 0
@@ -367,57 +393,9 @@ function envolverTexto(
     }
   }
 
-  return resultado.length > 0
+  return resultado.length
     ? resultado
     : [""];
-}
-
-function dibujarTextoEnvuelto({
-  page,
-  valor,
-  x,
-  y,
-  ancho,
-  font,
-  size,
-  lineHeight,
-  color,
-}: {
-  page: PDFPage;
-  valor: string;
-  x: number;
-  y: number;
-  ancho: number;
-  font: PDFFont;
-  size: number;
-  lineHeight: number;
-  color: RGB;
-}) {
-  const lineas =
-    envolverTexto(
-      valor,
-      font,
-      size,
-      ancho
-    );
-
-  let actualY = y;
-
-  for (
-    const linea of lineas
-  ) {
-    page.drawText(linea, {
-      x,
-      y: actualY,
-      size,
-      font,
-      color,
-    });
-
-    actualY -= lineHeight;
-  }
-
-  return actualY;
 }
 
 function textoDerecha(
@@ -438,8 +416,8 @@ function textoDerecha(
   page.drawText(valor, {
     x: derecha - ancho,
     y,
-    size,
     font,
+    size,
     color,
   });
 }
@@ -447,7 +425,8 @@ function textoDerecha(
 function lineaHorizontal(
   page: PDFPage,
   y: number,
-  color: RGB = COLOR_BORDER
+  color: RGB =
+    COLOR_BORDER
 ) {
   page.drawLine({
     start: {
@@ -460,7 +439,7 @@ function lineaHorizontal(
         MARGIN,
       y,
     },
-    thickness: 0.8,
+    thickness: 0.7,
     color,
   });
 }
@@ -486,44 +465,230 @@ async function cargarLogo(
   }
 }
 
-function etiquetaValor({
+function dibujarLineas({
   page,
-  etiqueta,
-  valor,
+  lineas,
   x,
   y,
-  ancho,
-  regular,
-  bold,
+  font,
+  size,
+  lineHeight,
+  color,
 }: {
   page: PDFPage;
-  etiqueta: string;
-  valor: string;
+  lineas: string[];
   x: number;
   y: number;
-  ancho: number;
-  regular: PDFFont;
-  bold: PDFFont;
+  font: PDFFont;
+  size: number;
+  lineHeight: number;
+  color: RGB;
 }) {
-  page.drawText(etiqueta, {
+  let actualY = y;
+
+  for (
+    const linea of lineas
+  ) {
+    page.drawText(linea, {
+      x,
+      y: actualY,
+      font,
+      size,
+      color,
+    });
+
+    actualY -=
+      lineHeight;
+  }
+
+  return actualY;
+}
+
+function dibujarTextoAjustado({
+  page,
+  valor,
+  x,
+  yTop,
+  ancho,
+  alto,
+  font,
+  color,
+  sizeInicial,
+  sizeMinimo,
+}: {
+  page: PDFPage;
+  valor: string;
+  x: number;
+  yTop: number;
+  ancho: number;
+  alto: number;
+  font: PDFFont;
+  color: RGB;
+  sizeInicial: number;
+  sizeMinimo: number;
+}) {
+  let size = sizeInicial;
+
+  let lineas =
+    envolverTexto(
+      valor,
+      font,
+      size,
+      ancho
+    );
+
+  while (
+    size > sizeMinimo
+  ) {
+    const lineHeight =
+      size + 2;
+
+    if (
+      lineas.length *
+        lineHeight <=
+      alto
+    ) {
+      break;
+    }
+
+    size -= 0.5;
+
+    lineas =
+      envolverTexto(
+        valor,
+        font,
+        size,
+        ancho
+      );
+  }
+
+  const lineHeight =
+    size + 2;
+
+  const maxLineas =
+    Math.max(
+      1,
+      Math.floor(
+        alto / lineHeight
+      )
+    );
+
+  const visibles =
+    lineas.slice(
+      0,
+      maxLineas
+    );
+
+  if (
+    lineas.length >
+      maxLineas &&
+    visibles.length
+  ) {
+    const ultima =
+      visibles.length - 1;
+
+    visibles[ultima] =
+      `${visibles[
+        ultima
+      ].replace(
+        /\.*$/,
+        ""
+      )}...`;
+  }
+
+  dibujarLineas({
+    page,
+    lineas: visibles,
     x,
-    y,
-    size: 8,
-    font: bold,
-    color: COLOR_MUTED,
+    y: yTop,
+    font,
+    size,
+    lineHeight,
+    color,
   });
 
-  return dibujarTextoEnvuelto({
-    page,
-    valor: valor || "-",
-    x,
-    y: y - 13,
-    ancho,
-    font: regular,
-    size: 9.5,
-    lineHeight: 12,
-    color: COLOR_TEXT,
-  });
+  return {
+    size,
+    lineas: visibles,
+  };
+}
+
+function calcularFilas({
+  items,
+  bold,
+  regular,
+  nombreSize,
+  detalleSize,
+  lineHeight,
+  anchoDetalle,
+}: {
+  items: PresupuestoPdfItem[];
+  bold: PDFFont;
+  regular: PDFFont;
+  nombreSize: number;
+  detalleSize: number;
+  lineHeight: number;
+  anchoDetalle: number;
+}) {
+  const filas:
+    FilaCalculada[] = [];
+
+  let alturaTotal = 0;
+
+  for (
+    const item of items
+  ) {
+    const nombreLineas =
+      envolverTexto(
+        texto(
+          item.nombre_corto
+        ) || "Trabajo",
+        bold,
+        nombreSize,
+        anchoDetalle
+      );
+
+    const detalle =
+      texto(
+        item.detalle
+      );
+
+    const detalleLineas =
+      detalle
+        ? envolverTexto(
+            detalle,
+            regular,
+            detalleSize,
+            anchoDetalle
+          )
+        : [];
+
+    const cantidadLineas =
+      nombreLineas.length +
+      detalleLineas.length;
+
+    const altura =
+      Math.max(
+        25,
+        10 +
+          cantidadLineas *
+            lineHeight
+      );
+
+    filas.push({
+      item,
+      nombreLineas,
+      detalleLineas,
+      altura,
+    });
+
+    alturaTotal += altura;
+  }
+
+  return {
+    filas,
+    alturaTotal,
+  };
 }
 
 export async function generarPresupuestoPdf(
@@ -547,6 +712,12 @@ export async function generarPresupuestoPdf(
   const logo =
     await cargarLogo(pdf);
 
+  const page =
+    pdf.addPage([
+      PAGE_WIDTH,
+      PAGE_HEIGHT,
+    ]);
+
   const empresa =
     snapshot.empresa || {};
 
@@ -561,11 +732,14 @@ export async function generarPresupuestoPdf(
       : [];
 
   const moneda =
-    texto(snapshot.moneda) ||
-    "ARS";
+    texto(
+      snapshot.moneda
+    ) || "ARS";
 
   const numeroPresupuesto =
-    numero(snapshot.numero);
+    numero(
+      snapshot.numero
+    );
 
   const numeroVisible =
     String(
@@ -600,350 +774,226 @@ export async function generarPresupuestoPdf(
     "Enfri.Ar Refrigeración"
   );
 
-  let page!: PDFPage;
+  /*
+   * =====================================================
+   * ENCABEZADO COMPACTO
+   * =====================================================
+   */
 
-  let y = 0;
-
-  function encabezadoPrincipal() {
-    page = pdf.addPage([
-      PAGE_WIDTH,
-      PAGE_HEIGHT,
-    ]);
-
-    page.drawRectangle({
-      x: 0,
-      y:
-        PAGE_HEIGHT -
-        12,
-      width: PAGE_WIDTH,
-      height: 12,
-      color: COLOR_BLUE,
-    });
-
-    page.drawRectangle({
-      x:
-        PAGE_WIDTH -
-        150,
-      y: 0,
-      width: 150,
-      height: 7,
-      color: COLOR_ORANGE,
-    });
-
-    if (logo) {
-      const escala =
-        Math.min(
-          155 /
-            logo.width,
-          68 /
-            logo.height
-        );
-
-      page.drawImage(
-        logo,
-        {
-          x: MARGIN,
-          y:
-            PAGE_HEIGHT -
-            52 -
-            logo.height *
-              escala,
-          width:
-            logo.width *
-            escala,
-          height:
-            logo.height *
-            escala,
-        }
-      );
-    } else {
-      page.drawText(
-        "Enfri.Ar",
-        {
-          x: MARGIN,
-          y:
-            PAGE_HEIGHT -
-            78,
-          size: 28,
-          font: bold,
-          color:
-            COLOR_DARK,
-        }
-      );
-    }
-
-    let empresaY =
-      PAGE_HEIGHT - 47;
-
-    const empresaLineas = [
-      empresaNombre,
-      texto(
-        empresa.address
-      ),
-      texto(
-        empresa.phone
-      )
-        ? `Tel.: ${texto(
-            empresa.phone
-          )}`
-        : "",
-      texto(
-        empresa.email
-      ),
-      texto(
-        empresa.website
-      ),
-    ].filter(Boolean);
-
-    for (
-      let i = 0;
-      i <
-      empresaLineas.length;
-      i += 1
-    ) {
-      textoDerecha(
-        page,
-        empresaLineas[i],
-        PAGE_WIDTH -
-          MARGIN,
-        empresaY,
-        i === 0
-          ? bold
-          : regular,
-        i === 0
-          ? 10.5
-          : 8.5,
-        i === 0
-          ? COLOR_DARK
-          : COLOR_MUTED
-      );
-
-      empresaY -=
-        i === 0
-          ? 15
-          : 12;
-    }
-
-    y =
+  page.drawRectangle({
+    x: 0,
+    y:
       PAGE_HEIGHT -
-      145;
-
-    lineaHorizontal(
-      page,
-      y,
-      COLOR_BLUE
-    );
-
-    y -= 31;
-
-    page.drawText(
-      "PRESUPUESTO",
-      {
-        x: MARGIN,
-        y,
-        size: 22,
-        font: bold,
-        color: COLOR_DARK,
-      }
-    );
-
-    textoDerecha(
-      page,
-      `Nro. ${numeroVisible}`,
-      PAGE_WIDTH -
-        MARGIN,
-      y + 2,
-      bold,
-      15,
-      COLOR_BLUE
-    );
-
-    y -= 24;
-
-    page.drawText(
-      `Fecha: ${fechaArgentina(
-        snapshot.fecha
-      )}`,
-      {
-        x: MARGIN,
-        y,
-        size: 9,
-        font: regular,
-        color:
-          COLOR_MUTED,
-      }
-    );
-
-    textoDerecha(
-      page,
-      `Versión ${version}`,
-      PAGE_WIDTH -
-        MARGIN,
-      y,
-      regular,
       9,
-      COLOR_MUTED
-    );
-
-    y -= 28;
-  }
-
-  function encabezadoContinuacion() {
-    page = pdf.addPage([
+    width:
       PAGE_WIDTH,
-      PAGE_HEIGHT,
-    ]);
+    height: 9,
+    color:
+      COLOR_BLUE,
+  });
 
-    page.drawRectangle({
-      x: 0,
-      y:
-        PAGE_HEIGHT -
-        10,
-      width: PAGE_WIDTH,
-      height: 10,
-      color: COLOR_BLUE,
-    });
+  page.drawRectangle({
+    x:
+      PAGE_WIDTH -
+      135,
+    y: 0,
+    width: 135,
+    height: 5,
+    color:
+      COLOR_ORANGE,
+  });
 
-    page.drawText(
-      empresaNombre,
+  if (logo) {
+    const escala =
+      Math.min(
+        105 /
+          logo.width,
+        43 /
+          logo.height
+      );
+
+    page.drawImage(
+      logo,
       {
         x: MARGIN,
         y:
           PAGE_HEIGHT -
-          48,
-        size: 10,
+          64,
+        width:
+          logo.width *
+          escala,
+        height:
+          logo.height *
+          escala,
+      }
+    );
+  } else {
+    page.drawText(
+      "Enfri.Ar",
+      {
+        x: MARGIN,
+        y:
+          PAGE_HEIGHT -
+          54,
+        size: 20,
         font: bold,
         color:
           COLOR_DARK,
       }
     );
+  }
 
+  let empresaY =
+    PAGE_HEIGHT -
+    32;
+
+  const empresaLineas = [
+    empresaNombre,
+    texto(
+      empresa.phone
+    )
+      ? `Tel.: ${texto(
+          empresa.phone
+        )}`
+      : "",
+    texto(
+      empresa.email
+    ),
+    texto(
+      empresa.website
+    ),
+  ].filter(Boolean);
+
+  for (
+    let i = 0;
+    i <
+    empresaLineas.length;
+    i += 1
+  ) {
     textoDerecha(
       page,
-      `Presupuesto Nro. ${numeroVisible} - continuación`,
+      empresaLineas[i],
       PAGE_WIDTH -
         MARGIN,
-      PAGE_HEIGHT -
-        48,
-      regular,
-      9,
-      COLOR_MUTED
+      empresaY,
+      i === 0
+        ? bold
+        : regular,
+      i === 0
+        ? 9
+        : 7.5,
+      i === 0
+        ? COLOR_DARK
+        : COLOR_MUTED
     );
 
-    lineaHorizontal(
-      page,
-      PAGE_HEIGHT -
-        62
-    );
-
-    y =
-      PAGE_HEIGHT -
-      86;
+    empresaY -=
+      i === 0
+        ? 12
+        : 10;
   }
 
-  function asegurarEspacio(
-    altoNecesario: number
-  ) {
-    if (
-      y -
-        altoNecesario >=
-      78
-    ) {
-      return;
-    }
+  let y =
+    PAGE_HEIGHT -
+    87;
 
-    encabezadoContinuacion();
-  }
+  lineaHorizontal(
+    page,
+    y,
+    COLOR_BLUE
+  );
 
-  function cabeceraTabla() {
-    const alto = 24;
+  y -= 24;
 
-    page.drawRectangle({
+  page.drawText(
+    "PRESUPUESTO",
+    {
       x: MARGIN,
-      y: y - alto,
-      width:
-        CONTENT_WIDTH,
-      height: alto,
-      color: COLOR_DARK,
-    });
+      y,
+      size: 18,
+      font: bold,
+      color:
+        COLOR_DARK,
+    }
+  );
 
-    const qtyX =
-      MARGIN;
+  textoDerecha(
+    page,
+    `Nro. ${numeroVisible}`,
+    PAGE_WIDTH -
+      MARGIN,
+    y + 1,
+    bold,
+    13,
+    COLOR_BLUE
+  );
 
-    const descX =
-      MARGIN + 44;
+  y -= 18;
 
-    const unitX =
-      MARGIN + 334;
+  page.drawText(
+    `Fecha: ${fechaArgentina(
+      snapshot.fecha
+    )}`,
+    {
+      x: MARGIN,
+      y,
+      size: 8,
+      font: regular,
+      color:
+        COLOR_MUTED,
+    }
+  );
 
-    const subtotalX =
-      MARGIN + 416;
+  textoDerecha(
+    page,
+    `Version ${version}`,
+    PAGE_WIDTH -
+      MARGIN,
+    y,
+    regular,
+    8,
+    COLOR_MUTED
+  );
 
-    page.drawText(
-      "Cant.",
-      {
-        x: qtyX + 8,
-        y: y - 16,
-        size: 8,
-        font: bold,
-        color:
-          rgb(1, 1, 1),
-      }
-    );
+  /*
+   * =====================================================
+   * CLIENTE COMPACTO
+   * =====================================================
+   */
 
-    page.drawText(
-      "Trabajo / detalle",
-      {
-        x: descX + 7,
-        y: y - 16,
-        size: 8,
-        font: bold,
-        color:
-          rgb(1, 1, 1),
-      }
-    );
+  y -= 18;
 
-    page.drawText(
-      "P. unitario",
-      {
-        x: unitX + 7,
-        y: y - 16,
-        size: 8,
-        font: bold,
-        color:
-          rgb(1, 1, 1),
-      }
-    );
-
-    page.drawText(
-      "Subtotal",
-      {
-        x:
-          subtotalX +
-          7,
-        y: y - 16,
-        size: 8,
-        font: bold,
-        color:
-          rgb(1, 1, 1),
-      }
-    );
-
-    y -= alto;
-  }
-
-  encabezadoPrincipal();
-
-  const clienteBoxTop =
+  const clienteTop =
     y;
 
-  const clienteNombre =
+  const clienteHeight =
+    67;
+
+  page.drawRectangle({
+    x: MARGIN,
+    y:
+      clienteTop -
+      clienteHeight,
+    width:
+      CONTENT_WIDTH,
+    height:
+      clienteHeight,
+    color:
+      COLOR_LIGHT,
+    borderColor:
+      COLOR_BORDER,
+    borderWidth: 0.6,
+  });
+
+  const nombre =
     nombreCliente(
       cliente
     );
 
-  const clienteId =
-    texto(cliente.cuit)
+  const documento =
+    texto(
+      cliente.cuit
+    )
       ? `CUIT: ${texto(
           cliente.cuit
         )}`
@@ -953,7 +1003,7 @@ export async function generarPresupuestoPdf(
         ? `DNI: ${texto(
             cliente.dni
           )}`
-        : "-";
+        : "";
 
   const direccion = [
     texto(
@@ -966,90 +1016,121 @@ export async function generarPresupuestoPdf(
     .filter(Boolean)
     .join(" - ");
 
-  page.drawRectangle({
-    x: MARGIN,
-    y:
-      clienteBoxTop -
-      106,
-    width:
-      CONTENT_WIDTH,
-    height: 106,
-    color: COLOR_LIGHT,
-    borderColor:
-      COLOR_BORDER,
-    borderWidth: 0.8,
-  });
+  const contacto = [
+    texto(
+      cliente.telefono
+    ),
+    texto(
+      cliente.email
+    ),
+  ]
+    .filter(Boolean)
+    .join(" - ");
 
-  etiquetaValor({
-    page,
-    etiqueta: "CLIENTE",
-    valor: clienteNombre,
-    x: MARGIN + 12,
-    y:
-      clienteBoxTop -
-      18,
-    ancho: 228,
-    regular,
-    bold,
-  });
+  page.drawText(
+    "CLIENTE",
+    {
+      x:
+        MARGIN +
+        9,
+      y:
+        clienteTop -
+        14,
+      size: 6.8,
+      font: bold,
+      color:
+        COLOR_MUTED,
+    }
+  );
 
-  etiquetaValor({
-    page,
-    etiqueta:
-      "DNI / CUIT",
-    valor: clienteId,
-    x: MARGIN + 265,
-    y:
-      clienteBoxTop -
-      18,
-    ancho: 220,
-    regular,
-    bold,
-  });
+  page.drawText(
+    nombre,
+    {
+      x:
+        MARGIN +
+        9,
+      y:
+        clienteTop -
+        27,
+      size: 9,
+      font: bold,
+      color:
+        COLOR_TEXT,
+    }
+  );
 
-  etiquetaValor({
-    page,
-    etiqueta:
-      "DIRECCIÓN",
-    valor:
-      direccion || "-",
-    x: MARGIN + 12,
-    y:
-      clienteBoxTop -
-      65,
-    ancho: 228,
-    regular,
-    bold,
-  });
+  if (documento) {
+    page.drawText(
+      documento,
+      {
+        x:
+          MARGIN +
+          280,
+        y:
+          clienteTop -
+          27,
+        size: 8,
+        font: regular,
+        color:
+          COLOR_TEXT,
+      }
+    );
+  }
 
-  etiquetaValor({
-    page,
-    etiqueta:
-      "CONTACTO",
-    valor:
-      [
-        texto(
-          cliente.telefono
-        ),
-        texto(
-          cliente.email
-        ),
-      ]
-        .filter(Boolean)
-        .join(" - ") ||
-      "-",
-    x: MARGIN + 265,
-    y:
-      clienteBoxTop -
-      65,
-    ancho: 220,
-    regular,
-    bold,
-  });
+  if (direccion) {
+    dibujarTextoAjustado({
+      page,
+      valor:
+        `Direccion: ${direccion}`,
+      x:
+        MARGIN +
+        9,
+      yTop:
+        clienteTop -
+        45,
+      ancho: 250,
+      alto: 18,
+      font: regular,
+      color:
+        COLOR_MUTED,
+      sizeInicial: 7.5,
+      sizeMinimo: 6,
+    });
+  }
+
+  if (contacto) {
+    dibujarTextoAjustado({
+      page,
+      valor:
+        `Contacto: ${contacto}`,
+      x:
+        MARGIN +
+        280,
+      yTop:
+        clienteTop -
+        45,
+      ancho:
+        CONTENT_WIDTH -
+        289,
+      alto: 18,
+      font: regular,
+      color:
+        COLOR_MUTED,
+      sizeInicial: 7.5,
+      sizeMinimo: 6,
+    });
+  }
 
   y =
-    clienteBoxTop -
-    125;
+    clienteTop -
+    clienteHeight -
+    12;
+
+  /*
+   * =====================================================
+   * DETALLE GENERAL
+   * =====================================================
+   */
 
   if (
     texto(
@@ -1057,46 +1138,285 @@ export async function generarPresupuestoPdf(
     )
   ) {
     page.drawText(
-      "DETALLE DEL PRESUPUESTO",
+      "DETALLE GENERAL",
       {
         x: MARGIN,
         y,
-        size: 8,
+        size: 6.8,
         font: bold,
         color:
           COLOR_MUTED,
       }
     );
 
-    y -= 16;
+    y -= 11;
 
-    y =
-      dibujarTextoEnvuelto({
-        page,
-        valor: texto(
+    const detalleGeneral =
+      envolverTexto(
+        texto(
           snapshot.detalle_corto
         ),
+        regular,
+        7.5,
+        CONTENT_WIDTH
+      );
+
+    const lineas =
+      detalleGeneral.slice(
+        0,
+        3
+      );
+
+    y =
+      dibujarLineas({
+        page,
+        lineas,
         x: MARGIN,
         y,
-        ancho:
-          CONTENT_WIDTH,
         font: regular,
-        size: 10,
-        lineHeight: 13,
+        size: 7.5,
+        lineHeight: 9,
         color:
           COLOR_TEXT,
       });
 
-    y -= 12;
+    y -= 7;
   }
 
-  asegurarEspacio(65);
+  /*
+   * =====================================================
+   * RESERVA INFERIOR
+   * =====================================================
+   */
 
-  cabeceraTabla();
+  const bottomTop = 205;
+
+  const tablaDisponible =
+    Math.max(
+      120,
+      y - bottomTop
+    );
+
+  /*
+   * =====================================================
+   * TABLA ADAPTABLE
+   * =====================================================
+   */
+
+  const qtyWidth = 38;
+  const unitWidth = 82;
+  const subtotalWidth = 90;
+
+  const descWidth =
+    CONTENT_WIDTH -
+    qtyWidth -
+    unitWidth -
+    subtotalWidth;
+
+  let nombreSize = 8;
+  let detalleSize = 7.2;
+  let lineHeight = 8.7;
+
+  let calculo =
+    calcularFilas({
+      items,
+      bold,
+      regular,
+      nombreSize,
+      detalleSize,
+      lineHeight,
+      anchoDetalle:
+        descWidth -
+        12,
+    });
+
+  const headerHeight =
+    21;
+
+  const tamanos = [
+    {
+      nombre: 8,
+      detalle: 7.2,
+      linea: 8.7,
+    },
+    {
+      nombre: 7.5,
+      detalle: 6.8,
+      linea: 8.1,
+    },
+    {
+      nombre: 7,
+      detalle: 6.3,
+      linea: 7.5,
+    },
+    {
+      nombre: 6.5,
+      detalle: 5.9,
+      linea: 7,
+    },
+    {
+      nombre: 6,
+      detalle: 5.5,
+      linea: 6.5,
+    },
+  ];
 
   for (
-    const item of items
+    const tamano of tamanos
   ) {
+    nombreSize =
+      tamano.nombre;
+
+    detalleSize =
+      tamano.detalle;
+
+    lineHeight =
+      tamano.linea;
+
+    calculo =
+      calcularFilas({
+        items,
+        bold,
+        regular,
+        nombreSize,
+        detalleSize,
+        lineHeight,
+        anchoDetalle:
+          descWidth -
+          12,
+      });
+
+    if (
+      calculo.alturaTotal +
+        headerHeight <=
+      tablaDisponible
+    ) {
+      break;
+    }
+  }
+
+  const tablaTop =
+    y;
+
+  page.drawRectangle({
+    x: MARGIN,
+    y:
+      tablaTop -
+      headerHeight,
+    width:
+      CONTENT_WIDTH,
+    height:
+      headerHeight,
+    color:
+      COLOR_DARK,
+  });
+
+  const xQty =
+    MARGIN;
+
+  const xDesc =
+    xQty +
+    qtyWidth;
+
+  const xUnit =
+    xDesc +
+    descWidth;
+
+  const xSubtotal =
+    xUnit +
+    unitWidth;
+
+  page.drawText(
+    "Cant.",
+    {
+      x:
+        xQty +
+        7,
+      y:
+        tablaTop -
+        14,
+      size: 7,
+      font: bold,
+      color:
+        rgb(
+          1,
+          1,
+          1
+        ),
+    }
+  );
+
+  page.drawText(
+    "Servicio / detalle",
+    {
+      x:
+        xDesc +
+        6,
+      y:
+        tablaTop -
+        14,
+      size: 7,
+      font: bold,
+      color:
+        rgb(
+          1,
+          1,
+          1
+        ),
+    }
+  );
+
+  page.drawText(
+    "Precio",
+    {
+      x:
+        xUnit +
+        8,
+      y:
+        tablaTop -
+        14,
+      size: 7,
+      font: bold,
+      color:
+        rgb(
+          1,
+          1,
+          1
+        ),
+    }
+  );
+
+  page.drawText(
+    "Subtotal",
+    {
+      x:
+        xSubtotal +
+        8,
+      y:
+        tablaTop -
+        14,
+      size: 7,
+      font: bold,
+      color:
+        rgb(
+          1,
+          1,
+          1
+        ),
+    }
+  );
+
+  y =
+    tablaTop -
+    headerHeight;
+
+  for (
+    const fila of
+    calculo.filas
+  ) {
+    const item =
+      fila.item;
+
     const cantidad =
       numero(
         item.cantidad
@@ -1118,74 +1438,42 @@ export async function generarPresupuestoPdf(
         : cantidad *
           precioUnitario;
 
-    const nombreLineas =
-      envolverTexto(
-        texto(
-          item.nombre_corto
-        ) || "Trabajo",
-        bold,
-        8.5,
-        274
-      );
+    let altura =
+      fila.altura;
 
-    const detalleLineas =
-      envolverTexto(
-        texto(
-          item.detalle
-        ),
-        regular,
-        8,
-        274
-      );
-
-    const cantidadLineas =
-      nombreLineas.length +
-      detalleLineas.length;
-
-    const rowHeight =
-      Math.max(
-        34,
-        11 +
-          cantidadLineas *
-            10
-      );
+    const espacioRestante =
+      y - bottomTop;
 
     if (
-      y -
-        rowHeight <
-      78
+      altura >
+      espacioRestante
     ) {
-      encabezadoContinuacion();
-      cabeceraTabla();
+      altura =
+        Math.max(
+          22,
+          espacioRestante
+        );
     }
 
     const rowBottom =
-      y - rowHeight;
+      y - altura;
 
     page.drawRectangle({
       x: MARGIN,
       y: rowBottom,
       width:
         CONTENT_WIDTH,
-      height: rowHeight,
+      height: altura,
+      color:
+        rgb(
+          1,
+          1,
+          1
+        ),
       borderColor:
         COLOR_BORDER,
-      borderWidth: 0.6,
-      color:
-        rgb(1, 1, 1),
+      borderWidth: 0.45,
     });
-
-    const xQty =
-      MARGIN;
-
-    const xDesc =
-      MARGIN + 44;
-
-    const xUnit =
-      MARGIN + 334;
-
-    const xSubtotal =
-      MARGIN + 416;
 
     page.drawLine({
       start: {
@@ -1196,7 +1484,7 @@ export async function generarPresupuestoPdf(
         x: xDesc,
         y,
       },
-      thickness: 0.5,
+      thickness: 0.4,
       color:
         COLOR_BORDER,
     });
@@ -1210,7 +1498,7 @@ export async function generarPresupuestoPdf(
         x: xUnit,
         y,
       },
-      thickness: 0.5,
+      thickness: 0.4,
       color:
         COLOR_BORDER,
     });
@@ -1224,7 +1512,7 @@ export async function generarPresupuestoPdf(
         x: xSubtotal,
         y,
       },
-      thickness: 0.5,
+      thickness: 0.4,
       color:
         COLOR_BORDER,
     });
@@ -1240,7 +1528,7 @@ export async function generarPresupuestoPdf(
     const cantidadAncho =
       regular.widthOfTextAtSize(
         cantidadTexto,
-        8.5
+        detalleSize
       );
 
     page.drawText(
@@ -1248,58 +1536,100 @@ export async function generarPresupuestoPdf(
       {
         x:
           xQty +
-          (44 -
-            cantidadAncho) /
+          (
+            qtyWidth -
+            cantidadAncho
+          ) /
             2,
-        y: y - 20,
-        size: 8.5,
-        font: regular,
+        y:
+          y -
+          15,
+        size:
+          detalleSize,
+        font:
+          regular,
         color:
           COLOR_TEXT,
       }
     );
 
     let textoY =
-      y - 16;
+      y - 12;
+
+    const altoTexto =
+      Math.max(
+        10,
+        altura - 8
+      );
+
+    const lineasNombre =
+      fila.nombreLineas;
+
+    const lineasDetalle =
+      fila.detalleLineas;
+
+    const totalLineas =
+      [
+        ...lineasNombre,
+        ...lineasDetalle,
+      ];
+
+    const maxLineas =
+      Math.max(
+        1,
+        Math.floor(
+          altoTexto /
+            lineHeight
+        )
+      );
+
+    const visibles =
+      totalLineas.slice(
+        0,
+        maxLineas
+      );
+
+    const nombreCantidad =
+      Math.min(
+        lineasNombre.length,
+        visibles.length
+      );
 
     for (
-      const linea of nombreLineas
+      let indice = 0;
+      indice <
+      visibles.length;
+      indice += 1
     ) {
+      const esNombre =
+        indice <
+        nombreCantidad;
+
       page.drawText(
-        linea,
+        visibles[indice],
         {
           x:
             xDesc +
-            7,
-          y: textoY,
-          size: 8.5,
-          font: bold,
+            6,
+          y:
+            textoY,
+          size:
+            esNombre
+              ? nombreSize
+              : detalleSize,
+          font:
+            esNombre
+              ? bold
+              : regular,
           color:
-            COLOR_TEXT,
+            esNombre
+              ? COLOR_TEXT
+              : COLOR_MUTED,
         }
       );
 
-      textoY -= 10;
-    }
-
-    for (
-      const linea of detalleLineas
-    ) {
-      page.drawText(
-        linea,
-        {
-          x:
-            xDesc +
-            7,
-          y: textoY,
-          size: 8,
-          font: regular,
-          color:
-            COLOR_MUTED,
-        }
-      );
-
-      textoY -= 10;
+      textoY -=
+        lineHeight;
     }
 
     textoDerecha(
@@ -1308,10 +1638,10 @@ export async function generarPresupuestoPdf(
         precioUnitario,
         moneda
       ),
-      xSubtotal - 7,
-      y - 20,
+      xSubtotal - 5,
+      y - 15,
       regular,
-      8,
+      detalleSize,
       COLOR_TEXT
     );
 
@@ -1323,19 +1653,211 @@ export async function generarPresupuestoPdf(
       ),
       PAGE_WIDTH -
         MARGIN -
-        7,
-      y - 20,
+        5,
+      y - 15,
       bold,
-      8,
+      detalleSize,
       COLOR_TEXT
     );
 
-    y = rowBottom;
+    y =
+      rowBottom;
+
+    if (
+      y <=
+      bottomTop
+    ) {
+      break;
+    }
   }
 
-  y -= 18;
+  /*
+   * =====================================================
+   * PARTE INFERIOR
+   * CONDICIONES IZQUIERDA
+   * TOTALES DERECHA
+   * =====================================================
+   */
 
-  asegurarEspacio(150);
+  const inferiorTop =
+    bottomTop - 8;
+
+  const inferiorBottom =
+    67;
+
+  const inferiorHeight =
+    inferiorTop -
+    inferiorBottom;
+
+  const separacion = 10;
+
+  const totalesWidth =
+    210;
+
+  const condicionesWidth =
+    CONTENT_WIDTH -
+    totalesWidth -
+    separacion;
+
+  const condicionesX =
+    MARGIN;
+
+  const totalesX =
+    MARGIN +
+    condicionesWidth +
+    separacion;
+
+  page.drawRectangle({
+    x:
+      condicionesX,
+    y:
+      inferiorBottom,
+    width:
+      condicionesWidth,
+    height:
+      inferiorHeight,
+    color:
+      COLOR_LIGHT,
+    borderColor:
+      COLOR_BORDER,
+    borderWidth: 0.6,
+  });
+
+  page.drawText(
+    "CONDICIONES",
+    {
+      x:
+        condicionesX +
+        9,
+      y:
+        inferiorTop -
+        15,
+      size: 7,
+      font: bold,
+      color:
+        COLOR_MUTED,
+    }
+  );
+
+  const condiciones: string[] =
+    [];
+
+  if (
+    texto(
+      snapshot.forma_pago
+    )
+  ) {
+    condiciones.push(
+      `Forma de pago: ${texto(
+        snapshot.forma_pago
+      )}`
+    );
+  }
+
+  if (
+    texto(
+      snapshot.condiciones_pago
+    )
+  ) {
+    condiciones.push(
+      `Condiciones: ${texto(
+        snapshot.condiciones_pago
+      )}`
+    );
+  }
+
+  if (
+    snapshot.vigencia_dias !==
+      null &&
+    snapshot.vigencia_dias !==
+      undefined
+  ) {
+    condiciones.push(
+      `Validez: ${numero(
+        snapshot.vigencia_dias
+      )} dias`
+    );
+  }
+
+  if (
+    texto(
+      snapshot.fecha_programada
+    )
+  ) {
+    const fecha =
+      fechaArgentina(
+        snapshot.fecha_programada
+      );
+
+    const hora =
+      horaArgentina(
+        snapshot.hora_programada
+      );
+
+    condiciones.push(
+      `Trabajo programado: ${fecha}${
+        hora
+          ? ` - ${hora} hs`
+          : ""
+      }`
+    );
+  }
+
+  if (
+    texto(
+      snapshot.observaciones_cliente
+    )
+  ) {
+    condiciones.push(
+      `Observaciones: ${texto(
+        snapshot.observaciones_cliente
+      )}`
+    );
+  }
+
+  if (
+    texto(
+      empresa.texto_pie_presupuesto
+    )
+  ) {
+    condiciones.push(
+      texto(
+        empresa.texto_pie_presupuesto
+      )
+    );
+  }
+
+  dibujarTextoAjustado({
+    page,
+    valor:
+      condiciones.join(
+        "\n"
+      ) || "-",
+    x:
+      condicionesX +
+      9,
+    yTop:
+      inferiorTop -
+      29,
+    ancho:
+      condicionesWidth -
+      18,
+    alto:
+      inferiorHeight -
+      39,
+    font:
+      regular,
+    color:
+      COLOR_TEXT,
+    sizeInicial: 7.5,
+    sizeMinimo: 5.5,
+  });
+
+  /*
+   * =====================================================
+   * TOTALES
+   * =====================================================
+   */
 
   const subtotal =
     numero(
@@ -1356,8 +1878,10 @@ export async function generarPresupuestoPdf(
     snapshot.descuento_tipo ===
     "porcentaje"
       ? subtotal *
-        (descuentoValor /
-          100)
+        (
+          descuentoValor /
+          100
+        )
       : snapshot.descuento_tipo ===
           "importe"
         ? descuentoValor
@@ -1374,8 +1898,10 @@ export async function generarPresupuestoPdf(
     snapshot.recargo_tipo ===
     "porcentaje"
       ? baseConDescuento *
-        (recargoValor /
-          100)
+        (
+          recargoValor /
+          100
+        )
       : snapshot.recargo_tipo ===
           "importe"
         ? recargoValor
@@ -1386,14 +1912,6 @@ export async function generarPresupuestoPdf(
       snapshot.total
     );
 
-  const totalX =
-    PAGE_WIDTH -
-    MARGIN -
-    220;
-
-  const totalWidth =
-    220;
-
   const filasTotales: Array<{
     etiqueta: string;
     valor: string;
@@ -1402,15 +1920,15 @@ export async function generarPresupuestoPdf(
     {
       etiqueta:
         "Subtotal",
-      valor: dinero(
-        subtotal,
-        moneda
-      ),
+      valor:
+        dinero(
+          subtotal,
+          moneda
+        ),
     },
   ];
 
   if (
-    snapshot.descuento_tipo &&
     descuentoMonto > 0
   ) {
     const detalleDescuento =
@@ -1436,7 +1954,6 @@ export async function generarPresupuestoPdf(
   }
 
   if (
-    snapshot.recargo_tipo &&
     recargoMonto > 0
   ) {
     const detalleRecargo =
@@ -1462,28 +1979,49 @@ export async function generarPresupuestoPdf(
   }
 
   filasTotales.push({
-    etiqueta: "TOTAL",
-    valor: dinero(
-      total,
-      moneda
-    ),
-    destacado: true,
+    etiqueta:
+      "TOTAL",
+    valor:
+      dinero(
+        total,
+        moneda
+      ),
+    destacado:
+      true,
   });
 
+  const filaHeight =
+    Math.min(
+      29,
+      inferiorHeight /
+        filasTotales.length
+    );
+
+  let totalY =
+    inferiorTop;
+
   for (
-    const fila of filasTotales
+    const fila
+    of filasTotales
   ) {
-    const alto =
+    const altura =
       fila.destacado
-        ? 31
-        : 24;
+        ? Math.max(
+            filaHeight,
+            28
+          )
+        : filaHeight;
 
     page.drawRectangle({
-      x: totalX,
-      y: y - alto,
+      x:
+        totalesX,
+      y:
+        totalY -
+        altura,
       width:
-        totalWidth,
-      height: alto,
+        totalesWidth,
+      height:
+        altura,
       color:
         fila.destacado
           ? COLOR_DARK
@@ -1492,24 +2030,28 @@ export async function generarPresupuestoPdf(
         fila.destacado
           ? COLOR_DARK
           : COLOR_BORDER,
-      borderWidth: 0.6,
+      borderWidth:
+        0.6,
     });
 
     page.drawText(
       fila.etiqueta,
       {
         x:
-          totalX +
-          9,
+          totalesX +
+          8,
         y:
-          y -
-          (fila.destacado
-            ? 20
-            : 16),
+          totalY -
+          altura +
+          (
+            altura /
+            2
+          ) -
+          3,
         size:
           fila.destacado
-            ? 10
-            : 8.5,
+            ? 9
+            : 7.5,
         font: bold,
         color:
           fila.destacado
@@ -1525,17 +2067,20 @@ export async function generarPresupuestoPdf(
     textoDerecha(
       page,
       fila.valor,
-      totalX +
-        totalWidth -
-        9,
-      y -
-        (fila.destacado
-          ? 20
-          : 16),
+      totalesX +
+        totalesWidth -
+        8,
+      totalY -
+        altura +
+        (
+          altura /
+          2
+        ) -
+        3,
       bold,
       fila.destacado
-        ? 11
-        : 8.5,
+        ? 9.5
+        : 7.5,
       fila.destacado
         ? rgb(
             1,
@@ -1545,319 +2090,49 @@ export async function generarPresupuestoPdf(
         : COLOR_TEXT
     );
 
-    y -= alto;
+    totalY -=
+      altura;
   }
 
-  y -= 22;
+  /*
+   * =====================================================
+   * PIE
+   * =====================================================
+   */
 
-  const datosExtra:
-    string[] = [];
+  lineaHorizontal(
+    page,
+    55
+  );
 
-  if (
-    texto(
-      snapshot.forma_pago
-    )
-  ) {
-    datosExtra.push(
-      `Forma de pago: ${texto(
-        snapshot.forma_pago
-      )}`
-    );
-  }
-
-  if (
-    texto(
-      snapshot.condiciones_pago
-    )
-  ) {
-    datosExtra.push(
-      `Condiciones: ${texto(
-        snapshot.condiciones_pago
-      )}`
-    );
-  }
-
-  if (
-    numero(
-      snapshot.vigencia_dias
-    ) >= 0 &&
-    snapshot.vigencia_dias !==
-      null &&
-    snapshot.vigencia_dias !==
-      undefined
-  ) {
-    datosExtra.push(
-      `Validez del presupuesto: ${numero(
-        snapshot.vigencia_dias
-      )} días`
-    );
-  }
-
-  if (
-    texto(
-      snapshot.fecha_programada
-    )
-  ) {
-    const fechaTrabajo =
-      fechaArgentina(
-        snapshot.fecha_programada
-      );
-
-    const horaTrabajo =
-      horaArgentina(
-        snapshot.hora_programada
-      );
-
-    datosExtra.push(
-      `Trabajo programado: ${fechaTrabajo}${
-        horaTrabajo
-          ? ` - ${horaTrabajo} hs`
-          : ""
-      }`
-    );
-  }
-
-  if (
-    datosExtra.length > 0
-  ) {
-    asegurarEspacio(
-      34 +
-        datosExtra.length *
-          14
-    );
-
-    page.drawText(
-      "CONDICIONES",
-      {
-        x: MARGIN,
-        y,
-        size: 8,
-        font: bold,
-        color:
-          COLOR_MUTED,
-      }
-    );
-
-    y -= 17;
-
-    for (
-      const dato of datosExtra
-    ) {
-      y =
-        dibujarTextoEnvuelto({
-          page,
-          valor: dato,
-          x: MARGIN,
-          y,
-          ancho:
-            CONTENT_WIDTH,
-          font: regular,
-          size: 9,
-          lineHeight: 12,
-          color:
-            COLOR_TEXT,
-        });
-
-      y -= 3;
-    }
-
-    y -= 10;
-  }
-
-  if (
-    texto(
-      snapshot.observaciones_cliente
-    )
-  ) {
-    const lineas =
-      envolverTexto(
-        texto(
-          snapshot.observaciones_cliente
-        ),
-        regular,
-        9,
-        CONTENT_WIDTH -
-          20
-      );
-
-    const alto =
-      36 +
-      lineas.length *
-        12;
-
-    asegurarEspacio(
-      alto
-    );
-
-    page.drawRectangle({
+  page.drawText(
+    "Este documento no es valido como factura.",
+    {
       x: MARGIN,
-      y: y - alto,
-      width:
-        CONTENT_WIDTH,
-      height: alto,
+      y:
+        FOOTER_Y,
+      size: 7.2,
+      font: bold,
       color:
-        COLOR_LIGHT,
-      borderColor:
-        COLOR_BORDER,
-      borderWidth: 0.6,
-    });
-
-    page.drawText(
-      "OBSERVACIONES",
-      {
-        x:
-          MARGIN +
-          10,
-        y: y - 18,
-        size: 8,
-        font: bold,
-        color:
-          COLOR_MUTED,
-      }
-    );
-
-    let observacionY =
-      y - 34;
-
-    for (
-      const linea of lineas
-    ) {
-      page.drawText(
-        linea,
-        {
-          x:
-            MARGIN +
-            10,
-          y:
-            observacionY,
-          size: 9,
-          font: regular,
-          color:
-            COLOR_TEXT,
-        }
-      );
-
-      observacionY -=
-        12;
+        COLOR_DARK,
     }
+  );
 
-    y -= alto + 16;
-  }
-
-  if (
+  const web =
     texto(
-      empresa.texto_pie_presupuesto
-    )
-  ) {
-    const pieLineas =
-      envolverTexto(
-        texto(
-          empresa.texto_pie_presupuesto
-        ),
-        regular,
-        8.5,
-        CONTENT_WIDTH
-      );
+      empresa.website
+    ) ||
+    "www.enfriar.com.ar";
 
-    asegurarEspacio(
-      20 +
-        pieLineas.length *
-          11
-    );
-
-    page.drawText(
-      "INFORMACIÓN",
-      {
-        x: MARGIN,
-        y,
-        size: 8,
-        font: bold,
-        color:
-          COLOR_MUTED,
-      }
-    );
-
-    y -= 16;
-
-    for (
-      const linea of pieLineas
-    ) {
-      page.drawText(
-        linea,
-        {
-          x: MARGIN,
-          y,
-          size: 8.5,
-          font: regular,
-          color:
-            COLOR_TEXT,
-        }
-      );
-
-      y -= 11;
-    }
-  }
-
-  const paginas =
-    pdf.getPages();
-
-  paginas.forEach(
-    (
-      pagina,
-      indice
-    ) => {
-      pagina.drawLine({
-        start: {
-          x: MARGIN,
-          y: 54,
-        },
-        end: {
-          x:
-            PAGE_WIDTH -
-            MARGIN,
-          y: 54,
-        },
-        thickness: 0.6,
-        color:
-          COLOR_BORDER,
-      });
-
-      pagina.drawText(
-        "Este documento no es válido como factura.",
-        {
-          x: MARGIN,
-          y: 37,
-          size: 8,
-          font: bold,
-          color:
-            COLOR_DARK,
-        }
-      );
-
-      const web =
-        texto(
-          empresa.website
-        ) ||
-        "www.enfriar.com.ar";
-
-      const paginaTexto =
-        `${web}  |  Página ${
-          indice + 1
-        } de ${
-          paginas.length
-        }`;
-
-      textoDerecha(
-        pagina,
-        paginaTexto,
-        PAGE_WIDTH -
-          MARGIN,
-        37,
-        regular,
-        7.5,
-        COLOR_MUTED
-      );
-    }
+  textoDerecha(
+    page,
+    web,
+    PAGE_WIDTH -
+      MARGIN,
+    FOOTER_Y,
+    regular,
+    7,
+    COLOR_MUTED
   );
 
   return await pdf.save();
