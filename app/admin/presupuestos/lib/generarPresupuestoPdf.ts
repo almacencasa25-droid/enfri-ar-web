@@ -132,7 +132,11 @@ const COLOR_LIGHT = rgb(
 );
 
 function numero(
-  valor: number | string | null | undefined
+  valor:
+    | number
+    | string
+    | null
+    | undefined
 ) {
   const convertido = Number(valor);
 
@@ -142,7 +146,11 @@ function numero(
 }
 
 function texto(
-  valor: string | number | null | undefined
+  valor:
+    | string
+    | number
+    | null
+    | undefined
 ) {
   if (
     valor === null ||
@@ -155,15 +163,20 @@ function texto(
 }
 
 function fechaArgentina(
-  valor: string | null | undefined
+  valor:
+    | string
+    | null
+    | undefined
 ) {
   if (!valor) {
     return "";
   }
 
-  const fecha = valor.slice(0, 10);
+  const fecha =
+    valor.slice(0, 10);
 
-  const partes = fecha.split("-");
+  const partes =
+    fecha.split("-");
 
   if (partes.length !== 3) {
     return valor;
@@ -173,7 +186,10 @@ function fechaArgentina(
 }
 
 function horaArgentina(
-  valor: string | null | undefined
+  valor:
+    | string
+    | null
+    | undefined
 ) {
   if (!valor) {
     return "";
@@ -191,7 +207,8 @@ function dinero(
       "es-AR",
       {
         style: "currency",
-        currency: moneda || "ARS",
+        currency:
+          moneda || "ARS",
         maximumFractionDigits: 2,
       }
     ).format(valor);
@@ -210,7 +227,11 @@ function nombreCliente(
     return "Cliente";
   }
 
-  if (texto(cliente.razon_social)) {
+  if (
+    texto(
+      cliente.razon_social
+    )
+  ) {
     return texto(
       cliente.razon_social
     );
@@ -236,7 +257,9 @@ function partirPalabraLarga(
 
   let actual = "";
 
-  for (const caracter of palabra) {
+  for (
+    const caracter of palabra
+  ) {
     const prueba =
       actual + caracter;
 
@@ -270,13 +293,16 @@ function envolverTexto(
   size: number,
   anchoMaximo: number
 ) {
-  const resultado: string[] = [];
+  const resultado: string[] =
+    [];
 
   const bloques = valor
     .replace(/\r/g, "")
     .split("\n");
 
-  for (const bloque of bloques) {
+  for (
+    const bloque of bloques
+  ) {
     if (!bloque.trim()) {
       resultado.push("");
       continue;
@@ -287,7 +313,9 @@ function envolverTexto(
 
     let linea = "";
 
-    for (const palabraOriginal of palabras) {
+    for (
+      const palabraOriginal of palabras
+    ) {
       let partes = [
         palabraOriginal,
       ];
@@ -307,7 +335,9 @@ function envolverTexto(
           );
       }
 
-      for (const palabra of partes) {
+      for (
+        const palabra of partes
+      ) {
         const prueba =
           linea.length > 0
             ? `${linea} ${palabra}`
@@ -322,7 +352,9 @@ function envolverTexto(
           linea = prueba;
         } else {
           if (linea) {
-            resultado.push(linea);
+            resultado.push(
+              linea
+            );
           }
 
           linea = palabra;
@@ -371,7 +403,9 @@ function dibujarTextoEnvuelto({
 
   let actualY = y;
 
-  for (const linea of lineas) {
+  for (
+    const linea of lineas
+  ) {
     page.drawText(linea, {
       x,
       y: actualY,
@@ -421,7 +455,9 @@ function lineaHorizontal(
       y,
     },
     end: {
-      x: PAGE_WIDTH - MARGIN,
+      x:
+        PAGE_WIDTH -
+        MARGIN,
       y,
     },
     thickness: 0.8,
@@ -491,7 +527,8 @@ function etiquetaValor({
 }
 
 export async function generarPresupuestoPdf(
-  snapshot: PresupuestoPdfSnapshot,
+  snapshot:
+    PresupuestoPdfSnapshot,
   version: number
 ): Promise<Uint8Array> {
   const pdf =
@@ -517,7 +554,9 @@ export async function generarPresupuestoPdf(
     snapshot.cliente || {};
 
   const items =
-    Array.isArray(snapshot.items)
+    Array.isArray(
+      snapshot.items
+    )
       ? snapshot.items
       : [];
 
@@ -529,21 +568,29 @@ export async function generarPresupuestoPdf(
     numero(snapshot.numero);
 
   const numeroVisible =
-    String(numeroPresupuesto).padStart(
+    String(
+      numeroPresupuesto
+    ).padStart(
       6,
       "0"
     );
 
   const empresaNombre =
-    texto(empresa.company_name) ||
-    texto(empresa.short_name) ||
+    texto(
+      empresa.company_name
+    ) ||
+    texto(
+      empresa.short_name
+    ) ||
     "Enfri.Ar Refrigeración";
 
   pdf.setTitle(
     `Presupuesto ${numeroVisible}`
   );
 
-  pdf.setAuthor(empresaNombre);
+  pdf.setAuthor(
+    empresaNombre
+  );
 
   pdf.setSubject(
     `Presupuesto Enfri.Ar Nro. ${numeroVisible}`
@@ -553,7 +600,7 @@ export async function generarPresupuestoPdf(
     "Enfri.Ar Refrigeración"
   );
 
-  let page: PDFPage;
+  let page!: PDFPage;
 
   let y = 0;
 
@@ -565,14 +612,18 @@ export async function generarPresupuestoPdf(
 
     page.drawRectangle({
       x: 0,
-      y: PAGE_HEIGHT - 12,
+      y:
+        PAGE_HEIGHT -
+        12,
       width: PAGE_WIDTH,
       height: 12,
       color: COLOR_BLUE,
     });
 
     page.drawRectangle({
-      x: PAGE_WIDTH - 150,
+      x:
+        PAGE_WIDTH -
+        150,
       y: 0,
       width: 150,
       height: 7,
@@ -580,31 +631,43 @@ export async function generarPresupuestoPdf(
     });
 
     if (logo) {
-      const escala = Math.min(
-        155 / logo.width,
-        68 / logo.height
-      );
+      const escala =
+        Math.min(
+          155 /
+            logo.width,
+          68 /
+            logo.height
+        );
 
-      page.drawImage(logo, {
-        x: MARGIN,
-        y:
-          PAGE_HEIGHT -
-          52 -
-          logo.height * escala,
-        width:
-          logo.width * escala,
-        height:
-          logo.height * escala,
-      });
+      page.drawImage(
+        logo,
+        {
+          x: MARGIN,
+          y:
+            PAGE_HEIGHT -
+            52 -
+            logo.height *
+              escala,
+          width:
+            logo.width *
+            escala,
+          height:
+            logo.height *
+            escala,
+        }
+      );
     } else {
       page.drawText(
         "Enfri.Ar",
         {
           x: MARGIN,
-          y: PAGE_HEIGHT - 78,
+          y:
+            PAGE_HEIGHT -
+            78,
           size: 28,
           font: bold,
-          color: COLOR_DARK,
+          color:
+            COLOR_DARK,
         }
       );
     }
@@ -614,38 +677,56 @@ export async function generarPresupuestoPdf(
 
     const empresaLineas = [
       empresaNombre,
-      texto(empresa.address),
-      texto(empresa.phone)
+      texto(
+        empresa.address
+      ),
+      texto(
+        empresa.phone
+      )
         ? `Tel.: ${texto(
             empresa.phone
           )}`
         : "",
-      texto(empresa.email),
-      texto(empresa.website),
+      texto(
+        empresa.email
+      ),
+      texto(
+        empresa.website
+      ),
     ].filter(Boolean);
 
     for (
       let i = 0;
-      i < empresaLineas.length;
+      i <
+      empresaLineas.length;
       i += 1
     ) {
       textoDerecha(
         page,
         empresaLineas[i],
-        PAGE_WIDTH - MARGIN,
+        PAGE_WIDTH -
+          MARGIN,
         empresaY,
-        i === 0 ? bold : regular,
-        i === 0 ? 10.5 : 8.5,
+        i === 0
+          ? bold
+          : regular,
+        i === 0
+          ? 10.5
+          : 8.5,
         i === 0
           ? COLOR_DARK
           : COLOR_MUTED
       );
 
       empresaY -=
-        i === 0 ? 15 : 12;
+        i === 0
+          ? 15
+          : 12;
     }
 
-    y = PAGE_HEIGHT - 145;
+    y =
+      PAGE_HEIGHT -
+      145;
 
     lineaHorizontal(
       page,
@@ -669,7 +750,8 @@ export async function generarPresupuestoPdf(
     textoDerecha(
       page,
       `Nro. ${numeroVisible}`,
-      PAGE_WIDTH - MARGIN,
+      PAGE_WIDTH -
+        MARGIN,
       y + 2,
       bold,
       15,
@@ -687,14 +769,16 @@ export async function generarPresupuestoPdf(
         y,
         size: 9,
         font: regular,
-        color: COLOR_MUTED,
+        color:
+          COLOR_MUTED,
       }
     );
 
     textoDerecha(
       page,
       `Versión ${version}`,
-      PAGE_WIDTH - MARGIN,
+      PAGE_WIDTH -
+        MARGIN,
       y,
       regular,
       9,
@@ -712,7 +796,9 @@ export async function generarPresupuestoPdf(
 
     page.drawRectangle({
       x: 0,
-      y: PAGE_HEIGHT - 10,
+      y:
+        PAGE_HEIGHT -
+        10,
       width: PAGE_WIDTH,
       height: 10,
       color: COLOR_BLUE,
@@ -722,18 +808,23 @@ export async function generarPresupuestoPdf(
       empresaNombre,
       {
         x: MARGIN,
-        y: PAGE_HEIGHT - 48,
+        y:
+          PAGE_HEIGHT -
+          48,
         size: 10,
         font: bold,
-        color: COLOR_DARK,
+        color:
+          COLOR_DARK,
       }
     );
 
     textoDerecha(
       page,
       `Presupuesto Nro. ${numeroVisible} - continuación`,
-      PAGE_WIDTH - MARGIN,
-      PAGE_HEIGHT - 48,
+      PAGE_WIDTH -
+        MARGIN,
+      PAGE_HEIGHT -
+        48,
       regular,
       9,
       COLOR_MUTED
@@ -741,17 +832,22 @@ export async function generarPresupuestoPdf(
 
     lineaHorizontal(
       page,
-      PAGE_HEIGHT - 62
+      PAGE_HEIGHT -
+        62
     );
 
-    y = PAGE_HEIGHT - 86;
+    y =
+      PAGE_HEIGHT -
+      86;
   }
 
   function asegurarEspacio(
     altoNecesario: number
   ) {
     if (
-      y - altoNecesario >= 78
+      y -
+        altoNecesario >=
+      78
     ) {
       return;
     }
@@ -765,26 +861,35 @@ export async function generarPresupuestoPdf(
     page.drawRectangle({
       x: MARGIN,
       y: y - alto,
-      width: CONTENT_WIDTH,
+      width:
+        CONTENT_WIDTH,
       height: alto,
       color: COLOR_DARK,
     });
 
-    const qtyX = MARGIN;
+    const qtyX =
+      MARGIN;
+
     const descX =
       MARGIN + 44;
+
     const unitX =
       MARGIN + 334;
+
     const subtotalX =
       MARGIN + 416;
 
-    page.drawText("Cant.", {
-      x: qtyX + 8,
-      y: y - 16,
-      size: 8,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
+    page.drawText(
+      "Cant.",
+      {
+        x: qtyX + 8,
+        y: y - 16,
+        size: 8,
+        font: bold,
+        color:
+          rgb(1, 1, 1),
+      }
+    );
 
     page.drawText(
       "Trabajo / detalle",
@@ -793,7 +898,8 @@ export async function generarPresupuestoPdf(
         y: y - 16,
         size: 8,
         font: bold,
-        color: rgb(1, 1, 1),
+        color:
+          rgb(1, 1, 1),
       }
     );
 
@@ -804,18 +910,22 @@ export async function generarPresupuestoPdf(
         y: y - 16,
         size: 8,
         font: bold,
-        color: rgb(1, 1, 1),
+        color:
+          rgb(1, 1, 1),
       }
     );
 
     page.drawText(
       "Subtotal",
       {
-        x: subtotalX + 7,
+        x:
+          subtotalX +
+          7,
         y: y - 16,
         size: 8,
         font: bold,
-        color: rgb(1, 1, 1),
+        color:
+          rgb(1, 1, 1),
       }
     );
 
@@ -824,36 +934,49 @@ export async function generarPresupuestoPdf(
 
   encabezadoPrincipal();
 
-  const clienteBoxTop = y;
+  const clienteBoxTop =
+    y;
 
   const clienteNombre =
-    nombreCliente(cliente);
+    nombreCliente(
+      cliente
+    );
 
   const clienteId =
     texto(cliente.cuit)
       ? `CUIT: ${texto(
           cliente.cuit
         )}`
-      : texto(cliente.dni)
+      : texto(
+            cliente.dni
+          )
         ? `DNI: ${texto(
             cliente.dni
           )}`
         : "-";
 
   const direccion = [
-    texto(cliente.direccion),
-    texto(cliente.localidad),
+    texto(
+      cliente.direccion
+    ),
+    texto(
+      cliente.localidad
+    ),
   ]
     .filter(Boolean)
     .join(" - ");
 
   page.drawRectangle({
     x: MARGIN,
-    y: clienteBoxTop - 106,
-    width: CONTENT_WIDTH,
+    y:
+      clienteBoxTop -
+      106,
+    width:
+      CONTENT_WIDTH,
     height: 106,
     color: COLOR_LIGHT,
-    borderColor: COLOR_BORDER,
+    borderColor:
+      COLOR_BORDER,
     borderWidth: 0.8,
   });
 
@@ -862,7 +985,9 @@ export async function generarPresupuestoPdf(
     etiqueta: "CLIENTE",
     valor: clienteNombre,
     x: MARGIN + 12,
-    y: clienteBoxTop - 18,
+    y:
+      clienteBoxTop -
+      18,
     ancho: 228,
     regular,
     bold,
@@ -870,10 +995,13 @@ export async function generarPresupuestoPdf(
 
   etiquetaValor({
     page,
-    etiqueta: "DNI / CUIT",
+    etiqueta:
+      "DNI / CUIT",
     valor: clienteId,
     x: MARGIN + 265,
-    y: clienteBoxTop - 18,
+    y:
+      clienteBoxTop -
+      18,
     ancho: 220,
     regular,
     bold,
@@ -881,10 +1009,14 @@ export async function generarPresupuestoPdf(
 
   etiquetaValor({
     page,
-    etiqueta: "DIRECCIÓN",
-    valor: direccion || "-",
+    etiqueta:
+      "DIRECCIÓN",
+    valor:
+      direccion || "-",
     x: MARGIN + 12,
-    y: clienteBoxTop - 65,
+    y:
+      clienteBoxTop -
+      65,
     ancho: 228,
     regular,
     bold,
@@ -892,23 +1024,38 @@ export async function generarPresupuestoPdf(
 
   etiquetaValor({
     page,
-    etiqueta: "CONTACTO",
-    valor: [
-      texto(cliente.telefono),
-      texto(cliente.email),
-    ]
-      .filter(Boolean)
-      .join(" - ") || "-",
+    etiqueta:
+      "CONTACTO",
+    valor:
+      [
+        texto(
+          cliente.telefono
+        ),
+        texto(
+          cliente.email
+        ),
+      ]
+        .filter(Boolean)
+        .join(" - ") ||
+      "-",
     x: MARGIN + 265,
-    y: clienteBoxTop - 65,
+    y:
+      clienteBoxTop -
+      65,
     ancho: 220,
     regular,
     bold,
   });
 
-  y = clienteBoxTop - 125;
+  y =
+    clienteBoxTop -
+    125;
 
-  if (texto(snapshot.detalle_corto)) {
+  if (
+    texto(
+      snapshot.detalle_corto
+    )
+  ) {
     page.drawText(
       "DETALLE DEL PRESUPUESTO",
       {
@@ -916,25 +1063,29 @@ export async function generarPresupuestoPdf(
         y,
         size: 8,
         font: bold,
-        color: COLOR_MUTED,
+        color:
+          COLOR_MUTED,
       }
     );
 
     y -= 16;
 
-    y = dibujarTextoEnvuelto({
-      page,
-      valor: texto(
-        snapshot.detalle_corto
-      ),
-      x: MARGIN,
-      y,
-      ancho: CONTENT_WIDTH,
-      font: regular,
-      size: 10,
-      lineHeight: 13,
-      color: COLOR_TEXT,
-    });
+    y =
+      dibujarTextoEnvuelto({
+        page,
+        valor: texto(
+          snapshot.detalle_corto
+        ),
+        x: MARGIN,
+        y,
+        ancho:
+          CONTENT_WIDTH,
+        font: regular,
+        size: 10,
+        lineHeight: 13,
+        color:
+          COLOR_TEXT,
+      });
 
     y -= 12;
   }
@@ -943,9 +1094,13 @@ export async function generarPresupuestoPdf(
 
   cabeceraTabla();
 
-  for (const item of items) {
+  for (
+    const item of items
+  ) {
     const cantidad =
-      numero(item.cantidad);
+      numero(
+        item.cantidad
+      );
 
     const precioUnitario =
       numero(
@@ -953,9 +1108,13 @@ export async function generarPresupuestoPdf(
       );
 
     const subtotalItem =
-      item.subtotal !== null &&
-      item.subtotal !== undefined
-        ? numero(item.subtotal)
+      item.subtotal !==
+        null &&
+      item.subtotal !==
+        undefined
+        ? numero(
+            item.subtotal
+          )
         : cantidad *
           precioUnitario;
 
@@ -971,7 +1130,9 @@ export async function generarPresupuestoPdf(
 
     const detalleLineas =
       envolverTexto(
-        texto(item.detalle),
+        texto(
+          item.detalle
+        ),
         regular,
         8,
         274
@@ -985,11 +1146,14 @@ export async function generarPresupuestoPdf(
       Math.max(
         34,
         11 +
-          cantidadLineas * 10
+          cantidadLineas *
+            10
       );
 
     if (
-      y - rowHeight < 78
+      y -
+        rowHeight <
+      78
     ) {
       encabezadoContinuacion();
       cabeceraTabla();
@@ -1001,18 +1165,25 @@ export async function generarPresupuestoPdf(
     page.drawRectangle({
       x: MARGIN,
       y: rowBottom,
-      width: CONTENT_WIDTH,
+      width:
+        CONTENT_WIDTH,
       height: rowHeight,
-      borderColor: COLOR_BORDER,
+      borderColor:
+        COLOR_BORDER,
       borderWidth: 0.6,
-      color: rgb(1, 1, 1),
+      color:
+        rgb(1, 1, 1),
     });
 
-    const xQty = MARGIN;
+    const xQty =
+      MARGIN;
+
     const xDesc =
       MARGIN + 44;
+
     const xUnit =
       MARGIN + 334;
+
     const xSubtotal =
       MARGIN + 416;
 
@@ -1026,7 +1197,8 @@ export async function generarPresupuestoPdf(
         y,
       },
       thickness: 0.5,
-      color: COLOR_BORDER,
+      color:
+        COLOR_BORDER,
     });
 
     page.drawLine({
@@ -1039,7 +1211,8 @@ export async function generarPresupuestoPdf(
         y,
       },
       thickness: 0.5,
-      color: COLOR_BORDER,
+      color:
+        COLOR_BORDER,
     });
 
     page.drawLine({
@@ -1052,7 +1225,8 @@ export async function generarPresupuestoPdf(
         y,
       },
       thickness: 0.5,
-      color: COLOR_BORDER,
+      color:
+        COLOR_BORDER,
     });
 
     const cantidadTexto =
@@ -1080,32 +1254,50 @@ export async function generarPresupuestoPdf(
         y: y - 20,
         size: 8.5,
         font: regular,
-        color: COLOR_TEXT,
+        color:
+          COLOR_TEXT,
       }
     );
 
-    let textoY = y - 16;
+    let textoY =
+      y - 16;
 
-    for (const linea of nombreLineas) {
-      page.drawText(linea, {
-        x: xDesc + 7,
-        y: textoY,
-        size: 8.5,
-        font: bold,
-        color: COLOR_TEXT,
-      });
+    for (
+      const linea of nombreLineas
+    ) {
+      page.drawText(
+        linea,
+        {
+          x:
+            xDesc +
+            7,
+          y: textoY,
+          size: 8.5,
+          font: bold,
+          color:
+            COLOR_TEXT,
+        }
+      );
 
       textoY -= 10;
     }
 
-    for (const linea of detalleLineas) {
-      page.drawText(linea, {
-        x: xDesc + 7,
-        y: textoY,
-        size: 8,
-        font: regular,
-        color: COLOR_MUTED,
-      });
+    for (
+      const linea of detalleLineas
+    ) {
+      page.drawText(
+        linea,
+        {
+          x:
+            xDesc +
+            7,
+          y: textoY,
+          size: 8,
+          font: regular,
+          color:
+            COLOR_MUTED,
+        }
+      );
 
       textoY -= 10;
     }
@@ -1146,7 +1338,9 @@ export async function generarPresupuestoPdf(
   asegurarEspacio(150);
 
   const subtotal =
-    numero(snapshot.subtotal);
+    numero(
+      snapshot.subtotal
+    );
 
   const descuentoValor =
     numero(
@@ -1162,7 +1356,8 @@ export async function generarPresupuestoPdf(
     snapshot.descuento_tipo ===
     "porcentaje"
       ? subtotal *
-        (descuentoValor / 100)
+        (descuentoValor /
+          100)
       : snapshot.descuento_tipo ===
           "importe"
         ? descuentoValor
@@ -1179,19 +1374,25 @@ export async function generarPresupuestoPdf(
     snapshot.recargo_tipo ===
     "porcentaje"
       ? baseConDescuento *
-        (recargoValor / 100)
+        (recargoValor /
+          100)
       : snapshot.recargo_tipo ===
           "importe"
         ? recargoValor
         : 0;
 
   const total =
-    numero(snapshot.total);
+    numero(
+      snapshot.total
+    );
 
   const totalX =
-    PAGE_WIDTH - MARGIN - 220;
+    PAGE_WIDTH -
+    MARGIN -
+    220;
 
-  const totalWidth = 220;
+  const totalWidth =
+    220;
 
   const filasTotales: Array<{
     etiqueta: string;
@@ -1199,7 +1400,8 @@ export async function generarPresupuestoPdf(
     destacado?: boolean;
   }> = [
     {
-      etiqueta: "Subtotal",
+      etiqueta:
+        "Subtotal",
       valor: dinero(
         subtotal,
         moneda
@@ -1268,7 +1470,9 @@ export async function generarPresupuestoPdf(
     destacado: true,
   });
 
-  for (const fila of filasTotales) {
+  for (
+    const fila of filasTotales
+  ) {
     const alto =
       fila.destacado
         ? 31
@@ -1277,7 +1481,8 @@ export async function generarPresupuestoPdf(
     page.drawRectangle({
       x: totalX,
       y: y - alto,
-      width: totalWidth,
+      width:
+        totalWidth,
       height: alto,
       color:
         fila.destacado
@@ -1293,7 +1498,9 @@ export async function generarPresupuestoPdf(
     page.drawText(
       fila.etiqueta,
       {
-        x: totalX + 9,
+        x:
+          totalX +
+          9,
         y:
           y -
           (fila.destacado
@@ -1306,7 +1513,11 @@ export async function generarPresupuestoPdf(
         font: bold,
         color:
           fila.destacado
-            ? rgb(1, 1, 1)
+            ? rgb(
+                1,
+                1,
+                1
+              )
             : COLOR_TEXT,
       }
     );
@@ -1326,7 +1537,11 @@ export async function generarPresupuestoPdf(
         ? 11
         : 8.5,
       fila.destacado
-        ? rgb(1, 1, 1)
+        ? rgb(
+            1,
+            1,
+            1
+          )
         : COLOR_TEXT
     );
 
@@ -1335,9 +1550,14 @@ export async function generarPresupuestoPdf(
 
   y -= 22;
 
-  const datosExtra: string[] = [];
+  const datosExtra:
+    string[] = [];
 
-  if (texto(snapshot.forma_pago)) {
+  if (
+    texto(
+      snapshot.forma_pago
+    )
+  ) {
     datosExtra.push(
       `Forma de pago: ${texto(
         snapshot.forma_pago
@@ -1397,7 +1617,9 @@ export async function generarPresupuestoPdf(
     );
   }
 
-  if (datosExtra.length > 0) {
+  if (
+    datosExtra.length > 0
+  ) {
     asegurarEspacio(
       34 +
         datosExtra.length *
@@ -1411,25 +1633,30 @@ export async function generarPresupuestoPdf(
         y,
         size: 8,
         font: bold,
-        color: COLOR_MUTED,
+        color:
+          COLOR_MUTED,
       }
     );
 
     y -= 17;
 
-    for (const dato of datosExtra) {
-      y = dibujarTextoEnvuelto({
-        page,
-        valor: dato,
-        x: MARGIN,
-        y,
-        ancho:
-          CONTENT_WIDTH,
-        font: regular,
-        size: 9,
-        lineHeight: 12,
-        color: COLOR_TEXT,
-      });
+    for (
+      const dato of datosExtra
+    ) {
+      y =
+        dibujarTextoEnvuelto({
+          page,
+          valor: dato,
+          x: MARGIN,
+          y,
+          ancho:
+            CONTENT_WIDTH,
+          font: regular,
+          size: 9,
+          lineHeight: 12,
+          color:
+            COLOR_TEXT,
+        });
 
       y -= 3;
     }
@@ -1449,49 +1676,69 @@ export async function generarPresupuestoPdf(
         ),
         regular,
         9,
-        CONTENT_WIDTH - 20
+        CONTENT_WIDTH -
+          20
       );
 
     const alto =
       36 +
-      lineas.length * 12;
+      lineas.length *
+        12;
 
-    asegurarEspacio(alto);
+    asegurarEspacio(
+      alto
+    );
 
     page.drawRectangle({
       x: MARGIN,
       y: y - alto,
-      width: CONTENT_WIDTH,
+      width:
+        CONTENT_WIDTH,
       height: alto,
-      color: COLOR_LIGHT,
-      borderColor: COLOR_BORDER,
+      color:
+        COLOR_LIGHT,
+      borderColor:
+        COLOR_BORDER,
       borderWidth: 0.6,
     });
 
     page.drawText(
       "OBSERVACIONES",
       {
-        x: MARGIN + 10,
+        x:
+          MARGIN +
+          10,
         y: y - 18,
         size: 8,
         font: bold,
-        color: COLOR_MUTED,
+        color:
+          COLOR_MUTED,
       }
     );
 
     let observacionY =
       y - 34;
 
-    for (const linea of lineas) {
-      page.drawText(linea, {
-        x: MARGIN + 10,
-        y: observacionY,
-        size: 9,
-        font: regular,
-        color: COLOR_TEXT,
-      });
+    for (
+      const linea of lineas
+    ) {
+      page.drawText(
+        linea,
+        {
+          x:
+            MARGIN +
+            10,
+          y:
+            observacionY,
+          size: 9,
+          font: regular,
+          color:
+            COLOR_TEXT,
+        }
+      );
 
-      observacionY -= 12;
+      observacionY -=
+        12;
     }
 
     y -= alto + 16;
@@ -1525,20 +1772,27 @@ export async function generarPresupuestoPdf(
         y,
         size: 8,
         font: bold,
-        color: COLOR_MUTED,
+        color:
+          COLOR_MUTED,
       }
     );
 
     y -= 16;
 
-    for (const linea of pieLineas) {
-      page.drawText(linea, {
-        x: MARGIN,
-        y,
-        size: 8.5,
-        font: regular,
-        color: COLOR_TEXT,
-      });
+    for (
+      const linea of pieLineas
+    ) {
+      page.drawText(
+        linea,
+        {
+          x: MARGIN,
+          y,
+          size: 8.5,
+          font: regular,
+          color:
+            COLOR_TEXT,
+        }
+      );
 
       y -= 11;
     }
@@ -1548,7 +1802,10 @@ export async function generarPresupuestoPdf(
     pdf.getPages();
 
   paginas.forEach(
-    (pagina, indice) => {
+    (
+      pagina,
+      indice
+    ) => {
       pagina.drawLine({
         start: {
           x: MARGIN,
@@ -1561,7 +1818,8 @@ export async function generarPresupuestoPdf(
           y: 54,
         },
         thickness: 0.6,
-        color: COLOR_BORDER,
+        color:
+          COLOR_BORDER,
       });
 
       pagina.drawText(
@@ -1571,7 +1829,8 @@ export async function generarPresupuestoPdf(
           y: 37,
           size: 8,
           font: bold,
-          color: COLOR_DARK,
+          color:
+            COLOR_DARK,
         }
       );
 
@@ -1584,12 +1843,15 @@ export async function generarPresupuestoPdf(
       const paginaTexto =
         `${web}  |  Página ${
           indice + 1
-        } de ${paginas.length}`;
+        } de ${
+          paginas.length
+        }`;
 
       textoDerecha(
         pagina,
         paginaTexto,
-        PAGE_WIDTH - MARGIN,
+        PAGE_WIDTH -
+          MARGIN,
         37,
         regular,
         7.5,
