@@ -1,12 +1,19 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import {
+  notFound,
+} from "next/navigation";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
 
 import OrdenTrabajoForm from "./OrdenTrabajoForm";
 
+import OrdenesTrabajoExistentes from "./OrdenesTrabajoExistentes";
+
 export const metadata = {
-  title: "Orden de Trabajo",
+  title:
+    "Orden de Trabajo",
 };
 
 type Props = {
@@ -23,9 +30,11 @@ function nombreCliente({
   nombre:
     | string
     | null;
+
   apellido:
     | string
     | null;
+
   razonSocial:
     | string
     | null;
@@ -118,15 +127,19 @@ export default async function OrdenTrabajoPage({
         style={{
           minHeight:
             "100vh",
+
           padding:
             "20px 18px 48px",
         }}
       >
         <div
           style={{
-            width: "100%",
+            width:
+              "100%",
+
             maxWidth:
               "1100px",
+
             margin:
               "0 auto",
           }}
@@ -135,10 +148,13 @@ export default async function OrdenTrabajoPage({
             style={{
               padding:
                 "24px",
+
               border:
                 "1px solid rgba(38, 40, 42, 0.12)",
+
               borderRadius:
                 "18px",
+
               background:
                 "rgba(255, 253, 248, 0.92)",
             }}
@@ -147,14 +163,19 @@ export default async function OrdenTrabajoPage({
               style={{
                 margin:
                   "0 0 6px",
+
                 color:
                   "var(--brand-blue)",
+
                 fontSize:
                   "0.78rem",
+
                 fontWeight:
                   800,
+
                 letterSpacing:
                   "0.12em",
+
                 textTransform:
                   "uppercase",
               }}
@@ -166,8 +187,10 @@ export default async function OrdenTrabajoPage({
             <h1
               style={{
                 margin: 0,
+
                 color:
                   "var(--foreground)",
+
                 fontSize:
                   "clamp(1.8rem, 5vw, 2.5rem)",
               }}
@@ -183,16 +206,22 @@ export default async function OrdenTrabajoPage({
             style={{
               marginTop:
                 "18px",
+
               padding:
                 "18px",
+
               borderRadius:
                 "14px",
+
               background:
                 "rgba(180, 120, 20, 0.10)",
+
               color:
                 "#805d18",
+
               fontWeight:
                 800,
+
               lineHeight:
                 1.6,
             }}
@@ -218,8 +247,10 @@ export default async function OrdenTrabajoPage({
               style={{
                 color:
                   "var(--foreground)",
+
                 fontWeight:
                   800,
+
                 textDecoration:
                   "none",
               }}
@@ -233,9 +264,16 @@ export default async function OrdenTrabajoPage({
     );
   }
 
+  /*
+   * =========================================
+   * TÉCNICOS DISPONIBLES
+   * =========================================
+   */
+
   const {
     data: tecnicos,
-    error: tecnicosError,
+    error:
+      tecnicosError,
   } = await supabase
     .from("tecnicos")
     .select(`
@@ -268,15 +306,19 @@ export default async function OrdenTrabajoPage({
         style={{
           minHeight:
             "100vh",
+
           padding:
             "20px 18px 48px",
         }}
       >
         <div
           style={{
-            width: "100%",
+            width:
+              "100%",
+
             maxWidth:
               "1100px",
+
             margin:
               "0 auto",
           }}
@@ -285,12 +327,16 @@ export default async function OrdenTrabajoPage({
             style={{
               padding:
                 "18px",
+
               borderRadius:
                 "14px",
+
               background:
                 "rgba(180, 40, 40, 0.08)",
+
               color:
                 "#982828",
+
               fontWeight:
                 800,
             }}
@@ -303,35 +349,114 @@ export default async function OrdenTrabajoPage({
     );
   }
 
+  /*
+   * =========================================
+   * ÓRDENES YA CREADAS
+   * =========================================
+   */
+
+  const {
+    data: ordenesActuales,
+    error:
+      ordenesError,
+  } = await supabase
+    .from(
+      "planillas_trabajo"
+    )
+    .select(`
+      id,
+      numero_orden,
+      fecha,
+      tecnico_nombre,
+      tecnico_apellido,
+      tecnico_matricula,
+      fecha_programada,
+      hora_programada,
+      secuencia
+    `)
+    .eq(
+      "presupuesto_id",
+      presupuesto.id
+    )
+    .order(
+      "secuencia",
+      {
+        ascending: false,
+      }
+    );
+
+  const ordenes =
+    (ordenesActuales || [])
+      .map(
+        (orden) => ({
+          id:
+            orden.id,
+
+          numeroOrden:
+            orden.numero_orden,
+
+          fecha:
+            orden.fecha,
+
+          tecnico:
+            [
+              orden.tecnico_nombre,
+              orden.tecnico_apellido,
+            ]
+              .filter(Boolean)
+              .join(" ") ||
+            "Técnico sin nombre",
+
+          matricula:
+            orden.tecnico_matricula,
+
+          fechaProgramada:
+            orden.fecha_programada,
+
+          horaProgramada:
+            orden.hora_programada,
+        })
+      );
+
   return (
     <main
       style={{
         minHeight:
           "100vh",
+
         padding:
           "20px 18px 48px",
       }}
     >
       <div
         style={{
-          width: "100%",
+          width:
+            "100%",
+
           maxWidth:
             "1100px",
+
           margin:
             "0 auto",
         }}
       >
         <header
           style={{
-            padding: "24px",
+            padding:
+              "24px",
+
             marginBottom:
               "20px",
+
             border:
               "1px solid rgba(38, 40, 42, 0.12)",
+
             borderRadius:
               "18px",
+
             background:
               "rgba(255, 253, 248, 0.92)",
+
             boxShadow:
               "0 14px 35px rgba(38, 40, 42, 0.08)",
           }}
@@ -340,14 +465,19 @@ export default async function OrdenTrabajoPage({
             style={{
               margin:
                 "0 0 6px",
+
               color:
                 "var(--brand-blue)",
+
               fontSize:
                 "0.78rem",
+
               fontWeight:
                 800,
+
               letterSpacing:
                 "0.12em",
+
               textTransform:
                 "uppercase",
             }}
@@ -359,22 +489,25 @@ export default async function OrdenTrabajoPage({
           <h1
             style={{
               margin: 0,
+
               color:
                 "var(--foreground)",
+
               fontSize:
                 "clamp(1.8rem, 5vw, 2.5rem)",
             }}
           >
-            Generar Orden de
-            Trabajo
+            Orden de Trabajo
           </h1>
 
           <p
             style={{
               margin:
                 "10px 0 0",
+
               color:
                 "var(--muted)",
+
               lineHeight:
                 1.6,
             }}
@@ -386,6 +519,41 @@ export default async function OrdenTrabajoPage({
             · {cliente}
           </p>
         </header>
+
+        {ordenesError ? (
+          <div
+            style={{
+              marginBottom:
+                "18px",
+
+              padding:
+                "13px",
+
+              borderRadius:
+                "11px",
+
+              background:
+                "rgba(180, 40, 40, 0.08)",
+
+              color:
+                "#982828",
+
+              fontWeight:
+                800,
+            }}
+          >
+            No se pudieron
+            recuperar las
+            Órdenes de Trabajo
+            anteriores.
+          </div>
+        ) : (
+          <OrdenesTrabajoExistentes
+            ordenes={
+              ordenes
+            }
+          />
+        )}
 
         <OrdenTrabajoForm
           presupuestoId={
@@ -419,8 +587,10 @@ export default async function OrdenTrabajoPage({
             style={{
               color:
                 "var(--foreground)",
+
               fontWeight:
                 800,
+
               textDecoration:
                 "none",
             }}
