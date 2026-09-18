@@ -1,19 +1,12 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
+import DocumentoPdfAcciones from "./DocumentoPdfAcciones";
 import {
-  descargarDocumentoPresupuestoAction,
   listarDocumentosPresupuestoAction,
 } from "./actions";
 
 export const metadata = {
   title: "Documentos",
-};
-
-type Props = {
-  searchParams: Promise<{
-    error?: string | string[];
-  }>;
 };
 
 function fechaArgentina(
@@ -67,49 +60,7 @@ function fechaHoraArgentina(
   ).format(valor);
 }
 
-async function descargarDocumento(
-  formData: FormData
-) {
-  "use server";
-
-  const storagePath =
-    String(
-      formData.get(
-        "storage_path"
-      ) ?? ""
-    ).trim();
-
-  const resultado =
-    await descargarDocumentoPresupuestoAction(
-      storagePath
-    );
-
-  if (!resultado.ok) {
-    redirect(
-      `/admin/presupuestos/documentos?error=${encodeURIComponent(
-        resultado.error
-      )}`
-    );
-  }
-
-  redirect(
-    resultado.url
-  );
-}
-
-export default async function DocumentosPage({
-  searchParams,
-}: Props) {
-  const parametros =
-    await searchParams;
-
-  const errorParametro =
-    Array.isArray(
-      parametros.error
-    )
-      ? parametros.error[0]
-      : parametros.error;
-
+export default async function DocumentosPage() {
   const resultado =
     await listarDocumentosPresupuestoAction();
 
@@ -118,14 +69,10 @@ export default async function DocumentosPage({
       ? resultado.data
       : [];
 
-  const errorListado =
+  const error =
     resultado.ok
       ? ""
       : resultado.error;
-
-  const error =
-    errorParametro ||
-    errorListado;
 
   return (
     <main
@@ -201,10 +148,10 @@ export default async function DocumentosPage({
           >
             Historial de
             presupuestos emitidos.
-            Cada versión conserva
-            exactamente los datos
-            existentes al momento
-            de su emisión.
+            Podés revisar cada
+            versión antes de
+            decidir si querés
+            descargarla.
           </p>
         </header>
 
@@ -282,10 +229,10 @@ export default async function DocumentosPage({
                     "0.84rem",
                 }}
               >
-                Versiones
-                históricas
-                guardadas en
-                Enfri.Ar.
+                Cada versión se
+                conserva como
+                documento histórico
+                independiente.
               </p>
             </div>
 
@@ -524,75 +471,27 @@ export default async function DocumentosPage({
                       </div>
                     </div>
 
-                    <div
-                      style={{
-                        display:
-                          "flex",
-                        flexWrap:
-                          "wrap",
-                        gap:
-                          "8px",
-                      }}
-                    >
-                      {documento.storage_path ? (
-                        <form
-                          action={
-                            descargarDocumento
-                          }
-                        >
-                          <input
-                            type="hidden"
-                            name="storage_path"
-                            value={
-                              documento.storage_path
-                            }
-                          />
-
-                          <button
-                            type="submit"
-                            style={{
-                              minHeight:
-                                "38px",
-                              padding:
-                                "7px 13px",
-                              border:
-                                "1px solid rgba(20, 110, 160, 0.28)",
-                              borderRadius:
-                                "9px",
-                              background:
-                                "rgba(20, 110, 160, 0.08)",
-                              color:
-                                "#146e9f",
-                              font:
-                                "inherit",
-                              fontSize:
-                                "0.82rem",
-                              fontWeight:
-                                800,
-                              cursor:
-                                "pointer",
-                            }}
-                          >
-                            Descargar
-                            PDF
-                          </button>
-                        </form>
-                      ) : (
-                        <span
-                          style={{
-                            color:
-                              "var(--muted)",
-                            fontSize:
-                              "0.82rem",
-                          }}
-                        >
-                          Esta versión
-                          todavía no
-                          tiene un PDF
-                          asociado.
-                        </span>
-                      )}
-                    </div>
+                    {documento.storage_path ? (
+                      <DocumentoPdfAcciones
+                        storagePath={
+                          documento.storage_path
+                        }
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          color:
+                            "var(--muted)",
+                          fontSize:
+                            "0.82rem",
+                        }}
+                      >
+                        Esta versión
+                        todavía no
+                        tiene un PDF
+                        asociado.
+                      </span>
+                    )}
                   </article>
                 )
               )}
