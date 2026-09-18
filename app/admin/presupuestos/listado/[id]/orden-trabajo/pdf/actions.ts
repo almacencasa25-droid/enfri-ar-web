@@ -20,6 +20,10 @@ type ArchivoExistente = {
   nombre_original: string | null;
 };
 
+type GenerarOrdenTrabajoPdfsOpciones = {
+  regenerar?: boolean;
+};
+
 function mensajeError(error: unknown) {
   if (
     error &&
@@ -112,7 +116,8 @@ async function crearEnlace(
 }
 
 export async function generarOrdenTrabajoPdfsAction(
-  planillaId: string
+  planillaId: string,
+  opciones?: GenerarOrdenTrabajoPdfsOpciones
 ) {
   try {
     await requireAdminUser();
@@ -120,6 +125,11 @@ export async function generarOrdenTrabajoPdfsAction(
     const id = String(
       planillaId ?? ""
     ).trim();
+
+    const regenerar =
+      Boolean(
+        opciones?.regenerar
+      );
 
     if (!id) {
       return {
@@ -184,11 +194,6 @@ export async function generarOrdenTrabajoPdfsAction(
       };
     }
 
-    /*
-     * Guardamos la planilla ya validada en una constante.
-     * Así TypeScript mantiene correctamente que no es null
-     * también dentro de las funciones internas.
-     */
     const planillaSegura =
       planilla;
 
@@ -225,84 +230,83 @@ export async function generarOrdenTrabajoPdfsAction(
       };
     }
 
-    const datosPdf: OrdenTrabajoPdfDatos =
-      {
-        numero_orden:
-          planillaSegura.numero_orden,
+    const datosPdf: OrdenTrabajoPdfDatos = {
+      numero_orden:
+        planillaSegura.numero_orden,
 
-        presupuesto_id:
-          planillaSegura.presupuesto_id,
+      presupuesto_id:
+        planillaSegura.presupuesto_id,
 
-        numero_presupuesto:
-          presupuesto.numero,
+      numero_presupuesto:
+        presupuesto.numero,
 
-        fecha:
-          planillaSegura.fecha,
+      fecha:
+        planillaSegura.fecha,
 
-        cliente_nombre:
-          planillaSegura.cliente_nombre,
+      cliente_nombre:
+        planillaSegura.cliente_nombre,
 
-        cliente_apellido:
-          planillaSegura.cliente_apellido,
+      cliente_apellido:
+        planillaSegura.cliente_apellido,
 
-        cliente_razon_social:
-          planillaSegura.cliente_razon_social,
+      cliente_razon_social:
+        planillaSegura.cliente_razon_social,
 
-        cliente_dni:
-          planillaSegura.cliente_dni,
+      cliente_dni:
+        planillaSegura.cliente_dni,
 
-        cliente_cuit:
-          planillaSegura.cliente_cuit,
+      cliente_cuit:
+        planillaSegura.cliente_cuit,
 
-        cliente_telefono:
-          planillaSegura.cliente_telefono,
+      cliente_telefono:
+        planillaSegura.cliente_telefono,
 
-        cliente_direccion:
-          planillaSegura.cliente_direccion,
+      cliente_direccion:
+        planillaSegura.cliente_direccion,
 
-        cliente_localidad:
-          planillaSegura.cliente_localidad,
+      cliente_localidad:
+        planillaSegura.cliente_localidad,
 
-        tecnico_nombre:
-          planillaSegura.tecnico_nombre,
+      tecnico_nombre:
+        planillaSegura.tecnico_nombre,
 
-        tecnico_apellido:
-          planillaSegura.tecnico_apellido,
+      tecnico_apellido:
+        planillaSegura.tecnico_apellido,
 
-        tecnico_dni:
-          planillaSegura.tecnico_dni,
+      tecnico_dni:
+        planillaSegura.tecnico_dni,
 
-        tecnico_telefono:
-          planillaSegura.tecnico_telefono,
+      tecnico_telefono:
+        planillaSegura.tecnico_telefono,
 
-        tecnico_matricula:
-          planillaSegura.tecnico_matricula,
+      tecnico_matricula:
+        planillaSegura.tecnico_matricula,
 
-        tecnico_direccion:
-          planillaSegura.tecnico_direccion,
+      tecnico_direccion:
+        planillaSegura.tecnico_direccion,
 
-        tecnico_localidad:
-          planillaSegura.tecnico_localidad,
+      tecnico_localidad:
+        planillaSegura.tecnico_localidad,
 
-        trabajo_detalle:
-          planillaSegura.trabajo_detalle,
+      trabajo_detalle:
+        planillaSegura.trabajo_detalle,
 
-        fecha_programada:
-          planillaSegura.fecha_programada,
+      fecha_programada:
+        planillaSegura.fecha_programada,
 
-        hora_programada:
-          planillaSegura.hora_programada,
+      hora_programada:
+        planillaSegura.hora_programada,
 
-        observaciones:
-          planillaSegura.observaciones,
+      observaciones:
+        planillaSegura.observaciones,
 
-        empresa_snapshot:
-          planillaSegura.empresa_snapshot,
-      };
+      empresa_snapshot:
+        planillaSegura.empresa_snapshot,
+    };
 
     /*
      * =========================================
-     * REVISAR SI YA EXISTEN ORIGINAL / COPIA
+     * REVISAR ORIGINAL / COPIA EXISTENTES
      * =========================================
      */
 
@@ -354,10 +358,13 @@ export async function generarOrdenTrabajoPdfsAction(
         );
 
       /*
-       * Si ya existe, no lo regeneramos.
-       * Solamente preparamos el enlace.
+       * Si existe y NO pedimos regeneración,
+       * conservamos el PDF histórico actual.
        */
-      if (existente) {
+      if (
+        existente &&
+        !regenerar
+      ) {
         const nombreArchivo =
           existente.nombre_original ||
           `${numeroSeguro}-${variante}.pdf`;
@@ -386,7 +393,7 @@ export async function generarOrdenTrabajoPdfsAction(
 
       /*
        * =====================================
-       * GENERAR PDF
+       * GENERAR PDF NUEVO
        * =====================================
        */
 
@@ -397,15 +404,21 @@ export async function generarOrdenTrabajoPdfsAction(
         );
 
       const nombreArchivo =
+        existente?.nombre_original ||
         `${numeroSeguro}-${variante}.pdf`;
 
       const storagePath =
+        existente?.storage_path ||
         `ordenes-trabajo/${id}/${nombreArchivo}`;
 
       /*
        * =====================================
        * SUBIR AL STORAGE PRIVADO
        * =====================================
+       *
+       * Si estamos regenerando un documento
+       * existente usamos upsert para reemplazar
+       * solamente el archivo de ESA MISMA OT.
        */
 
       const {
@@ -419,16 +432,25 @@ export async function generarOrdenTrabajoPdfsAction(
             {
               contentType:
                 "application/pdf",
+
               cacheControl:
                 "3600",
-              upsert: false,
+
+              upsert:
+                Boolean(
+                  existente &&
+                  regenerar
+                ),
             }
           );
 
       if (
         uploadError &&
-        !esArchivoExistente(
-          uploadError
+        !(
+          !existente &&
+          esArchivoExistente(
+            uploadError
+          )
         )
       ) {
         return {
@@ -440,7 +462,97 @@ export async function generarOrdenTrabajoPdfsAction(
 
       /*
        * =====================================
-       * REGISTRAR EL ARCHIVO EN LA BASE
+       * SI YA EXISTÍA, ACTUALIZAR SU REGISTRO
+       * =====================================
+       */
+
+      if (existente) {
+        const {
+          data: archivoActualizado,
+          error: actualizarError,
+        } = await supabase
+          .from("archivos_trabajo")
+          .update({
+            storage_bucket:
+              BUCKET,
+
+            storage_path:
+              storagePath,
+
+            nombre_original:
+              nombreArchivo,
+
+            mime_type:
+              "application/pdf",
+
+            tamanio_bytes:
+              bytes.byteLength,
+
+            descripcion:
+              `Orden de Trabajo ${planillaSegura.numero_orden} - ${
+                variante ===
+                "original"
+                  ? "ORIGINAL"
+                  : "COPIA"
+              }`,
+
+            documento_clase:
+              "orden_trabajo",
+
+            documento_variante:
+              variante,
+          })
+          .eq(
+            "id",
+            existente.id
+          )
+          .select(`
+            id,
+            storage_path,
+            nombre_original
+          `)
+          .single();
+
+        if (
+          actualizarError ||
+          !archivoActualizado
+        ) {
+          return {
+            ok: false as const,
+            error:
+              actualizarError?.message ||
+              "El PDF fue regenerado, pero no se pudo actualizar su registro.",
+          };
+        }
+
+        const enlace =
+          await crearEnlace(
+            storagePath,
+            nombreArchivo
+          );
+
+        if (!enlace.ok) {
+          return enlace;
+        }
+
+        return {
+          ok: true as const,
+
+          archivoId:
+            archivoActualizado.id,
+
+          storagePath,
+
+          nombreArchivo,
+
+          url:
+            enlace.url,
+        };
+      }
+
+      /*
+       * =====================================
+       * SI ES NUEVO, REGISTRARLO EN LA BASE
        * =====================================
        */
 
@@ -510,12 +622,6 @@ export async function generarOrdenTrabajoPdfsAction(
         };
       }
 
-      /*
-       * =====================================
-       * ENLACE TEMPORAL PARA VISTA PREVIA
-       * =====================================
-       */
-
       const enlace =
         await crearEnlace(
           storagePath,
@@ -528,10 +634,14 @@ export async function generarOrdenTrabajoPdfsAction(
 
       return {
         ok: true as const,
+
         archivoId:
           archivoCreado.id,
+
         storagePath,
+
         nombreArchivo,
+
         url:
           enlace.url,
       };
@@ -539,7 +649,7 @@ export async function generarOrdenTrabajoPdfsAction(
 
     /*
      * =========================================
-     * GENERAR ORIGINAL
+     * ORIGINAL
      * =========================================
      */
 
@@ -558,7 +668,7 @@ export async function generarOrdenTrabajoPdfsAction(
 
     /*
      * =========================================
-     * GENERAR COPIA
+     * COPIA
      * =========================================
      */
 
@@ -577,9 +687,15 @@ export async function generarOrdenTrabajoPdfsAction(
 
     return {
       ok: true as const,
+
       numeroOrden:
         planillaSegura.numero_orden,
+
+      regenerado:
+        regenerar,
+
       original,
+
       copia,
     };
   } catch (error) {
