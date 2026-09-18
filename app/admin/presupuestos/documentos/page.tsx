@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import BuscadorDocumentos from "./BuscadorDocumentos";
 import DocumentoPdfAcciones from "./DocumentoPdfAcciones";
 import DocumentoOrdenTrabajoAcciones from "./DocumentoOrdenTrabajoAcciones";
 
@@ -238,83 +239,12 @@ export default async function DocumentosPage({
           </p>
         </header>
 
-        {/* =========================================
-            BUSCADOR GENERAL
-        ========================================= */}
-
-        <section style={searchBoxStyle}>
-          <form
-            action="/admin/presupuestos/documentos"
-            method="get"
-            style={searchFormStyle}
-          >
-            <input
-              type="hidden"
-              name="tipo"
-              value={tipoActivo}
-            />
-
-            <div style={searchFieldStyle}>
-              <label
-                htmlFor="buscar-documento"
-                style={searchLabelStyle}
-              >
-                Buscar documentos
-              </label>
-
-              <input
-                id="buscar-documento"
-                name="q"
-                type="search"
-                defaultValue={busqueda}
-                placeholder="Ej.: 1051, OT-001051-01, cliente, técnico o matrícula"
-                style={searchInputStyle}
-              />
-            </div>
-
-            <button
-              type="submit"
-              style={searchButtonStyle}
-            >
-              Buscar
-            </button>
-
-            {hayBusqueda ? (
-              <Link
-                href={`/admin/presupuestos/documentos?tipo=${tipoActivo}`}
-                style={clearButtonStyle}
-              >
-                Limpiar
-              </Link>
-            ) : null}
-          </form>
-
-          {hayBusqueda ? (
-            <div style={searchSummaryStyle}>
-              <strong>
-                {totalResultados}
-              </strong>{" "}
-              resultado
-              {totalResultados === 1
-                ? ""
-                : "s"}{" "}
-              para{" "}
-              <strong>
-                “{busqueda}”
-              </strong>
-            </div>
-          ) : (
-            <div style={searchHelpStyle}>
-              Podés buscar por número de
-              presupuesto, número de OT, cliente,
-              técnico o matrícula.
-            </div>
-          )}
-        </section>
-
-        {/* =========================================
-            PESTAÑAS
-        ========================================= */}
+        <BuscadorDocumentos
+          tipoActivo={tipoActivo}
+          busquedaInicial={busqueda}
+          presupuestos={documentos}
+          ordenes={ordenes}
+        />
 
         {!hayBusqueda ? (
           <nav
@@ -367,10 +297,6 @@ export default async function DocumentosPage({
           </nav>
         ) : null}
 
-        {/* =========================================
-            RESULTADOS DE BÚSQUEDA
-        ========================================= */}
-
         {hayBusqueda ? (
           <>
             {errorPresupuestos ? (
@@ -386,6 +312,20 @@ export default async function DocumentosPage({
                 {errorOrdenes}
               </div>
             ) : null}
+
+            <section style={resultSummaryStyle}>
+              <strong>
+                {totalResultados}
+              </strong>{" "}
+              resultado
+              {totalResultados === 1
+                ? ""
+                : "s"}{" "}
+              para{" "}
+              <strong>
+                “{busqueda}”
+              </strong>
+            </section>
 
             {totalResultados === 0 ? (
               <section style={sectionStyle}>
@@ -746,10 +686,6 @@ export default async function DocumentosPage({
           </>
         ) : null}
 
-        {/* =========================================
-            PRESUPUESTOS
-        ========================================= */}
-
         {!hayBusqueda &&
         tipoActivo === "presupuestos" ? (
           <>
@@ -921,10 +857,6 @@ export default async function DocumentosPage({
             </section>
           </>
         ) : null}
-
-        {/* =========================================
-            ÓRDENES DE TRABAJO
-        ========================================= */}
 
         {!hayBusqueda &&
         tipoActivo === "ordenes" ? (
@@ -1111,10 +1043,6 @@ export default async function DocumentosPage({
           </>
         ) : null}
 
-        {/* =========================================
-            CONFORMIDADES
-        ========================================= */}
-
         {!hayBusqueda &&
         tipoActivo === "conformidades" ? (
           <section style={sectionStyle}>
@@ -1171,86 +1099,16 @@ export default async function DocumentosPage({
   );
 }
 
-const searchBoxStyle = {
+const resultSummaryStyle = {
   marginTop: "20px",
-  padding: "18px",
+  padding: "14px 16px",
   border:
     "1px solid rgba(38, 40, 42, 0.12)",
-  borderRadius: "16px",
+  borderRadius: "12px",
   background:
     "rgba(255, 253, 248, 0.92)",
-};
-
-const searchFormStyle = {
-  display: "flex",
-  flexWrap: "wrap" as const,
-  gap: "10px",
-  alignItems: "flex-end",
-};
-
-const searchFieldStyle = {
-  flex: "1 1 420px",
-  display: "grid",
-  gap: "6px",
-};
-
-const searchLabelStyle = {
-  color: "var(--foreground)",
-  fontSize: "0.82rem",
-  fontWeight: 800,
-};
-
-const searchInputStyle = {
-  width: "100%",
-  boxSizing: "border-box" as const,
-  minHeight: "42px",
-  padding: "10px 12px",
-  border:
-    "1px solid rgba(38, 40, 42, 0.18)",
-  borderRadius: "10px",
-  background: "#ffffff",
-  color: "var(--foreground)",
-  fontSize: "0.9rem",
-  outline: "none",
-};
-
-const searchButtonStyle = {
-  minHeight: "42px",
-  padding: "10px 18px",
-  border: "none",
-  borderRadius: "10px",
-  background: "var(--brand-blue)",
-  color: "#ffffff",
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
-const clearButtonStyle = {
-  minHeight: "42px",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "10px 16px",
-  boxSizing: "border-box" as const,
-  border:
-    "1px solid rgba(38, 40, 42, 0.18)",
-  borderRadius: "10px",
-  background: "#ffffff",
-  color: "var(--foreground)",
-  fontWeight: 800,
-  textDecoration: "none",
-};
-
-const searchSummaryStyle = {
-  marginTop: "12px",
   color: "var(--foreground)",
   fontSize: "0.86rem",
-};
-
-const searchHelpStyle = {
-  marginTop: "10px",
-  color: "var(--muted)",
-  fontSize: "0.8rem",
 };
 
 const tabsContainerStyle = {
