@@ -9,6 +9,10 @@ import {
   crearOrdenTrabajoAction,
 } from "./actions";
 
+import {
+  generarOrdenTrabajoPdfsAction,
+} from "./pdf/actions";
+
 type Tecnico = {
   id: string;
   nombre: string;
@@ -21,6 +25,7 @@ type Tecnico = {
 
 type Props = {
   presupuestoId: string;
+
   numeroPresupuesto:
     | string
     | number;
@@ -36,6 +41,16 @@ type Props = {
   horaProgramadaInicial?:
     | string
     | null;
+};
+
+type DocumentoPdf = {
+  url: string;
+  nombreArchivo: string;
+};
+
+type DocumentosOrden = {
+  original: DocumentoPdf;
+  copia: DocumentoPdf;
 };
 
 function fechaLocalHoy() {
@@ -123,6 +138,7 @@ export default function OrdenTrabajoForm({
     ordenCreada,
     setOrdenCreada,
   ] = useState<{
+    id: string;
     numeroOrden: string;
     tecnico: string;
     matricula:
@@ -131,13 +147,102 @@ export default function OrdenTrabajoForm({
   } | null>(null);
 
   const [
+    documentos,
+    setDocumentos,
+  ] =
+    useState<DocumentosOrden | null>(
+      null
+    );
+
+  const [
+    descargando,
+    setDescargando,
+  ] = useState("");
+
+  const [
     procesando,
     startTransition,
   ] = useTransition();
 
+  function verPdf(
+    documento: DocumentoPdf
+  ) {
+    window.open(
+      documento.url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  async function descargarPdf(
+    documento: DocumentoPdf
+  ) {
+    setError("");
+    setDescargando(
+      documento.nombreArchivo
+    );
+
+    try {
+      const respuesta =
+        await fetch(
+          documento.url
+        );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          "No se pudo descargar el PDF."
+        );
+      }
+
+      const blob =
+        await respuesta.blob();
+
+      const urlTemporal =
+        URL.createObjectURL(
+          blob
+        );
+
+      const enlace =
+        document.createElement(
+          "a"
+        );
+
+      enlace.href =
+        urlTemporal;
+
+      enlace.download =
+        documento.nombreArchivo;
+
+      document.body.appendChild(
+        enlace
+      );
+
+      enlace.click();
+
+      enlace.remove();
+
+      URL.revokeObjectURL(
+        urlTemporal
+      );
+    } catch (
+      downloadError
+    ) {
+      console.error(
+        downloadError
+      );
+
+      setError(
+        "No se pudo descargar el PDF. Probá nuevamente."
+      );
+    } finally {
+      setDescargando("");
+    }
+  }
+
   function generarOrden() {
     setMensaje("");
     setError("");
+    setDocumentos(null);
 
     if (!tecnicoId) {
       setError(
@@ -162,14 +267,19 @@ export default function OrdenTrabajoForm({
           await crearOrdenTrabajoAction(
             {
               presupuestoId,
+
               tecnicoId,
+
               fecha,
+
               fechaProgramada:
                 fechaProgramada ||
                 null,
+
               horaProgramada:
                 horaProgramada ||
                 null,
+
               observaciones:
                 observaciones ||
                 null,
@@ -186,6 +296,9 @@ export default function OrdenTrabajoForm({
         }
 
         setOrdenCreada({
+          id:
+            resultado.data.id,
+
           numeroOrden:
             resultado.data
               .numeroOrden,
@@ -200,7 +313,59 @@ export default function OrdenTrabajoForm({
         });
 
         setMensaje(
-          `Orden de Trabajo ${resultado.data.numeroOrden} creada correctamente.`
+          `Orden de Trabajo ${resultado.data.numeroOrden} creada correctamente. Generando ORIGINAL y COPIA...`
+        );
+
+        /*
+         * =========================================
+         * GENERAR PDF ORIGINAL + COPIA
+         * =========================================
+         */
+
+        const resultadoPdf =
+          await generarOrdenTrabajoPdfsAction(
+            resultado.data.id
+          );
+
+        if (
+          !resultadoPdf.ok
+        ) {
+          setMensaje(
+            `Orden de Trabajo ${resultado.data.numeroOrden} creada correctamente.`
+          );
+
+          setError(
+            resultadoPdf.error ||
+              "La Orden de Trabajo fue creada, pero no se pudieron generar los PDF."
+          );
+
+          return;
+        }
+
+        setDocumentos({
+          original: {
+            url:
+              resultadoPdf.original
+                .url,
+
+            nombreArchivo:
+              resultadoPdf.original
+                .nombreArchivo,
+          },
+
+          copia: {
+            url:
+              resultadoPdf.copia
+                .url,
+
+            nombreArchivo:
+              resultadoPdf.copia
+                .nombreArchivo,
+          },
+        });
+
+        setMensaje(
+          `Orden de Trabajo ${resultado.data.numeroOrden} creada correctamente. ORIGINAL y COPIA guardados.`
         );
       }
     );
@@ -218,7 +383,9 @@ export default function OrdenTrabajoForm({
       >
         <div>
           <span
-            style={labelSmallStyle}
+            style={
+              labelSmallStyle
+            }
           >
             PRESUPUESTO
           </span>
@@ -227,9 +394,13 @@ export default function OrdenTrabajoForm({
             style={{
               display:
                 "block",
-              marginTop: "4px",
+
+              marginTop:
+                "4px",
+
               color:
                 "var(--foreground)",
+
               fontSize:
                 "1.05rem",
             }}
@@ -243,7 +414,9 @@ export default function OrdenTrabajoForm({
 
         <div>
           <span
-            style={labelSmallStyle}
+            style={
+              labelSmallStyle
+            }
           >
             CLIENTE
           </span>
@@ -252,7 +425,10 @@ export default function OrdenTrabajoForm({
             style={{
               display:
                 "block",
-              marginTop: "4px",
+
+              marginTop:
+                "4px",
+
               color:
                 "var(--foreground)",
             }}
@@ -268,8 +444,10 @@ export default function OrdenTrabajoForm({
         <h2
           style={{
             margin: 0,
+
             color:
               "var(--foreground)",
+
             fontSize:
               "1.15rem",
           }}
@@ -321,6 +499,7 @@ export default function OrdenTrabajoForm({
                   {
                     tecnico.apellido
                   }
+
                   {tecnico.numero_matricula
                     ? ` · ${tecnico.numero_matricula}`
                     : ""}
@@ -334,8 +513,10 @@ export default function OrdenTrabajoForm({
           style={{
             display:
               "grid",
+
             gridTemplateColumns:
               "repeat(auto-fit, minmax(180px, 1fr))",
+
             gap: "12px",
           }}
         >
@@ -455,8 +636,10 @@ export default function OrdenTrabajoForm({
             placeholder="Indicaciones para el técnico, acceso al lugar, datos importantes, etc."
             style={{
               ...inputStyle,
+
               resize:
                 "vertical",
+
               minHeight:
                 "110px",
             }}
@@ -486,6 +669,7 @@ export default function OrdenTrabajoForm({
                 style={{
                   marginTop:
                     "8px",
+
                   fontWeight:
                     600,
                 }}
@@ -521,7 +705,190 @@ export default function OrdenTrabajoForm({
               : "Generar Orden de Trabajo"}
           </button>
         ) : null}
+
+        {procesando &&
+        ordenCreada &&
+        !documentos ? (
+          <div
+            style={
+              generatingStyle
+            }
+          >
+            Generando y guardando
+            ORIGINAL y COPIA...
+          </div>
+        ) : null}
       </section>
+
+      {documentos ? (
+        <section
+          style={boxStyle}
+        >
+          <div>
+            <span
+              style={
+                labelSmallStyle
+              }
+            >
+              DOCUMENTOS GENERADOS
+            </span>
+
+            <h2
+              style={{
+                margin:
+                  "5px 0 0",
+
+                color:
+                  "var(--foreground)",
+
+                fontSize:
+                  "1.15rem",
+              }}
+            >
+              {
+                ordenCreada
+                  ?.numeroOrden
+              }
+            </h2>
+          </div>
+
+          <div
+            style={
+              documentosGridStyle
+            }
+          >
+            <div
+              style={
+                documentoCardStyle
+              }
+            >
+              <strong>
+                ORIGINAL
+              </strong>
+
+              <span
+                style={
+                  archivoNombreStyle
+                }
+              >
+                {
+                  documentos
+                    .original
+                    .nombreArchivo
+                }
+              </span>
+
+              <div
+                style={
+                  buttonsRowStyle
+                }
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    verPdf(
+                      documentos.original
+                    )
+                  }
+                  style={
+                    secondaryButtonStyle
+                  }
+                >
+                  Ver ORIGINAL
+                </button>
+
+                <button
+                  type="button"
+                  disabled={
+                    Boolean(
+                      descargando
+                    )
+                  }
+                  onClick={() =>
+                    descargarPdf(
+                      documentos.original
+                    )
+                  }
+                  style={
+                    downloadButtonStyle
+                  }
+                >
+                  {descargando ===
+                  documentos.original
+                    .nombreArchivo
+                    ? "Descargando..."
+                    : "Descargar ORIGINAL"}
+                </button>
+              </div>
+            </div>
+
+            <div
+              style={
+                documentoCardStyle
+              }
+            >
+              <strong>
+                COPIA
+              </strong>
+
+              <span
+                style={
+                  archivoNombreStyle
+                }
+              >
+                {
+                  documentos
+                    .copia
+                    .nombreArchivo
+                }
+              </span>
+
+              <div
+                style={
+                  buttonsRowStyle
+                }
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    verPdf(
+                      documentos.copia
+                    )
+                  }
+                  style={
+                    secondaryButtonStyle
+                  }
+                >
+                  Ver COPIA
+                </button>
+
+                <button
+                  type="button"
+                  disabled={
+                    Boolean(
+                      descargando
+                    )
+                  }
+                  onClick={() =>
+                    descargarPdf(
+                      documentos.copia
+                    )
+                  }
+                  style={
+                    downloadButtonStyle
+                  }
+                >
+                  {descargando ===
+                  documentos.copia
+                    .nombreArchivo
+                    ? "Descargando..."
+                    : "Descargar COPIA"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -530,9 +897,13 @@ const boxStyle = {
   display: "grid",
   gap: "14px",
   padding: "20px",
+
   border:
     "1px solid rgba(38, 40, 42, 0.12)",
-  borderRadius: "16px",
+
+  borderRadius:
+    "16px",
+
   background:
     "rgba(255, 253, 248, 0.92)",
 };
@@ -540,68 +911,234 @@ const boxStyle = {
 const labelSmallStyle = {
   color:
     "var(--muted)",
-  fontSize: "0.72rem",
+
+  fontSize:
+    "0.72rem",
+
   fontWeight: 800,
+
   letterSpacing:
     "0.08em",
 };
 
 const labelStyle = {
   display: "grid",
+
   gap: "6px",
+
   color:
     "var(--foreground)",
-  fontSize: "0.86rem",
+
+  fontSize:
+    "0.86rem",
+
   fontWeight: 800,
 };
 
 const inputStyle = {
   width: "100%",
-  minHeight: "42px",
+
+  minHeight:
+    "42px",
+
   boxSizing:
     "border-box" as const,
-  padding: "9px 11px",
+
+  padding:
+    "9px 11px",
+
   border:
     "1px solid rgba(38, 40, 42, 0.18)",
-  borderRadius: "9px",
-  background: "#ffffff",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "#ffffff",
+
   color:
     "var(--foreground)",
-  font: "inherit",
+
+  font:
+    "inherit",
 };
 
 const primaryButtonStyle = {
-  minHeight: "44px",
+  minHeight:
+    "44px",
+
   padding:
     "9px 15px",
+
   border: "none",
+
   borderRadius:
     "10px",
+
   background:
     "var(--foreground)",
-  color: "#ffffff",
-  font: "inherit",
-  fontSize: "0.88rem",
+
+  color:
+    "#ffffff",
+
+  font:
+    "inherit",
+
+  fontSize:
+    "0.88rem",
+
   fontWeight: 800,
+
+  cursor: "pointer",
+};
+
+const secondaryButtonStyle = {
+  minHeight:
+    "40px",
+
+  padding:
+    "8px 13px",
+
+  border:
+    "1px solid rgba(38, 40, 42, 0.18)",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "#ffffff",
+
+  color:
+    "var(--foreground)",
+
+  font:
+    "inherit",
+
+  fontSize:
+    "0.82rem",
+
+  fontWeight: 800,
+
+  cursor: "pointer",
+};
+
+const downloadButtonStyle = {
+  minHeight:
+    "40px",
+
+  padding:
+    "8px 13px",
+
+  border:
+    "none",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "#236b43",
+
+  color:
+    "#ffffff",
+
+  font:
+    "inherit",
+
+  fontSize:
+    "0.82rem",
+
+  fontWeight: 800,
+
   cursor: "pointer",
 };
 
 const successStyle = {
   padding: "13px",
+
   borderRadius:
     "11px",
+
   background:
     "rgba(35, 107, 67, 0.08)",
-  color: "#236b43",
+
+  color:
+    "#236b43",
+
   fontWeight: 800,
 };
 
 const errorStyle = {
   padding: "13px",
+
   borderRadius:
     "11px",
+
   background:
     "rgba(180, 40, 40, 0.08)",
-  color: "#982828",
+
+  color:
+    "#982828",
+
   fontWeight: 800,
+};
+
+const generatingStyle = {
+  padding: "13px",
+
+  borderRadius:
+    "11px",
+
+  background:
+    "rgba(38, 111, 164, 0.08)",
+
+  color:
+    "#266fa4",
+
+  fontWeight: 800,
+};
+
+const documentosGridStyle = {
+  display: "grid",
+
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(260px, 1fr))",
+
+  gap: "12px",
+};
+
+const documentoCardStyle = {
+  display: "grid",
+
+  gap: "10px",
+
+  padding: "15px",
+
+  border:
+    "1px solid rgba(38, 40, 42, 0.12)",
+
+  borderRadius:
+    "12px",
+
+  background:
+    "#ffffff",
+};
+
+const archivoNombreStyle = {
+  color:
+    "var(--muted)",
+
+  fontSize:
+    "0.78rem",
+
+  wordBreak:
+    "break-word" as const,
+};
+
+const buttonsRowStyle = {
+  display: "flex",
+
+  flexWrap:
+    "wrap" as const,
+
+  gap: "8px",
 };
