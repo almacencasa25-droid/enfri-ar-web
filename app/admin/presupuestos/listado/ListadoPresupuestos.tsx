@@ -553,24 +553,90 @@ export default function ListadoPresupuestos() {
                       justifyContent:
                         "space-between",
                       gap: "14px",
+                      alignItems:
+                        "flex-start",
                     }}
                   >
-                    <div>
-                      <strong
+                    <div
+                      style={{
+                        display:
+                          "grid",
+                        gap: "7px",
+                      }}
+                    >
+                      <div
                         style={{
                           display:
-                            "block",
-                          fontSize:
-                            "1rem",
-                          color:
-                            "var(--foreground)",
+                            "flex",
+                          flexWrap:
+                            "wrap",
+                          alignItems:
+                            "center",
+                          gap: "10px",
                         }}
                       >
-                        Presupuesto Nº{" "}
-                        {
-                          presupuesto.numero
-                        }
-                      </strong>
+                        <strong
+                          style={{
+                            display:
+                              "block",
+                            fontSize:
+                              "1rem",
+                            color:
+                              "var(--foreground)",
+                          }}
+                        >
+                          Presupuesto Nº{" "}
+                          {
+                            presupuesto.numero
+                          }
+                        </strong>
+
+                        <select
+                          value={
+                            presupuesto.estado
+                          }
+                          disabled={
+                            procesando
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            cambiarEstado(
+                              presupuesto.id,
+                              event.target
+                                .value
+                            )
+                          }
+                          aria-label={`Estado del presupuesto Nº ${presupuesto.numero}`}
+                          style={
+                            estadoSelectStyle
+                          }
+                        >
+                          <option value="borrador">
+                            Borrador
+                          </option>
+
+                          <option value="enviado">
+                            Enviado
+                          </option>
+
+                          <option value="aceptado">
+                            Aceptado
+                          </option>
+
+                          <option value="rechazado">
+                            Rechazado
+                          </option>
+
+                          <option value="realizado">
+                            Realizado
+                          </option>
+
+                          <option value="anulado">
+                            Anulado
+                          </option>
+                        </select>
+                      </div>
 
                       <span
                         style={
@@ -688,6 +754,17 @@ export default function ListadoPresupuestos() {
                       </Link>
                     ) : null}
 
+                    {permiteOrden ? (
+                      <Link
+                        href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
+                        style={
+                          conformityButtonStyle
+                        }
+                      >
+                        Conformidad
+                      </Link>
+                    ) : null}
+
                     <button
                       type="button"
                       disabled={
@@ -706,54 +783,6 @@ export default function ListadoPresupuestos() {
                         ? "Procesando..."
                         : "Emitir PDF"}
                     </button>
-
-                    <select
-                      value={
-                        presupuesto.estado
-                      }
-                      disabled={
-                        procesando
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        cambiarEstado(
-                          presupuesto.id,
-                          event.target
-                            .value
-                        )
-                      }
-                      style={{
-                        ...inputStyle,
-                        width: "auto",
-                        minWidth:
-                          "145px",
-                      }}
-                    >
-                      <option value="borrador">
-                        Borrador
-                      </option>
-
-                      <option value="enviado">
-                        Enviado
-                      </option>
-
-                      <option value="aceptado">
-                        Aceptado
-                      </option>
-
-                      <option value="rechazado">
-                        Rechazado
-                      </option>
-
-                      <option value="realizado">
-                        Realizado
-                      </option>
-
-                      <option value="anulado">
-                        Anulado
-                      </option>
-                    </select>
 
                     <button
                       type="button"
@@ -854,6 +883,24 @@ const inputStyle = {
   font: "inherit",
 };
 
+const estadoSelectStyle = {
+  minHeight: "34px",
+  boxSizing:
+    "border-box" as const,
+  padding: "5px 10px",
+  border:
+    "1px solid rgba(38, 40, 42, 0.16)",
+  borderRadius: "999px",
+  background:
+    "rgba(35, 107, 67, 0.08)",
+  color:
+    "var(--foreground)",
+  font: "inherit",
+  fontSize: "0.78rem",
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
 const ayudaStyle = {
   margin: 0,
   color:
@@ -915,6 +962,15 @@ const orderButtonStyle = {
   border:
     "1px solid rgba(224, 130, 35, 0.32)",
   color: "#a55a18",
+};
+
+const conformityButtonStyle = {
+  ...linkButtonStyle,
+  background:
+    "rgba(35, 107, 67, 0.09)",
+  border:
+    "1px solid rgba(35, 107, 67, 0.30)",
+  color: "#236b43",
 };
 
 const pdfButtonStyle = {
