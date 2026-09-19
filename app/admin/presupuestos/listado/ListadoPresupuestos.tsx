@@ -789,7 +789,7 @@ export default function ListadoPresupuestos({
                 key={
                   presupuesto.id
                 }
-                open={
+                defaultOpen={
                   presupuesto.id ===
                   abrirId
                 }
