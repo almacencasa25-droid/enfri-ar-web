@@ -166,440 +166,770 @@ export default function CredencialTecnico({
   const [error, setError] =
     useState("");
 
-  async function generarCredencial() {
-    setError("");
-    setGenerando(true);
+  const [
+    eligiendoFormato,
+    setEligiendoFormato,
+  ] = useState(false);
 
+  async function dibujarLogo(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    anchoLogo: number
+  ) {
     try {
-      const canvas =
-        document.createElement("canvas");
-
-      canvas.width = ANCHO;
-      canvas.height = ALTO;
-
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx) {
-        throw new Error(
-          "El navegador no pudo generar la credencial."
-        );
-      }
-
-      ctx.fillStyle = "#f8fbfd";
-      ctx.fillRect(0, 0, ANCHO, ALTO);
-
-      const degradado =
-        ctx.createLinearGradient(
-          0,
-          0,
-          ANCHO,
-          ALTO
-        );
-
-      degradado.addColorStop(
-        0,
-        "#eef8ff"
+      const logo = await cargarImagen(
+        "/logo-enfri-ar.png"
       );
 
-      degradado.addColorStop(
-        0.52,
-        "#ffffff"
+      const altoLogo =
+        anchoLogo *
+        (logo.naturalHeight /
+          logo.naturalWidth);
+
+      ctx.drawImage(
+        logo,
+        x,
+        y,
+        anchoLogo,
+        altoLogo
       );
-
-      degradado.addColorStop(
-        1,
-        "#fff4e8"
-      );
-
-      ctx.fillStyle = degradado;
-      ctx.fillRect(0, 0, ANCHO, ALTO);
-
-      ctx.fillStyle = "#176da2";
-      ctx.fillRect(0, 0, ANCHO, 18);
-
-      ctx.fillStyle = "#ef8c2f";
-      ctx.fillRect(
-        760,
-        ALTO - 18,
-        320,
-        18
-      );
-
-      ctx.fillStyle =
-        "rgba(23, 109, 162, 0.08)";
-
-      ctx.beginPath();
-      ctx.arc(
-        80,
-        80,
-        230,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-
-      ctx.fillStyle =
-        "rgba(239, 140, 47, 0.08)";
-
-      ctx.beginPath();
-      ctx.arc(
-        ANCHO - 40,
-        ALTO + 10,
-        270,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-
-      try {
-        const logo = await cargarImagen(
-          "/logo-enfri-ar.png"
-        );
-
-        const anchoLogo = 250;
-
-        const altoLogo =
-          anchoLogo *
-          (logo.naturalHeight /
-            logo.naturalWidth);
-
-        ctx.drawImage(
-          logo,
-          54,
-          42,
-          anchoLogo,
-          altoLogo
-        );
-      } catch {
-        ctx.fillStyle = "#173d59";
-        ctx.font =
-          "700 42px Arial, sans-serif";
-
-        ctx.fillText(
-          "Enfri.Ar",
-          54,
-          92
-        );
-      }
-
+    } catch {
       ctx.fillStyle = "#173d59";
       ctx.font =
-        "700 30px Arial, sans-serif";
-
-      ctx.textAlign = "right";
+        "700 42px Arial, sans-serif";
 
       ctx.fillText(
-        "CREDENCIAL TÉCNICA",
-        ANCHO - 54,
-        75
+        "Enfri.Ar",
+        x,
+        y + 50
       );
+    }
+  }
 
-      ctx.fillStyle = "#66727c";
-      ctx.font =
-        "500 21px Arial, sans-serif";
+  async function dibujarFoto(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    ancho: number,
+    alto: number,
+    radio: number
+  ) {
+    ctx.save();
 
-      ctx.fillText(
-        "Enfri.Ar Refrigeración",
-        ANCHO - 54,
-        108
-      );
+    redondearRectangulo(
+      ctx,
+      x,
+      y,
+      ancho,
+      alto,
+      radio
+    );
 
-      ctx.textAlign = "left";
+    ctx.clip();
 
-      const fotoX = 55;
-      const fotoY = 180;
-      const fotoAncho = 260;
-      const fotoAlto = 330;
+    ctx.fillStyle = "#e8edf0";
 
-      ctx.save();
+    ctx.fillRect(
+      x,
+      y,
+      ancho,
+      alto
+    );
 
-      redondearRectangulo(
-        ctx,
-        fotoX,
-        fotoY,
-        fotoAncho,
-        fotoAlto,
-        28
-      );
-
-      ctx.clip();
-
-      ctx.fillStyle = "#e8edf0";
-
-      ctx.fillRect(
-        fotoX,
-        fotoY,
-        fotoAncho,
-        fotoAlto
-      );
-
-      if (tecnico.fotoUrl) {
-        try {
-          const foto =
-            await cargarImagen(
-              tecnico.fotoUrl
-            );
-
-          dibujarImagenCubierta(
-            ctx,
-            foto,
-            fotoX,
-            fotoY,
-            fotoAncho,
-            fotoAlto
-          );
-        } catch {
-          ctx.fillStyle = "#69757e";
-          ctx.font =
-            "700 24px Arial, sans-serif";
-
-          ctx.textAlign = "center";
-
-          ctx.fillText(
-            "SIN FOTO",
-            fotoX + fotoAncho / 2,
-            fotoY + fotoAlto / 2
+    if (tecnico.fotoUrl) {
+      try {
+        const foto =
+          await cargarImagen(
+            tecnico.fotoUrl
           );
 
-          ctx.textAlign = "left";
-        }
-      } else {
+        dibujarImagenCubierta(
+          ctx,
+          foto,
+          x,
+          y,
+          ancho,
+          alto
+        );
+      } catch {
         ctx.fillStyle = "#69757e";
-
         ctx.font =
           "700 24px Arial, sans-serif";
-
         ctx.textAlign = "center";
 
         ctx.fillText(
           "SIN FOTO",
-          fotoX + fotoAncho / 2,
-          fotoY + fotoAlto / 2
+          x + ancho / 2,
+          y + alto / 2
         );
 
         ctx.textAlign = "left";
       }
-
-      ctx.restore();
-
-      ctx.strokeStyle =
-        "rgba(23, 61, 89, 0.20)";
-
-      ctx.lineWidth = 3;
-
-      redondearRectangulo(
-        ctx,
-        fotoX,
-        fotoY,
-        fotoAncho,
-        fotoAlto,
-        28
-      );
-
-      ctx.stroke();
-
-      const contenidoX = 365;
-
-      ctx.fillStyle = "#173d59";
-
-      ctx.font =
-        "700 45px Arial, sans-serif";
-
-      ctx.fillText(
-        `${tecnico.nombre} ${tecnico.apellido}`,
-        contenidoX,
-        220
-      );
-
-      ctx.fillStyle = "#176da2";
-
-      ctx.font =
-        "700 23px Arial, sans-serif";
-
-      ctx.fillText(
-        "TÉCNICO",
-        contenidoX,
-        263
-      );
-
-      ctx.fillStyle = "#65717a";
-
-      ctx.font =
-        "500 20px Arial, sans-serif";
-
-      ctx.fillText(
-        "Matrícula",
-        contenidoX,
-        320
-      );
-
-      ctx.fillStyle = "#173d59";
-
-      ctx.font =
-        "700 30px Arial, sans-serif";
-
-      ctx.fillText(
-        tecnico.numero_matricula,
-        contenidoX,
-        356
-      );
-
-      ctx.fillStyle = "#65717a";
-
-      ctx.font =
-        "500 20px Arial, sans-serif";
-
-      ctx.fillText(
-        "Especialidad",
-        contenidoX,
-        407
-      );
-
-      ctx.fillStyle = "#173d59";
-
-      ctx.font =
-        "700 25px Arial, sans-serif";
-
-      ctx.fillText(
-        tecnico.especialidad ||
-          "Refrigeración y climatización",
-        contenidoX,
-        442
-      );
-
-      ctx.fillStyle = "#65717a";
-
-      ctx.font =
-        "500 20px Arial, sans-serif";
-
-      ctx.fillText(
-        "Vencimiento",
-        contenidoX,
-        493
-      );
-
-      ctx.fillStyle = "#173d59";
-
+    } else {
+      ctx.fillStyle = "#69757e";
       ctx.font =
         "700 24px Arial, sans-serif";
-
-      ctx.fillText(
-        formatearFecha(
-          tecnico.vencimiento_matricula
-        ),
-        contenidoX,
-        528
-      );
-
-      const estado =
-        textoEstado(tecnico.estado);
-
-      ctx.fillStyle =
-        colorEstado(tecnico.estado);
-
-      redondearRectangulo(
-        ctx,
-        765,
-        482,
-        250,
-        58,
-        29
-      );
-
-      ctx.fill();
-
-      ctx.fillStyle = "#ffffff";
-
-      ctx.font =
-        "700 21px Arial, sans-serif";
-
       ctx.textAlign = "center";
 
       ctx.fillText(
-        estado,
-        890,
-        519
+        "SIN FOTO",
+        x + ancho / 2,
+        y + alto / 2
       );
 
       ctx.textAlign = "left";
+    }
 
-      ctx.strokeStyle =
-        "rgba(23, 61, 89, 0.12)";
+    ctx.restore();
 
-      ctx.lineWidth = 2;
+    ctx.strokeStyle =
+      "rgba(23, 61, 89, 0.20)";
 
-      ctx.beginPath();
+    ctx.lineWidth = 3;
 
-      ctx.moveTo(
-        55,
-        570
+    redondearRectangulo(
+      ctx,
+      x,
+      y,
+      ancho,
+      alto,
+      radio
+    );
+
+    ctx.stroke();
+  }
+
+  function descargarCanvas(
+    canvas: HTMLCanvasElement,
+    formato: "carnet" | "celular"
+  ) {
+    const nombreArchivo = [
+      "credencial",
+      formato,
+      tecnico.apellido,
+      tecnico.nombre,
+      tecnico.numero_matricula,
+    ]
+      .join("-")
+      .replace(
+        /[^a-zA-Z0-9-_]/g,
+        "-"
+      )
+      .replace(
+        /-+/g,
+        "-"
       );
 
-      ctx.lineTo(
-        ANCHO - 55,
-        570
+    const enlace =
+      document.createElement("a");
+
+    enlace.download =
+      `${nombreArchivo}.jpg`;
+
+    enlace.href =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.94
       );
 
-      ctx.stroke();
+    document.body.appendChild(
+      enlace
+    );
 
-      ctx.fillStyle = "#65717a";
+    enlace.click();
 
-      ctx.font =
-        "500 17px Arial, sans-serif";
+    enlace.remove();
+  }
 
-      ctx.fillText(
-        tecnico.dni
-          ? `DNI ${tecnico.dni}`
-          : "Credencial interna de técnico",
-        55,
-        612
+  async function generarCarnet() {
+    const canvas =
+      document.createElement("canvas");
+
+    canvas.width = ANCHO;
+    canvas.height = ALTO;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error(
+        "El navegador no pudo generar la credencial."
+      );
+    }
+
+    ctx.fillStyle = "#f8fbfd";
+    ctx.fillRect(0, 0, ANCHO, ALTO);
+
+    const degradado =
+      ctx.createLinearGradient(
+        0,
+        0,
+        ANCHO,
+        ALTO
       );
 
-      ctx.textAlign = "right";
+    degradado.addColorStop(
+      0,
+      "#eef8ff"
+    );
 
-      ctx.fillText(
-        "www.enfriar.com.ar",
-        ANCHO - 55,
-        612
+    degradado.addColorStop(
+      0.52,
+      "#ffffff"
+    );
+
+    degradado.addColorStop(
+      1,
+      "#fff4e8"
+    );
+
+    ctx.fillStyle = degradado;
+    ctx.fillRect(0, 0, ANCHO, ALTO);
+
+    ctx.fillStyle = "#176da2";
+    ctx.fillRect(0, 0, ANCHO, 18);
+
+    ctx.fillStyle = "#ef8c2f";
+    ctx.fillRect(
+      760,
+      ALTO - 18,
+      320,
+      18
+    );
+
+    ctx.fillStyle =
+      "rgba(23, 109, 162, 0.08)";
+
+    ctx.beginPath();
+    ctx.arc(
+      80,
+      80,
+      230,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.fillStyle =
+      "rgba(239, 140, 47, 0.08)";
+
+    ctx.beginPath();
+    ctx.arc(
+      ANCHO - 40,
+      ALTO + 10,
+      270,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    await dibujarLogo(
+      ctx,
+      54,
+      42,
+      250
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 30px Arial, sans-serif";
+    ctx.textAlign = "right";
+
+    ctx.fillText(
+      "CREDENCIAL TÉCNICA",
+      ANCHO - 54,
+      75
+    );
+
+    ctx.fillStyle = "#66727c";
+    ctx.font =
+      "500 21px Arial, sans-serif";
+
+    ctx.fillText(
+      "Enfri.Ar Refrigeración",
+      ANCHO - 54,
+      108
+    );
+
+    ctx.textAlign = "left";
+
+    const fotoX = 55;
+    const fotoY = 180;
+    const fotoAncho = 260;
+    const fotoAlto = 330;
+
+    await dibujarFoto(
+      ctx,
+      fotoX,
+      fotoY,
+      fotoAncho,
+      fotoAlto,
+      28
+    );
+
+    const contenidoX = 365;
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 45px Arial, sans-serif";
+
+    ctx.fillText(
+      `${tecnico.nombre} ${tecnico.apellido}`,
+      contenidoX,
+      220
+    );
+
+    ctx.fillStyle = "#176da2";
+    ctx.font =
+      "700 23px Arial, sans-serif";
+
+    ctx.fillText(
+      "TÉCNICO",
+      contenidoX,
+      263
+    );
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 20px Arial, sans-serif";
+
+    ctx.fillText(
+      "Matrícula",
+      contenidoX,
+      320
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 30px Arial, sans-serif";
+
+    ctx.fillText(
+      tecnico.numero_matricula,
+      contenidoX,
+      356
+    );
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 20px Arial, sans-serif";
+
+    ctx.fillText(
+      "Especialidad",
+      contenidoX,
+      407
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 25px Arial, sans-serif";
+
+    ctx.fillText(
+      tecnico.especialidad ||
+        "Refrigeración y climatización",
+      contenidoX,
+      442
+    );
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 20px Arial, sans-serif";
+
+    ctx.fillText(
+      "Vencimiento",
+      contenidoX,
+      493
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 24px Arial, sans-serif";
+
+    ctx.fillText(
+      formatearFecha(
+        tecnico.vencimiento_matricula
+      ),
+      contenidoX,
+      528
+    );
+
+    const estado =
+      textoEstado(tecnico.estado);
+
+    ctx.fillStyle =
+      colorEstado(tecnico.estado);
+
+    redondearRectangulo(
+      ctx,
+      765,
+      482,
+      250,
+      58,
+      29
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font =
+      "700 21px Arial, sans-serif";
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+      estado,
+      890,
+      519
+    );
+
+    ctx.textAlign = "left";
+
+    ctx.strokeStyle =
+      "rgba(23, 61, 89, 0.12)";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(
+      55,
+      570
+    );
+
+    ctx.lineTo(
+      ANCHO - 55,
+      570
+    );
+
+    ctx.stroke();
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 17px Arial, sans-serif";
+
+    ctx.fillText(
+      "Credencial interna de técnico",
+      55,
+      612
+    );
+
+    ctx.textAlign = "right";
+
+    ctx.fillText(
+      "www.enfriar.com.ar",
+      ANCHO - 55,
+      612
+    );
+
+    ctx.textAlign = "left";
+
+    descargarCanvas(
+      canvas,
+      "carnet"
+    );
+  }
+
+  async function generarCelular() {
+    const ancho = 675;
+    const alto = 1080;
+
+    const canvas =
+      document.createElement("canvas");
+
+    canvas.width = ancho;
+    canvas.height = alto;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error(
+        "El navegador no pudo generar la credencial."
+      );
+    }
+
+    const degradado =
+      ctx.createLinearGradient(
+        0,
+        0,
+        ancho,
+        alto
       );
 
-      ctx.textAlign = "left";
+    degradado.addColorStop(
+      0,
+      "#eef8ff"
+    );
 
-      const nombreArchivo = [
-        "credencial",
-        tecnico.apellido,
-        tecnico.nombre,
-        tecnico.numero_matricula,
-      ]
-        .join("-")
-        .replace(
-          /[^a-zA-Z0-9-_]/g,
-          "-"
-        )
-        .replace(
-          /-+/g,
-          "-"
-        );
+    degradado.addColorStop(
+      0.55,
+      "#ffffff"
+    );
 
-      const enlace =
-        document.createElement("a");
+    degradado.addColorStop(
+      1,
+      "#fff4e8"
+    );
 
-      enlace.download =
-        `${nombreArchivo}.jpg`;
+    ctx.fillStyle = degradado;
+    ctx.fillRect(
+      0,
+      0,
+      ancho,
+      alto
+    );
 
-      enlace.href =
-        canvas.toDataURL(
-          "image/jpeg",
-          0.94
-        );
+    ctx.fillStyle = "#176da2";
+    ctx.fillRect(
+      0,
+      0,
+      ancho,
+      16
+    );
 
-      document.body.appendChild(
-        enlace
-      );
+    ctx.fillStyle = "#ef8c2f";
+    ctx.fillRect(
+      ancho - 210,
+      alto - 16,
+      210,
+      16
+    );
 
-      enlace.click();
+    ctx.fillStyle =
+      "rgba(23, 109, 162, 0.08)";
+    ctx.beginPath();
+    ctx.arc(
+      40,
+      70,
+      180,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
 
-      enlace.remove();
+    ctx.fillStyle =
+      "rgba(239, 140, 47, 0.08)";
+    ctx.beginPath();
+    ctx.arc(
+      ancho - 10,
+      alto - 10,
+      220,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    await dibujarLogo(
+      ctx,
+      38,
+      42,
+      210
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 27px Arial, sans-serif";
+    ctx.textAlign = "right";
+
+    ctx.fillText(
+      "CREDENCIAL TÉCNICA",
+      ancho - 38,
+      78
+    );
+
+    ctx.fillStyle = "#66727c";
+    ctx.font =
+      "500 18px Arial, sans-serif";
+
+    ctx.fillText(
+      "Enfri.Ar Refrigeración",
+      ancho - 38,
+      108
+    );
+
+    ctx.textAlign = "left";
+
+    const fotoAncho = 250;
+    const fotoAlto = 315;
+    const fotoX =
+      (ancho - fotoAncho) / 2;
+    const fotoY = 155;
+
+    await dibujarFoto(
+      ctx,
+      fotoX,
+      fotoY,
+      fotoAncho,
+      fotoAlto,
+      28
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 38px Arial, sans-serif";
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+      `${tecnico.nombre} ${tecnico.apellido}`,
+      ancho / 2,
+      535
+    );
+
+    ctx.fillStyle = "#176da2";
+    ctx.font =
+      "700 21px Arial, sans-serif";
+
+    ctx.fillText(
+      "TÉCNICO",
+      ancho / 2,
+      575
+    );
+
+    ctx.textAlign = "left";
+
+    const contenidoX = 70;
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 19px Arial, sans-serif";
+
+    ctx.fillText(
+      "Matrícula",
+      contenidoX,
+      640
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 29px Arial, sans-serif";
+
+    ctx.fillText(
+      tecnico.numero_matricula,
+      contenidoX,
+      676
+    );
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 19px Arial, sans-serif";
+
+    ctx.fillText(
+      "Especialidad",
+      contenidoX,
+      732
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 23px Arial, sans-serif";
+
+    ctx.fillText(
+      tecnico.especialidad ||
+        "Refrigeración y climatización",
+      contenidoX,
+      767
+    );
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 19px Arial, sans-serif";
+
+    ctx.fillText(
+      "Vencimiento",
+      contenidoX,
+      823
+    );
+
+    ctx.fillStyle = "#173d59";
+    ctx.font =
+      "700 23px Arial, sans-serif";
+
+    ctx.fillText(
+      formatearFecha(
+        tecnico.vencimiento_matricula
+      ),
+      contenidoX,
+      858
+    );
+
+    const estado =
+      textoEstado(tecnico.estado);
+
+    ctx.fillStyle =
+      colorEstado(tecnico.estado);
+
+    redondearRectangulo(
+      ctx,
+      ancho - 285,
+      805,
+      215,
+      58,
+      29
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font =
+      "700 20px Arial, sans-serif";
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+      estado,
+      ancho - 177.5,
+      842
+    );
+
+    ctx.strokeStyle =
+      "rgba(23, 61, 89, 0.12)";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(
+      55,
+      925
+    );
+
+    ctx.lineTo(
+      ancho - 55,
+      925
+    );
+
+    ctx.stroke();
+
+    ctx.fillStyle = "#65717a";
+    ctx.font =
+      "500 16px Arial, sans-serif";
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+      "Credencial interna de técnico",
+      ancho / 2,
+      972
+    );
+
+    ctx.fillText(
+      "www.enfriar.com.ar",
+      ancho / 2,
+      1008
+    );
+
+    ctx.textAlign = "left";
+
+    descargarCanvas(
+      canvas,
+      "celular"
+    );
+  }
+
+  async function generarCredencial(
+    formato: "carnet" | "celular"
+  ) {
+    setError("");
+    setGenerando(true);
+    setEligiendoFormato(false);
+
+    try {
+      if (formato === "carnet") {
+        await generarCarnet();
+      } else {
+        await generarCelular();
+      }
     } catch (error) {
       setError(
         error instanceof Error
@@ -618,33 +948,141 @@ export default function CredencialTecnico({
         gap: "7px",
       }}
     >
-      <button
-        type="button"
-        onClick={generarCredencial}
-        disabled={generando}
-        style={{
-          minHeight: "40px",
-          padding: "8px 13px",
-          border:
-            "1px solid rgba(38, 40, 42, 0.16)",
-          borderRadius: "9px",
-          background: "#173d59",
-          color: "#ffffff",
-          font: "inherit",
-          fontSize: "0.84rem",
-          fontWeight: 800,
-          cursor: generando
-            ? "wait"
-            : "pointer",
-          opacity: generando
-            ? 0.65
-            : 1,
-        }}
-      >
-        {generando
-          ? "Generando..."
-          : "Generar credencial JPG"}
-      </button>
+      {!eligiendoFormato ? (
+        <button
+          type="button"
+          onClick={() =>
+            setEligiendoFormato(true)
+          }
+          disabled={generando}
+          style={{
+            minHeight: "40px",
+            padding: "8px 13px",
+            border:
+              "1px solid rgba(38, 40, 42, 0.16)",
+            borderRadius: "9px",
+            background: "#173d59",
+            color: "#ffffff",
+            font: "inherit",
+            fontSize: "0.84rem",
+            fontWeight: 800,
+            cursor: generando
+              ? "wait"
+              : "pointer",
+            opacity: generando
+              ? 0.65
+              : 1,
+          }}
+        >
+          {generando
+            ? "Generando..."
+            : "Generar credencial JPG"}
+        </button>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gap: "8px",
+            padding: "10px",
+            border:
+              "1px solid rgba(38, 40, 42, 0.12)",
+            borderRadius: "10px",
+            background:
+              "rgba(255,255,255,0.72)",
+          }}
+        >
+          <strong
+            style={{
+              fontSize: "0.82rem",
+            }}
+          >
+            Elegí el formato de la credencial
+          </strong>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}
+          >
+            <button
+              type="button"
+              disabled={generando}
+              onClick={() =>
+                void generarCredencial(
+                  "carnet"
+                )
+              }
+              style={{
+                minHeight: "38px",
+                padding: "7px 12px",
+                border:
+                  "1px solid rgba(38, 40, 42, 0.16)",
+                borderRadius: "9px",
+                background: "#173d59",
+                color: "#ffffff",
+                font: "inherit",
+                fontSize: "0.82rem",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Carnet
+            </button>
+
+            <button
+              type="button"
+              disabled={generando}
+              onClick={() =>
+                void generarCredencial(
+                  "celular"
+                )
+              }
+              style={{
+                minHeight: "38px",
+                padding: "7px 12px",
+                border:
+                  "1px solid rgba(23, 109, 162, 0.30)",
+                borderRadius: "9px",
+                background:
+                  "rgba(23, 109, 162, 0.08)",
+                color: "#176da2",
+                font: "inherit",
+                fontSize: "0.82rem",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Celular
+            </button>
+
+            <button
+              type="button"
+              disabled={generando}
+              onClick={() =>
+                setEligiendoFormato(false)
+              }
+              style={{
+                minHeight: "38px",
+                padding: "7px 12px",
+                border:
+                  "1px solid rgba(38, 40, 42, 0.16)",
+                borderRadius: "9px",
+                background: "#ffffff",
+                color:
+                  "var(--foreground)",
+                font: "inherit",
+                fontSize: "0.82rem",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {error ? (
         <span
