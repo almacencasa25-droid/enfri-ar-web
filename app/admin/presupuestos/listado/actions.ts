@@ -457,6 +457,119 @@ export async function buscarPresupuestosAction(
   };
 }
 
+export async function obtenerPdfOrdenTrabajoAction(
+  planillaTrabajoId: string
+): Promise<
+  ActionResult<{
+    url: string;
+    nombreArchivo: string;
+  }>
+> {
+  await requireAdminUser();
+
+  if (!planillaTrabajoId) {
+    return {
+      ok: false,
+      error:
+        "Orden de Trabajo inexistente.",
+    };
+  }
+
+  const supabase =
+    await createSupabaseServerClient();
+
+  const {
+    data: archivo,
+    error: archivoError,
+  } = await supabase
+    .from(
+      "archivos_trabajo"
+    )
+    .select(`
+      storage_bucket,
+      storage_path,
+      nombre_original
+    `)
+    .eq(
+      "planilla_trabajo_id",
+      planillaTrabajoId
+    )
+    .eq(
+      "documento_clase",
+      "orden_trabajo"
+    )
+    .eq(
+      "documento_variante",
+      "original"
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (archivoError) {
+    return {
+      ok: false,
+      error:
+        archivoError.message ||
+        "No se pudo consultar el PDF de la Orden de Trabajo.",
+    };
+  }
+
+  if (
+    !archivo?.storage_path
+  ) {
+    return {
+      ok: false,
+      error:
+        "Esta Orden de Trabajo todavía no tiene un PDF ORIGINAL guardado.",
+    };
+  }
+
+  const bucket =
+    archivo.storage_bucket ||
+    "trabajos-enfri-ar";
+
+  const {
+    data: firmado,
+    error: firmadoError,
+  } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(
+      archivo.storage_path,
+      60 * 10
+    );
+
+  if (
+    firmadoError ||
+    !firmado?.signedUrl
+  ) {
+    return {
+      ok: false,
+      error:
+        firmadoError?.message ||
+        "No se pudo abrir el PDF de la Orden de Trabajo.",
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      url:
+        firmado.signedUrl,
+      nombreArchivo:
+        archivo.nombre_original ||
+        "orden-trabajo-original.pdf",
+    },
+  };
+}
+
+
 export async function obtenerPdfConformidadAction(
   conformidadId: string
 ): Promise<
