@@ -484,6 +484,9 @@ export default async function DocumentosPage({
 
                         {documento.storage_path ? (
                           <DocumentoPdfAcciones
+                            documentoId={
+                              documento.id
+                            }
                             storagePath={
                               documento.storage_path
                             }
@@ -834,6 +837,9 @@ export default async function DocumentosPage({
 
                         {documento.storage_path ? (
                           <DocumentoPdfAcciones
+                            documentoId={
+                              documento.id
+                            }
                             storagePath={
                               documento.storage_path
                             }
