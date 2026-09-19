@@ -62,7 +62,7 @@ const FOOTER_TEXT_Y = 37;
 
 const CONTENT_BOTTOM = 78;
 
-const MANUAL_HEIGHT = 167;
+const MANUAL_HEIGHT = 216;
 const MANUAL_TOP_GAP = 12;
 
 const COLOR_DARK = rgb(
