@@ -559,26 +559,74 @@ export default async function OrdenTrabajoPage({
           />
         )}
 
-        <OrdenTrabajoForm
-          presupuestoId={
-            presupuesto.id
-          }
-          numeroPresupuesto={
-            presupuesto.numero
-          }
-          cliente={
-            cliente
-          }
-          tecnicos={
-            tecnicos || []
-          }
-          fechaProgramadaInicial={
-            presupuesto.fecha_programada
-          }
-          horaProgramadaInicial={
-            presupuesto.hora_programada
-          }
-        />
+        {(tecnicos || []).length === 0 ? (
+          <section
+            style={{
+              display: "grid",
+              gap: "12px",
+              padding: "18px",
+              border:
+                "1px solid rgba(180, 120, 20, 0.18)",
+              borderRadius:
+                "14px",
+              background:
+                "rgba(180, 120, 20, 0.08)",
+            }}
+          >
+            <div
+              style={{
+                color: "#805d18",
+                fontWeight: 800,
+                lineHeight: 1.6,
+              }}
+            >
+              No hay técnicos disponibles para generar
+              una Orden de Trabajo. Primero agregá un
+              técnico al equipo técnico.
+            </div>
+
+            <div>
+              <Link
+                href="/admin/presupuestos/equipo-tecnico"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "42px",
+                  padding: "9px 14px",
+                  borderRadius: "10px",
+                  background: "var(--foreground)",
+                  color: "#ffffff",
+                  fontWeight: 800,
+                  textDecoration: "none",
+                }}
+              >
+                Agregar técnico
+              </Link>
+            </div>
+          </section>
+        ) : (
+          <OrdenTrabajoForm
+            presupuestoId={
+              presupuesto.id
+            }
+            numeroPresupuesto={
+              presupuesto.numero
+            }
+            cliente={
+              cliente
+            }
+            tecnicos={
+              tecnicos || []
+            }
+            fechaProgramadaInicial={
+              presupuesto.fecha_programada
+            }
+            horaProgramadaInicial={
+              presupuesto.hora_programada
+            }
+          />
+        )}
 
         <div
           style={{
