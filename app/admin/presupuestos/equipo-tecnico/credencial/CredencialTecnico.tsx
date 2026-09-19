@@ -436,7 +436,7 @@ export default function CredencialTecnico({
     ctx.textAlign = "right";
 
     ctx.fillText(
-      "CREDENCIAL TÉCNICA",
+      "SERVICIO TÉCNICO",
       ANCHO - 54,
       75
     );
@@ -487,16 +487,6 @@ export default function CredencialTecnico({
       "TÉCNICO",
       contenidoX,
       263
-    );
-
-    ctx.fillStyle = "#65717a";
-    ctx.font =
-      "600 18px Arial, sans-serif";
-
-    ctx.fillText(
-      "SERVICIO TÉCNICO",
-      contenidoX,
-      292
     );
 
     ctx.fillStyle = "#65717a";
@@ -737,7 +727,7 @@ export default function CredencialTecnico({
     ctx.textAlign = "right";
 
     ctx.fillText(
-      "CREDENCIAL TÉCNICA",
+      "SERVICIO TÉCNICO",
       ancho - 38,
       78
     );
@@ -788,16 +778,6 @@ export default function CredencialTecnico({
       "TÉCNICO",
       ancho / 2,
       575
-    );
-
-    ctx.fillStyle = "#65717a";
-    ctx.font =
-      "600 17px Arial, sans-serif";
-
-    ctx.fillText(
-      "SERVICIO TÉCNICO",
-      ancho / 2,
-      605
     );
 
     ctx.textAlign = "left";
