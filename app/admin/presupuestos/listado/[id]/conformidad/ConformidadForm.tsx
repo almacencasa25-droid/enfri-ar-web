@@ -202,7 +202,8 @@ export default function ConformidadForm({
   async function generarPdf(
     conformidadId: string,
     numeroConformidad: string,
-    regenerar = false
+    regenerar = false,
+    ventanaPdf: Window | null = null
   ) {
     const resultadoPdf =
       await generarConformidadPdfAction(
@@ -213,6 +214,10 @@ export default function ConformidadForm({
       );
 
     if (!resultadoPdf.ok) {
+      if (ventanaPdf) {
+        ventanaPdf.close();
+      }
+
       setError(
         resultadoPdf.error ||
           "La conformidad existe, pero no se pudo generar el PDF."
@@ -232,6 +237,17 @@ export default function ConformidadForm({
     setMensaje(
       `Conformidad ${numeroConformidad} creada correctamente. PDF guardado.`
     );
+
+    if (ventanaPdf) {
+      ventanaPdf.location.href =
+        resultadoPdf.url;
+    } else {
+      window.open(
+        resultadoPdf.url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    }
 
     return true;
   }
@@ -278,6 +294,20 @@ export default function ConformidadForm({
       return;
     }
 
+    const ventanaPdf =
+      window.open(
+        "",
+        "_blank"
+      );
+
+    if (ventanaPdf) {
+      ventanaPdf.document.title =
+        "Generando Conformidad...";
+
+      ventanaPdf.document.body.innerHTML =
+        "<p style='font-family:Arial,sans-serif;padding:24px'>Generando conformidad y preparando PDF...</p>";
+    }
+
     startTransition(
       async () => {
         const resultado =
@@ -303,6 +333,10 @@ export default function ConformidadForm({
           );
 
         if (!resultado.ok) {
+          if (ventanaPdf) {
+            ventanaPdf.close();
+          }
+
           setError(
             resultado.error ||
               "No se pudo crear la conformidad."
@@ -339,7 +373,9 @@ export default function ConformidadForm({
         const pdfOk =
           await generarPdf(
             conformidad.id,
-            conformidad.numeroConformidad
+            conformidad.numeroConformidad,
+            false,
+            ventanaPdf
           );
 
         if (!pdfOk) {
