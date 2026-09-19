@@ -562,13 +562,6 @@ export default function ListadoPresupuestos({
     presupuesto:
       PresupuestoBusqueda
   ) {
-    const hrefPdf =
-      `/admin/presupuestos/documentos?tipo=presupuestos&q=${encodeURIComponent(
-        String(
-          presupuesto.numero
-        )
-      )}`;
-
     const hrefOrden =
       `/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`;
 
@@ -591,14 +584,31 @@ export default function ListadoPresupuestos({
         "anulado"
     ) {
       return (
-        <Link
-          href={hrefPdf}
-          style={
-            pdfButtonStyle
+        <button
+          type="button"
+          disabled={
+            procesando ||
+            !presupuesto.tiene_pdf_presupuesto
           }
+          onClick={() =>
+            abrirPdfPresupuesto(
+              presupuesto
+            )
+          }
+          style={{
+            ...pdfButtonStyle,
+            opacity:
+              presupuesto.tiene_pdf_presupuesto
+                ? 1
+                : 0.55,
+            cursor:
+              presupuesto.tiene_pdf_presupuesto
+                ? "pointer"
+                : "not-allowed",
+          }}
         >
           Ver PDF
-        </Link>
+        </button>
       );
     }
 
@@ -613,16 +623,22 @@ export default function ListadoPresupuestos({
           .tiene_conformidad
       ) {
         return (
-          <Link
-            href={
-              hrefConformidad
+          <button
+            type="button"
+            disabled={
+              procesando
+            }
+            onClick={() =>
+              abrirPdfConformidad(
+                presupuesto
+              )
             }
             style={
               conformityButtonStyle
             }
           >
             Ver Conformidad
-          </Link>
+          </button>
         );
       }
 
