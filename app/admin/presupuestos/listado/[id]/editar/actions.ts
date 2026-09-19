@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import {
+  emitirPresupuestoPdfAction,
+} from "../../pdf/actions";
+
 type ActionResult = {
   ok: boolean;
   error?: string;
@@ -334,12 +338,41 @@ export async function modificarPresupuestoAction(
     };
   }
 
+  /*
+   * Después de guardar correctamente la edición,
+   * emitimos automáticamente una nueva versión
+   * histórica del PDF del presupuesto.
+   *
+   * La acción de emisión reutiliza una versión
+   * pendiente si existiera, para no duplicarla
+   * en caso de un fallo anterior.
+   */
+  const resultadoPdf =
+    await emitirPresupuestoPdfAction(
+      input.presupuestoId
+    );
+
+  if (!resultadoPdf.ok) {
+    return {
+      ok: false,
+      error:
+        `El presupuesto fue modificado, pero no se pudo generar su nueva versión PDF. ${
+          resultadoPdf.error ||
+          "Probá guardar nuevamente."
+        }`,
+    };
+  }
+
   revalidatePath(
     "/admin/presupuestos/listado"
   );
 
   revalidatePath(
     `/admin/presupuestos/listado/${input.presupuestoId}/editar`
+  );
+
+  revalidatePath(
+    "/admin/presupuestos/documentos"
   );
 
   return {
