@@ -5,6 +5,7 @@ import DocumentoPdfAcciones from "./DocumentoPdfAcciones";
 import DocumentoOrdenTrabajoAcciones from "./DocumentoOrdenTrabajoAcciones";
 
 import {
+  listarDocumentosConformidadAction,
   listarDocumentosOrdenTrabajoAction,
   listarDocumentosPresupuestoAction,
 } from "./actions";
@@ -107,9 +108,11 @@ export default async function DocumentosPage({
   const [
     resultadoPresupuestos,
     resultadoOrdenes,
+    resultadoConformidades,
   ] = await Promise.all([
     listarDocumentosPresupuestoAction(),
     listarDocumentosOrdenTrabajoAction(),
+    listarDocumentosConformidadAction(),
   ]);
 
   const documentos =
@@ -122,6 +125,11 @@ export default async function DocumentosPage({
       ? resultadoOrdenes.data
       : [];
 
+  const conformidades =
+    resultadoConformidades.ok
+      ? resultadoConformidades.data
+      : [];
+
   const errorPresupuestos =
     resultadoPresupuestos.ok
       ? ""
@@ -131,6 +139,11 @@ export default async function DocumentosPage({
     resultadoOrdenes.ok
       ? ""
       : resultadoOrdenes.error;
+
+  const errorConformidades =
+    resultadoConformidades.ok
+      ? ""
+      : resultadoConformidades.error;
 
   const documentosFiltrados =
     busquedaNormalizada
@@ -169,12 +182,35 @@ export default async function DocumentosPage({
         })
       : ordenes;
 
+  const conformidadesFiltradas =
+    busquedaNormalizada
+      ? conformidades.filter(
+          (conformidad) => {
+            const valores = [
+              conformidad.numero_conformidad,
+              conformidad.numero_presupuesto,
+              conformidad.cliente,
+              conformidad.tecnico,
+              conformidad.matricula,
+              conformidad.fecha_conformidad,
+            ];
+
+            return valores.some((valor) =>
+              normalizarBusqueda(valor).includes(
+                busquedaNormalizada
+              )
+            );
+          }
+        )
+      : conformidades;
+
   const hayBusqueda =
     busquedaNormalizada.length > 0;
 
   const totalResultados =
     documentosFiltrados.length +
-    ordenesFiltradas.length;
+    ordenesFiltradas.length +
+    conformidadesFiltradas.length;
 
   return (
     <main
@@ -293,6 +329,9 @@ export default async function DocumentosPage({
               }}
             >
               Conformidades
+              <span style={tabCounterStyle}>
+                {conformidades.length}
+              </span>
             </Link>
           </nav>
         ) : null}
@@ -310,6 +349,13 @@ export default async function DocumentosPage({
               <div style={errorBoxStyle}>
                 Órdenes de Trabajo:{" "}
                 {errorOrdenes}
+              </div>
+            ) : null}
+
+            {errorConformidades ? (
+              <div style={errorBoxStyle}>
+                Conformidades:{" "}
+                {errorConformidades}
               </div>
             ) : null}
 
@@ -686,6 +732,150 @@ export default async function DocumentosPage({
                 </div>
               </section>
             ) : null}
+
+            {conformidadesFiltradas.length > 0 ? (
+              <section style={sectionStyle}>
+                <div style={sectionHeaderStyle}>
+                  <div>
+                    <h2 style={sectionTitleStyle}>
+                      Conformidades encontradas
+                    </h2>
+
+                    <p
+                      style={
+                        sectionDescriptionStyle
+                      }
+                    >
+                      Conformidades vigentes e
+                      históricas relacionadas con la
+                      búsqueda.
+                    </p>
+                  </div>
+
+                  <strong style={counterStyle}>
+                    {conformidadesFiltradas.length}{" "}
+                    documentos
+                  </strong>
+                </div>
+
+                <div style={listStyle}>
+                  {conformidadesFiltradas.map(
+                    (conformidad) => (
+                      <article
+                        key={conformidad.id}
+                        style={cardStyle}
+                      >
+                        <div style={cardHeaderStyle}>
+                          <div>
+                            <strong
+                              style={cardTitleStyle}
+                            >
+                              {
+                                conformidad.numero_conformidad
+                              }
+                            </strong>
+
+                            <span
+                              style={
+                                conformidad.vigente
+                                  ? vigenteStyle
+                                  : historicoStyle
+                              }
+                            >
+                              {conformidad.vigente
+                                ? "VIGENTE"
+                                : "HISTÓRICA"}
+                            </span>
+                          </div>
+
+                          <span style={savedBadgeStyle}>
+                            PDF guardado
+                          </span>
+                        </div>
+
+                        <div style={relationBoxStyle}>
+                          Según Presupuesto Nº{" "}
+                          <strong>
+                            {
+                              conformidad.numero_presupuesto
+                            }
+                          </strong>
+                        </div>
+
+                        <div style={dataGridStyle}>
+                          <div>
+                            <span>Cliente</span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {conformidad.cliente}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>Técnico</span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {conformidad.tecnico}
+                            </strong>
+
+                            {conformidad.matricula ? (
+                              <span
+                                style={subDataStyle}
+                              >
+                                Matrícula{" "}
+                                {
+                                  conformidad.matricula
+                                }
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div>
+                            <span>
+                              Fecha de conformidad
+                            </span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {fechaArgentina(
+                                conformidad.fecha_conformidad
+                              )}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>PDF guardado</span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {fechaHoraArgentina(
+                                conformidad.creado_en
+                              )}
+                            </strong>
+                          </div>
+                        </div>
+
+                        <DocumentoOrdenTrabajoAcciones
+                          storagePath={
+                            conformidad.storage_path
+                          }
+                        />
+                      </article>
+                    )
+                  )}
+                </div>
+              </section>
+            ) : null}
           </>
         ) : null}
 
@@ -1051,31 +1241,163 @@ export default async function DocumentosPage({
 
         {!hayBusqueda &&
         tipoActivo === "conformidades" ? (
-          <section style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div>
-                <h2 style={sectionTitleStyle}>
-                  Conformidades
-                </h2>
-
-                <p
-                  style={
-                    sectionDescriptionStyle
-                  }
-                >
-                  Documentos de conformidad del
-                  trabajo realizado.
-                </p>
+          <>
+            {errorConformidades ? (
+              <div style={errorBoxStyle}>
+                Conformidades:{" "}
+                {errorConformidades}
               </div>
-            </div>
+            ) : null}
 
-            <div style={emptyStyle}>
-              El módulo de conformidades todavía
-              no fue implementado. Esta pestaña
-              queda preparada para incorporarlo
-              cuando corresponda.
-            </div>
-          </section>
+            <section style={sectionStyle}>
+              <div style={sectionHeaderStyle}>
+                <div>
+                  <h2 style={sectionTitleStyle}>
+                    Conformidades
+                  </h2>
+
+                  <p
+                    style={
+                      sectionDescriptionStyle
+                    }
+                  >
+                    Se conservan las conformidades
+                    vigentes y también las históricas
+                    reemplazadas al editar el
+                    presupuesto.
+                  </p>
+                </div>
+
+                <strong style={counterStyle}>
+                  {conformidades.length} documentos
+                </strong>
+              </div>
+
+              {conformidades.length === 0 ? (
+                <div style={emptyStyle}>
+                  Todavía no hay PDF de
+                  conformidades guardados.
+                </div>
+              ) : (
+                <div style={listStyle}>
+                  {conformidades.map(
+                    (conformidad) => (
+                      <article
+                        key={conformidad.id}
+                        style={cardStyle}
+                      >
+                        <div style={cardHeaderStyle}>
+                          <div>
+                            <strong
+                              style={cardTitleStyle}
+                            >
+                              {
+                                conformidad.numero_conformidad
+                              }
+                            </strong>
+
+                            <span
+                              style={
+                                conformidad.vigente
+                                  ? vigenteStyle
+                                  : historicoStyle
+                              }
+                            >
+                              {conformidad.vigente
+                                ? "VIGENTE"
+                                : "HISTÓRICA"}
+                            </span>
+                          </div>
+
+                          <span style={savedBadgeStyle}>
+                            PDF guardado
+                          </span>
+                        </div>
+
+                        <div style={relationBoxStyle}>
+                          Según Presupuesto Nº{" "}
+                          <strong>
+                            {
+                              conformidad.numero_presupuesto
+                            }
+                          </strong>
+                        </div>
+
+                        <div style={dataGridStyle}>
+                          <div>
+                            <span>Cliente</span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {conformidad.cliente}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>Técnico</span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {conformidad.tecnico}
+                            </strong>
+
+                            {conformidad.matricula ? (
+                              <span
+                                style={subDataStyle}
+                              >
+                                Matrícula{" "}
+                                {
+                                  conformidad.matricula
+                                }
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div>
+                            <span>
+                              Fecha de conformidad
+                            </span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {fechaArgentina(
+                                conformidad.fecha_conformidad
+                              )}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>PDF guardado</span>
+                            <strong
+                              style={
+                                dataStrongStyle
+                              }
+                            >
+                              {fechaHoraArgentina(
+                                conformidad.creado_en
+                              )}
+                            </strong>
+                          </div>
+                        </div>
+
+                        <DocumentoOrdenTrabajoAcciones
+                          storagePath={
+                            conformidad.storage_path
+                          }
+                        />
+                      </article>
+                    )
+                  )}
+                </div>
+              )}
+            </section>
+          </>
         ) : null}
 
         <div
@@ -1247,6 +1569,16 @@ const versionStyle = {
 const orderVariantStyle = {
   ...versionStyle,
   color: "#9a5814",
+};
+
+const vigenteStyle = {
+  ...versionStyle,
+  color: "#236b43",
+};
+
+const historicoStyle = {
+  ...versionStyle,
+  color: "#6b6b6b",
 };
 
 const savedBadgeStyle = {
