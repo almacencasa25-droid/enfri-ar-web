@@ -816,7 +816,9 @@ export default function ListadoPresupuestos() {
                       }}
                       aria-label={`Estado del presupuesto Nº ${presupuesto.numero}`}
                       style={
-                        estadoSelectStyle
+                        estadoSelectStyle(
+                          presupuesto.estado
+                        )
                       }
                     >
                       <option value="borrador">
@@ -1312,23 +1314,75 @@ const detalleTrabajoStyle = {
   fontSize: "0.84rem",
 };
 
-const estadoSelectStyle = {
-  minHeight: "34px",
-  boxSizing:
-    "border-box" as const,
-  padding: "5px 10px",
-  border:
-    "1px solid rgba(38, 40, 42, 0.16)",
-  borderRadius: "999px",
-  background:
-    "rgba(35, 107, 67, 0.08)",
-  color:
-    "var(--foreground)",
-  font: "inherit",
-  fontSize: "0.78rem",
-  fontWeight: 800,
-  cursor: "pointer",
-};
+function estadoSelectStyle(
+  estado: string
+) {
+  const base = {
+    minHeight: "34px",
+    boxSizing:
+      "border-box" as const,
+    padding: "5px 10px",
+    border:
+      "1px solid rgba(38, 40, 42, 0.16)",
+    borderRadius: "999px",
+    font: "inherit",
+    fontSize: "0.78rem",
+    fontWeight: 800,
+    cursor: "pointer",
+  };
+
+  switch (estado) {
+    case "borrador":
+      return {
+        ...base,
+        background: "#111111",
+        color: "#ffffff",
+      };
+
+    case "enviado":
+      return {
+        ...base,
+        background: "#e8ece9",
+        color: "#1f5b3a",
+      };
+
+    case "aceptado":
+      return {
+        ...base,
+        background: "#236b43",
+        color: "#ffffff",
+      };
+
+    case "rechazado":
+      return {
+        ...base,
+        background: "#b42828",
+        color: "#ffffff",
+      };
+
+    case "realizado":
+      return {
+        ...base,
+        background: "#266fa4",
+        color: "#ffffff",
+      };
+
+    case "anulado":
+      return {
+        ...base,
+        background: "#4a4a4a",
+        color: "#ffffff",
+      };
+
+    default:
+      return {
+        ...base,
+        background: "#ffffff",
+        color:
+          "var(--foreground)",
+      };
+  }
+}
 
 const realizadoStyle = {
   color: "#236b43",
