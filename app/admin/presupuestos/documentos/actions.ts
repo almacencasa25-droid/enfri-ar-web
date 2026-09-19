@@ -271,6 +271,96 @@ async function validarRutaDocumento(
 
 /*
  * =====================================================
+ * COMPROBAR ARCHIVO FÍSICO DE PRESUPUESTO
+ * =====================================================
+ */
+
+export async function comprobarDocumentoPresupuestoAction(
+  storagePath: string
+) {
+  try {
+    await requireAdminUser();
+
+    const validacion =
+      await validarRutaDocumento(
+        storagePath
+      );
+
+    if (!validacion.ok) {
+      return {
+        ok: true as const,
+        existe: false,
+      };
+    }
+
+    const supabase =
+      await createSupabaseServerClient();
+
+    const partes =
+      validacion.ruta.split("/");
+
+    const nombreArchivo =
+      partes.pop() || "";
+
+    const carpeta =
+      partes.join("/");
+
+    if (!nombreArchivo) {
+      return {
+        ok: true as const,
+        existe: false,
+      };
+    }
+
+    const {
+      data,
+      error,
+    } = await supabase.storage
+      .from(
+        BUCKET_PRESUPUESTOS
+      )
+      .list(
+        carpeta,
+        {
+          limit: 100,
+          search:
+            nombreArchivo,
+        }
+      );
+
+    if (error) {
+      return {
+        ok: false as const,
+        error:
+          error.message ||
+          "No se pudo comprobar el archivo físico.",
+      };
+    }
+
+    const existe =
+      (data || []).some(
+        (archivo) =>
+          archivo.name ===
+          nombreArchivo
+      );
+
+    return {
+      ok: true as const,
+      existe,
+    };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error:
+        obtenerMensajeError(
+          error
+        ),
+    };
+  }
+}
+
+/*
+ * =====================================================
  * PRESUPUESTOS HISTÓRICOS
  * =====================================================
  */
