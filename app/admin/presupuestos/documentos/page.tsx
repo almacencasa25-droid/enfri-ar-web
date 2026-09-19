@@ -280,6 +280,7 @@ export default async function DocumentosPage({
           busquedaInicial={busqueda}
           presupuestos={documentos}
           ordenes={ordenes}
+          conformidades={conformidades}
         />
 
         {!hayBusqueda ? (
