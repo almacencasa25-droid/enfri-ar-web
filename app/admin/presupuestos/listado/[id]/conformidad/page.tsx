@@ -198,6 +198,10 @@ export default async function ConformidadPage({
       "presupuesto_id",
       presupuesto.id
     )
+    .eq(
+      "vigente",
+      true
+    )
     .maybeSingle();
 
   if (conformidadError) {
@@ -831,6 +835,10 @@ export default async function ConformidadPage({
     .eq(
       "presupuesto_id",
       presupuesto.id
+    )
+    .eq(
+      "vigente",
+      true
     )
     .order(
       "secuencia",
