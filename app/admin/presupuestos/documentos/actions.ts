@@ -52,6 +52,74 @@ export type DocumentoOrdenTrabajoListado = {
   nombre_archivo: string;
 };
 
+export type DocumentoConformidadListado = {
+  id: string;
+
+  presupuesto_id: string;
+
+  conformidad_id: string;
+
+  numero_presupuesto: string;
+
+  numero_conformidad: string;
+
+  cliente: string;
+
+  tecnico: string;
+
+  matricula:
+    | string
+    | null;
+
+  fecha_conformidad: string;
+
+  creado_en: string;
+
+  storage_bucket: string;
+
+  storage_path: string;
+
+  nombre_archivo: string;
+
+  vigente: boolean;
+};
+
+type ConformidadDocumento = {
+  id: string;
+
+  presupuesto_id: string;
+
+  numero_conformidad: string;
+
+  fecha: string;
+
+  cliente_nombre:
+    | string
+    | null;
+
+  cliente_apellido:
+    | string
+    | null;
+
+  cliente_razon_social:
+    | string
+    | null;
+
+  tecnico_nombre:
+    | string
+    | null;
+
+  tecnico_apellido:
+    | string
+    | null;
+
+  tecnico_matricula:
+    | string
+    | null;
+
+  vigente: boolean;
+};
+
 type SnapshotDocumento = {
   numero?:
     | string
@@ -221,6 +289,58 @@ function obtenerTecnicoPlanilla(
   const completo = [
     planilla.tecnico_nombre,
     planilla.tecnico_apellido,
+  ]
+    .map((valor) =>
+      String(
+        valor ?? ""
+      ).trim()
+    )
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    completo ||
+    "Técnico sin nombre"
+  );
+}
+
+function obtenerClienteConformidad(
+  conformidad: ConformidadDocumento
+) {
+  const razonSocial =
+    String(
+      conformidad.cliente_razon_social ??
+        ""
+    ).trim();
+
+  if (razonSocial) {
+    return razonSocial;
+  }
+
+  const completo = [
+    conformidad.cliente_nombre,
+    conformidad.cliente_apellido,
+  ]
+    .map((valor) =>
+      String(
+        valor ?? ""
+      ).trim()
+    )
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    completo ||
+    "Cliente sin nombre"
+  );
+}
+
+function obtenerTecnicoConformidad(
+  conformidad: ConformidadDocumento
+) {
+  const completo = [
+    conformidad.tecnico_nombre,
+    conformidad.tecnico_apellido,
   ]
     .map((valor) =>
       String(
@@ -764,6 +884,307 @@ export async function listarDocumentosOrdenTrabajoAction() {
           (
             documento
           ): documento is DocumentoOrdenTrabajoListado =>
+            documento !== null
+        );
+
+    return {
+      ok: true as const,
+      data:
+        documentos,
+    };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error:
+        obtenerMensajeError(
+          error
+        ),
+      data: [],
+    };
+  }
+}
+
+/*
+ * =====================================================
+ * CONFORMIDADES HISTÓRICAS
+ * =====================================================
+ */
+
+export async function listarDocumentosConformidadAction() {
+  try {
+    await requireAdminUser();
+
+    const supabase =
+      await createSupabaseServerClient();
+
+    /*
+     * Acá NO filtramos por vigente.
+     * Documentos es el centro histórico y debe
+     * mostrar conformidades actuales y anteriores.
+     */
+    const {
+      data: archivos,
+      error: archivosError,
+    } = await supabase
+      .from(
+        "archivos_trabajo"
+      )
+      .select(`
+        id,
+        presupuesto_id,
+        conformidad_id,
+        storage_bucket,
+        storage_path,
+        nombre_original,
+        created_at
+      `)
+      .eq(
+        "documento_clase",
+        "conformidad"
+      )
+      .eq(
+        "documento_variante",
+        "unico"
+      )
+      .not(
+        "conformidad_id",
+        "is",
+        null
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
+      .limit(200);
+
+    if (archivosError) {
+      return {
+        ok: false as const,
+        error:
+          archivosError.message,
+        data: [],
+      };
+    }
+
+    if (
+      !archivos ||
+      archivos.length === 0
+    ) {
+      return {
+        ok: true as const,
+        data:
+          [] as DocumentoConformidadListado[],
+      };
+    }
+
+    const conformidadIds =
+      Array.from(
+        new Set(
+          archivos
+            .map(
+              (archivo) =>
+                archivo.conformidad_id
+            )
+            .filter(
+              (
+                valor
+              ): valor is string =>
+                Boolean(valor)
+            )
+        )
+      );
+
+    const presupuestoIds =
+      Array.from(
+        new Set(
+          archivos
+            .map(
+              (archivo) =>
+                archivo.presupuesto_id
+            )
+            .filter(
+              (
+                valor
+              ): valor is string =>
+                Boolean(valor)
+            )
+        )
+      );
+
+    const {
+      data: conformidadesData,
+      error: conformidadesError,
+    } = await supabase
+      .from(
+        "conformidades"
+      )
+      .select(`
+        id,
+        presupuesto_id,
+        numero_conformidad,
+        fecha,
+        cliente_nombre,
+        cliente_apellido,
+        cliente_razon_social,
+        tecnico_nombre,
+        tecnico_apellido,
+        tecnico_matricula,
+        vigente
+      `)
+      .in(
+        "id",
+        conformidadIds
+      );
+
+    if (conformidadesError) {
+      return {
+        ok: false as const,
+        error:
+          conformidadesError.message,
+        data: [],
+      };
+    }
+
+    const {
+      data: presupuestosData,
+      error: presupuestosError,
+    } = await supabase
+      .from("presupuestos")
+      .select(`
+        id,
+        numero
+      `)
+      .in(
+        "id",
+        presupuestoIds
+      );
+
+    if (presupuestosError) {
+      return {
+        ok: false as const,
+        error:
+          presupuestosError.message,
+        data: [],
+      };
+    }
+
+    const conformidades =
+      (conformidadesData ||
+        []) as ConformidadDocumento[];
+
+    const presupuestos =
+      (presupuestosData ||
+        []) as PresupuestoNumero[];
+
+    const conformidadesPorId =
+      new Map(
+        conformidades.map(
+          (conformidad) => [
+            conformidad.id,
+            conformidad,
+          ]
+        )
+      );
+
+    const presupuestosPorId =
+      new Map(
+        presupuestos.map(
+          (presupuesto) => [
+            presupuesto.id,
+            presupuesto,
+          ]
+        )
+      );
+
+    const documentos:
+      DocumentoConformidadListado[] =
+      archivos
+        .map(
+          (archivo) => {
+            const conformidadId =
+              String(
+                archivo.conformidad_id ??
+                  ""
+              );
+
+            const conformidad =
+              conformidadesPorId.get(
+                conformidadId
+              );
+
+            if (!conformidad) {
+              return null;
+            }
+
+            const presupuesto =
+              presupuestosPorId.get(
+                archivo.presupuesto_id
+              );
+
+            return {
+              id:
+                archivo.id,
+
+              presupuesto_id:
+                archivo.presupuesto_id,
+
+              conformidad_id:
+                conformidad.id,
+
+              numero_presupuesto:
+                String(
+                  presupuesto?.numero ??
+                    "-"
+                ),
+
+              numero_conformidad:
+                conformidad.numero_conformidad,
+
+              cliente:
+                obtenerClienteConformidad(
+                  conformidad
+                ),
+
+              tecnico:
+                obtenerTecnicoConformidad(
+                  conformidad
+                ),
+
+              matricula:
+                conformidad.tecnico_matricula,
+
+              fecha_conformidad:
+                conformidad.fecha,
+
+              creado_en:
+                archivo.created_at,
+
+              storage_bucket:
+                archivo.storage_bucket ||
+                BUCKET_TRABAJOS,
+
+              storage_path:
+                archivo.storage_path,
+
+              nombre_archivo:
+                archivo.nombre_original ||
+                nombreArchivoDesdeRuta(
+                  archivo.storage_path
+                ),
+
+              vigente:
+                Boolean(
+                  conformidad.vigente
+                ),
+            };
+          }
+        )
+        .filter(
+          (
+            documento
+          ): documento is DocumentoConformidadListado =>
             documento !== null
         );
 
