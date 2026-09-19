@@ -14,6 +14,7 @@ import {
   cambiarEstadoPresupuestoAction,
   duplicarPresupuestoAction,
   eliminarPresupuestoAction,
+  obtenerPdfConformidadAction,
   type PresupuestoBusqueda,
 } from "./actions";
 
@@ -175,6 +176,73 @@ export default function ListadoPresupuestos() {
   function refrescar() {
     void cargarPresupuestos(
       busqueda
+    );
+  }
+
+  function abrirPdfConformidad(
+    presupuesto:
+      PresupuestoBusqueda
+  ) {
+    if (
+      !presupuesto.conformidad_id
+    ) {
+      setError(
+        "No se encontró la conformidad vigente."
+      );
+      return;
+    }
+
+    setMensaje("");
+    setError("");
+
+    const ventanaPdf =
+      window.open(
+        "",
+        "_blank"
+      );
+
+    if (ventanaPdf) {
+      ventanaPdf.document.title =
+        "Abriendo conformidad...";
+
+      ventanaPdf.document.body.innerHTML =
+        "<p style='font-family:Arial,sans-serif;padding:24px'>Abriendo PDF de conformidad...</p>";
+    }
+
+    startTransition(
+      async () => {
+        const resultado =
+          await obtenerPdfConformidadAction(
+            presupuesto.conformidad_id!
+          );
+
+        if (
+          !resultado.ok ||
+          !resultado.data?.url
+        ) {
+          if (ventanaPdf) {
+            ventanaPdf.close();
+          }
+
+          setError(
+            resultado.error ||
+              "No se pudo abrir el PDF de la conformidad."
+          );
+
+          return;
+        }
+
+        if (ventanaPdf) {
+          ventanaPdf.location.href =
+            resultado.data.url;
+        } else {
+          window.open(
+            resultado.data.url,
+            "_blank",
+            "noopener,noreferrer"
+          );
+        }
+      }
     );
   }
 
@@ -861,14 +929,22 @@ export default function ListadoPresupuestos() {
 
                         {presupuesto
                           .tiene_conformidad ? (
-                          <Link
-                            href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
+                          <button
+                            type="button"
+                            disabled={
+                              procesando
+                            }
+                            onClick={() =>
+                              abrirPdfConformidad(
+                                presupuesto
+                              )
+                            }
                             style={
-                              menuLinkStyle
+                              menuButtonStyle
                             }
                           >
                             Ver Conformidad
-                          </Link>
+                          </button>
                         ) : null}
 
                         <Link
