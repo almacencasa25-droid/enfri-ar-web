@@ -8,6 +8,10 @@ import {
 } from "react";
 
 import {
+  useRouter,
+} from "next/navigation";
+
+import {
   buscarClientesPresupuestoAction,
   buscarTrabajosPresupuestoAction,
   crearPresupuestoAction,
@@ -78,6 +82,9 @@ function nuevaKey() {
 }
 
 export default function NuevoPresupuestoForm() {
+  const router =
+    useRouter();
+
   const [guardando, startTransition] =
     useTransition();
 
@@ -592,7 +599,22 @@ export default function NuevoPresupuestoForm() {
         "Presupuesto creado correctamente."
       );
 
-      limpiarFormulario();
+      const presupuestoId =
+        resultado.data?.id;
+
+      if (!presupuestoId) {
+        setError(
+          "El presupuesto fue creado, pero no se recibió su identificación para volver al listado."
+        );
+
+        return;
+      }
+
+      router.push(
+        `/admin/presupuestos/listado?abrir=${encodeURIComponent(
+          presupuestoId
+        )}`
+      );
     });
   }
 
