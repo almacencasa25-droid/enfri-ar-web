@@ -388,28 +388,6 @@ export default function ListadoPresupuestos() {
           `PDF emitido correctamente. Versión ${resultado.version}.`
         );
 
-        const enlace =
-          document.createElement(
-            "a"
-          );
-
-        enlace.href =
-          resultado.url;
-
-        enlace.download =
-          resultado.nombreArchivo;
-
-        enlace.rel =
-          "noopener noreferrer";
-
-        document.body.appendChild(
-          enlace
-        );
-
-        enlace.click();
-
-        enlace.remove();
-
         refrescar();
       }
     );
@@ -534,6 +512,18 @@ export default function ListadoPresupuestos() {
                   "aceptado" ||
                 presupuesto.estado ===
                   "realizado";
+
+              const textoOrden =
+                presupuesto
+                  .tiene_orden_trabajo
+                  ? "Ver Orden de Trabajo"
+                  : "Generar Orden de Trabajo";
+
+              const textoConformidad =
+                presupuesto
+                  .tiene_conformidad
+                  ? "Ver Conformidad"
+                  : "Generar Conformidad";
 
               return (
                 <article
@@ -721,6 +711,32 @@ export default function ListadoPresupuestos() {
                         Trabajo realizado
                       </span>
                     ) : null}
+
+                    {presupuesto
+                      .numero_orden_trabajo ? (
+                      <span>
+                        Orden:{" "}
+                        <strong>
+                          {
+                            presupuesto
+                              .numero_orden_trabajo
+                          }
+                        </strong>
+                      </span>
+                    ) : null}
+
+                    {presupuesto
+                      .numero_conformidad ? (
+                      <span>
+                        Conformidad:{" "}
+                        <strong>
+                          {
+                            presupuesto
+                              .numero_conformidad
+                          }
+                        </strong>
+                      </span>
+                    ) : null}
                   </div>
 
                   <div
@@ -747,10 +763,13 @@ export default function ListadoPresupuestos() {
                       <Link
                         href={`/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`}
                         style={
-                          orderButtonStyle
+                          presupuesto
+                            .tiene_orden_trabajo
+                            ? existingOrderButtonStyle
+                            : orderButtonStyle
                         }
                       >
-                        Orden de Trabajo
+                        {textoOrden}
                       </Link>
                     ) : null}
 
@@ -758,31 +777,52 @@ export default function ListadoPresupuestos() {
                       <Link
                         href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
                         style={
-                          conformityButtonStyle
+                          presupuesto
+                            .tiene_conformidad
+                            ? existingConformityButtonStyle
+                            : conformityButtonStyle
                         }
                       >
-                        Conformidad
+                        {
+                          textoConformidad
+                        }
                       </Link>
                     ) : null}
 
-                    <button
-                      type="button"
-                      disabled={
-                        procesando
-                      }
-                      onClick={() =>
-                        emitirPdf(
-                          presupuesto
-                        )
-                      }
-                      style={
-                        pdfButtonStyle
-                      }
-                    >
-                      {procesando
-                        ? "Procesando..."
-                        : "Emitir PDF"}
-                    </button>
+                    {presupuesto
+                      .tiene_pdf_presupuesto ? (
+                      <Link
+                        href={`/admin/presupuestos/documentos?tipo=presupuestos&q=${encodeURIComponent(
+                          String(
+                            presupuesto.numero
+                          )
+                        )}`}
+                        style={
+                          pdfExistingButtonStyle
+                        }
+                      >
+                        Ver PDF
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={
+                          procesando
+                        }
+                        onClick={() =>
+                          emitirPdf(
+                            presupuesto
+                          )
+                        }
+                        style={
+                          pdfButtonStyle
+                        }
+                      >
+                        {procesando
+                          ? "Procesando..."
+                          : "Emitir PDF"}
+                      </button>
+                    )}
 
                     <button
                       type="button"
@@ -964,6 +1004,15 @@ const orderButtonStyle = {
   color: "#a55a18",
 };
 
+const existingOrderButtonStyle = {
+  ...linkButtonStyle,
+  background:
+    "rgba(224, 130, 35, 0.20)",
+  border:
+    "1px solid rgba(224, 130, 35, 0.50)",
+  color: "#8b4811",
+};
+
 const conformityButtonStyle = {
   ...linkButtonStyle,
   background:
@@ -973,12 +1022,30 @@ const conformityButtonStyle = {
   color: "#236b43",
 };
 
+const existingConformityButtonStyle = {
+  ...linkButtonStyle,
+  background:
+    "rgba(35, 107, 67, 0.18)",
+  border:
+    "1px solid rgba(35, 107, 67, 0.46)",
+  color: "#185132",
+};
+
 const pdfButtonStyle = {
   ...buttonStyle,
   border:
     "1px solid rgba(20, 110, 160, 0.32)",
   background:
     "rgba(20, 110, 160, 0.08)",
+  color: "#146e9f",
+};
+
+const pdfExistingButtonStyle = {
+  ...linkButtonStyle,
+  border:
+    "1px solid rgba(20, 110, 160, 0.42)",
+  background:
+    "rgba(20, 110, 160, 0.14)",
   color: "#146e9f",
 };
 
