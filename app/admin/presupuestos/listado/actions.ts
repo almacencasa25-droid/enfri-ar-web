@@ -11,6 +11,19 @@ type ActionResult<T = undefined> = {
   error?: string;
 };
 
+type PresupuestoBusquedaBase = {
+  id: string;
+  numero: number;
+  fecha: string;
+  cliente: string;
+  dni_cuit: string | null;
+  detalle_corto: string | null;
+  total: number;
+  estado: string;
+  trabajo_realizado: boolean;
+  relevancia: number;
+};
+
 export type PresupuestoBusqueda = {
   id: string;
   numero: number;
@@ -22,6 +35,40 @@ export type PresupuestoBusqueda = {
   estado: string;
   trabajo_realizado: boolean;
   relevancia: number;
+
+  tiene_orden_trabajo: boolean;
+  orden_trabajo_id: string | null;
+  numero_orden_trabajo: string | null;
+
+  tiene_conformidad: boolean;
+  conformidad_id: string | null;
+  numero_conformidad: string | null;
+
+  tiene_pdf_presupuesto: boolean;
+  pdf_presupuesto_id: string | null;
+  pdf_presupuesto_version: number | null;
+};
+
+type OrdenTrabajoResumen = {
+  id: string;
+  presupuesto_id: string;
+  numero_orden: string;
+  created_at: string;
+};
+
+type ConformidadResumen = {
+  id: string;
+  presupuesto_id: string;
+  numero_conformidad: string;
+  created_at: string;
+};
+
+type PdfPresupuestoResumen = {
+  id: string;
+  presupuesto_id: string;
+  version: number;
+  storage_path: string | null;
+  created_at: string;
 };
 
 const ESTADOS_VALIDOS = [
@@ -53,11 +100,23 @@ export async function buscarPresupuestosAction(
   const supabase =
     await createSupabaseServerClient();
 
-  const { data, error } = await supabase.rpc(
+  /*
+   * =========================================
+   * BUSCAR PRESUPUESTOS
+   * =========================================
+   */
+
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
     "buscar_presupuestos_enfriar",
     {
-      p_busqueda: busqueda.trim(),
-      p_limite: 50,
+      p_busqueda:
+        busqueda.trim(),
+
+      p_limite:
+        50,
     }
   );
 
@@ -70,32 +129,354 @@ export async function buscarPresupuestosAction(
     };
   }
 
+  const presupuestosBase =
+    (data ||
+      []) as PresupuestoBusquedaBase[];
+
+  if (
+    presupuestosBase.length ===
+    0
+  ) {
+    return {
+      ok: true,
+      data: [],
+    };
+  }
+
+  const presupuestoIds =
+    presupuestosBase.map(
+      (presupuesto) =>
+        presupuesto.id
+    );
+
+  /*
+   * =========================================
+   * ÓRDENES DE TRABAJO EXISTENTES
+   * =========================================
+   */
+
+  const {
+    data: ordenesData,
+    error: ordenesError,
+  } = await supabase
+    .from(
+      "planillas_trabajo"
+    )
+    .select(`
+      id,
+      presupuesto_id,
+      numero_orden,
+      created_at
+    `)
+    .in(
+      "presupuesto_id",
+      presupuestoIds
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      }
+    );
+
+  if (ordenesError) {
+    return {
+      ok: false,
+      error:
+        ordenesError.message ||
+        "No se pudieron consultar las Órdenes de Trabajo.",
+    };
+  }
+
+  const ordenes =
+    (ordenesData ||
+      []) as OrdenTrabajoResumen[];
+
+  /*
+   * =========================================
+   * CONFORMIDADES EXISTENTES
+   * =========================================
+   */
+
+  const {
+    data: conformidadesData,
+    error:
+      conformidadesError,
+  } = await supabase
+    .from(
+      "conformidades"
+    )
+    .select(`
+      id,
+      presupuesto_id,
+      numero_conformidad,
+      created_at
+    `)
+    .in(
+      "presupuesto_id",
+      presupuestoIds
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      }
+    );
+
+  if (
+    conformidadesError
+  ) {
+    return {
+      ok: false,
+      error:
+        conformidadesError.message ||
+        "No se pudieron consultar las conformidades.",
+    };
+  }
+
+  const conformidades =
+    (conformidadesData ||
+      []) as ConformidadResumen[];
+
+  /*
+   * =========================================
+   * PDF DE PRESUPUESTOS EXISTENTES
+   * =========================================
+   */
+
+  const {
+    data: pdfsData,
+    error: pdfsError,
+  } = await supabase
+    .from(
+      "presupuesto_documentos"
+    )
+    .select(`
+      id,
+      presupuesto_id,
+      version,
+      storage_path,
+      created_at
+    `)
+    .in(
+      "presupuesto_id",
+      presupuestoIds
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      }
+    );
+
+  if (pdfsError) {
+    return {
+      ok: false,
+      error:
+        pdfsError.message ||
+        "No se pudieron consultar los PDF de presupuestos.",
+    };
+  }
+
+  const pdfs =
+    (pdfsData ||
+      []) as PdfPresupuestoResumen[];
+
+  /*
+   * =========================================
+   * TOMAR EL DOCUMENTO ACTUAL DE CADA TIPO
+   * =========================================
+   *
+   * Como vienen ordenados del más nuevo
+   * al más viejo, conservamos el primero
+   * encontrado para cada presupuesto.
+   */
+
+  const ordenPorPresupuesto =
+    new Map<
+      string,
+      OrdenTrabajoResumen
+    >();
+
+  for (
+    const orden of ordenes
+  ) {
+    if (
+      !ordenPorPresupuesto.has(
+        orden.presupuesto_id
+      )
+    ) {
+      ordenPorPresupuesto.set(
+        orden.presupuesto_id,
+        orden
+      );
+    }
+  }
+
+  const conformidadPorPresupuesto =
+    new Map<
+      string,
+      ConformidadResumen
+    >();
+
+  for (
+    const conformidad
+    of conformidades
+  ) {
+    if (
+      !conformidadPorPresupuesto.has(
+        conformidad.presupuesto_id
+      )
+    ) {
+      conformidadPorPresupuesto.set(
+        conformidad.presupuesto_id,
+        conformidad
+      );
+    }
+  }
+
+  const pdfPorPresupuesto =
+    new Map<
+      string,
+      PdfPresupuestoResumen
+    >();
+
+  for (
+    const pdf of pdfs
+  ) {
+    /*
+     * Solamente consideramos que
+     * existe PDF cuando el documento
+     * histórico ya tiene storage_path.
+     */
+    if (
+      !pdf.storage_path
+    ) {
+      continue;
+    }
+
+    if (
+      !pdfPorPresupuesto.has(
+        pdf.presupuesto_id
+      )
+    ) {
+      pdfPorPresupuesto.set(
+        pdf.presupuesto_id,
+        pdf
+      );
+    }
+  }
+
+  /*
+   * =========================================
+   * ARMAR RESULTADO FINAL
+   * =========================================
+   */
+
+  const presupuestos:
+    PresupuestoBusqueda[] =
+    presupuestosBase.map(
+      (presupuesto) => {
+        const orden =
+          ordenPorPresupuesto.get(
+            presupuesto.id
+          );
+
+        const conformidad =
+          conformidadPorPresupuesto.get(
+            presupuesto.id
+          );
+
+        const pdf =
+          pdfPorPresupuesto.get(
+            presupuesto.id
+          );
+
+        return {
+          ...presupuesto,
+
+          tiene_orden_trabajo:
+            Boolean(
+              orden
+            ),
+
+          orden_trabajo_id:
+            orden?.id ??
+            null,
+
+          numero_orden_trabajo:
+            orden
+              ?.numero_orden ??
+            null,
+
+          tiene_conformidad:
+            Boolean(
+              conformidad
+            ),
+
+          conformidad_id:
+            conformidad?.id ??
+            null,
+
+          numero_conformidad:
+            conformidad
+              ?.numero_conformidad ??
+            null,
+
+          tiene_pdf_presupuesto:
+            Boolean(
+              pdf
+            ),
+
+          pdf_presupuesto_id:
+            pdf?.id ??
+            null,
+
+          pdf_presupuesto_version:
+            pdf?.version ??
+            null,
+        };
+      }
+    );
+
   return {
     ok: true,
     data:
-      (data || []) as PresupuestoBusqueda[],
+      presupuestos,
   };
 }
 
 export async function duplicarPresupuestoAction(
   presupuestoId: string
-): Promise<ActionResult<{ id: string }>> {
+): Promise<
+  ActionResult<{
+    id: string;
+  }>
+> {
   await requireAdminUser();
 
   if (!presupuestoId) {
     return {
       ok: false,
-      error: "Presupuesto inexistente.",
+      error:
+        "Presupuesto inexistente.",
     };
   }
 
   const supabase =
     await createSupabaseServerClient();
 
-  const { data, error } = await supabase.rpc(
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
     "duplicar_presupuesto_enfriar",
     {
-      p_presupuesto_id: presupuestoId,
+      p_presupuesto_id:
+        presupuestoId,
     }
   );
 
@@ -108,7 +489,10 @@ export async function duplicarPresupuestoAction(
     };
   }
 
-  if (typeof data !== "string") {
+  if (
+    typeof data !==
+    "string"
+  ) {
     return {
       ok: false,
       error:
@@ -121,7 +505,8 @@ export async function duplicarPresupuestoAction(
   return {
     ok: true,
     data: {
-      id: data,
+      id:
+        data,
     },
   };
 }
@@ -135,29 +520,38 @@ export async function cambiarEstadoPresupuestoAction(
   if (!presupuestoId) {
     return {
       ok: false,
-      error: "Presupuesto inexistente.",
+      error:
+        "Presupuesto inexistente.",
     };
   }
 
   if (
     !ESTADOS_VALIDOS.includes(
-      estado as (typeof ESTADOS_VALIDOS)[number]
+      estado as (
+        typeof ESTADOS_VALIDOS
+      )[number]
     )
   ) {
     return {
       ok: false,
-      error: "Estado inválido.",
+      error:
+        "Estado inválido.",
     };
   }
 
   const supabase =
     await createSupabaseServerClient();
 
-  const { error } = await supabase.rpc(
+  const {
+    error,
+  } = await supabase.rpc(
     "cambiar_estado_presupuesto_enfriar",
     {
-      p_presupuesto_id: presupuestoId,
-      p_estado: estado,
+      p_presupuesto_id:
+        presupuestoId,
+
+      p_estado:
+        estado,
     }
   );
 
@@ -185,17 +579,21 @@ export async function anularPresupuestoAction(
   if (!presupuestoId) {
     return {
       ok: false,
-      error: "Presupuesto inexistente.",
+      error:
+        "Presupuesto inexistente.",
     };
   }
 
   const supabase =
     await createSupabaseServerClient();
 
-  const { error } = await supabase.rpc(
+  const {
+    error,
+  } = await supabase.rpc(
     "anular_presupuesto_enfriar",
     {
-      p_presupuesto_id: presupuestoId,
+      p_presupuesto_id:
+        presupuestoId,
     }
   );
 
@@ -224,11 +622,15 @@ export async function eliminarPresupuestoAction(
   if (!presupuestoId) {
     return {
       ok: false,
-      error: "Presupuesto inexistente.",
+      error:
+        "Presupuesto inexistente.",
     };
   }
 
-  if (confirmacion !== "ELIMINAR") {
+  if (
+    confirmacion !==
+    "ELIMINAR"
+  ) {
     return {
       ok: false,
       error:
@@ -239,10 +641,13 @@ export async function eliminarPresupuestoAction(
   const supabase =
     await createSupabaseServerClient();
 
-  const { error } = await supabase.rpc(
+  const {
+    error,
+  } = await supabase.rpc(
     "eliminar_presupuesto_enfriar",
     {
-      p_presupuesto_id: presupuestoId,
+      p_presupuesto_id:
+        presupuestoId,
     }
   );
 
@@ -270,17 +675,21 @@ export async function restaurarPresupuestoAction(
   if (!presupuestoId) {
     return {
       ok: false,
-      error: "Presupuesto inexistente.",
+      error:
+        "Presupuesto inexistente.",
     };
   }
 
   const supabase =
     await createSupabaseServerClient();
 
-  const { error } = await supabase.rpc(
+  const {
+    error,
+  } = await supabase.rpc(
     "restaurar_presupuesto_enfriar",
     {
-      p_presupuesto_id: presupuestoId,
+      p_presupuesto_id:
+        presupuestoId,
     }
   );
 
