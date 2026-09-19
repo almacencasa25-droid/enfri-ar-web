@@ -81,7 +81,13 @@ function nombreEstado(
   }
 }
 
-export default function ListadoPresupuestos() {
+type Props = {
+  abrirId?: string | null;
+};
+
+export default function ListadoPresupuestos({
+  abrirId = null,
+}: Props) {
   const [
     busqueda,
     setBusqueda,
@@ -766,6 +772,10 @@ export default function ListadoPresupuestos() {
               <details
                 key={
                   presupuesto.id
+                }
+                open={
+                  presupuesto.id ===
+                  abrirId
                 }
                 style={
                   presupuestoStyle
