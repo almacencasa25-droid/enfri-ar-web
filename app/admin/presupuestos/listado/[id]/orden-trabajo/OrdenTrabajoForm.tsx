@@ -6,6 +6,10 @@ import {
 } from "react";
 
 import {
+  useRouter,
+} from "next/navigation";
+
+import {
   crearOrdenTrabajoAction,
 } from "./actions";
 
@@ -87,6 +91,9 @@ export default function OrdenTrabajoForm({
   fechaProgramadaInicial,
   horaProgramadaInicial,
 }: Props) {
+  const router =
+    useRouter();
+
   const [
     tecnicoId,
     setTecnicoId,
@@ -366,6 +373,12 @@ export default function OrdenTrabajoForm({
 
         setMensaje(
           `Orden de Trabajo ${resultado.data.numeroOrden} creada correctamente. ORIGINAL y COPIA guardados.`
+        );
+
+        router.push(
+          `/admin/presupuestos/listado?abrir=${encodeURIComponent(
+            presupuestoId
+          )}`
         );
       }
     );
