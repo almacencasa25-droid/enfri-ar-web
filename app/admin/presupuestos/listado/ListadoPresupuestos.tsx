@@ -348,13 +348,10 @@ export default function ListadoPresupuestos() {
     );
   }
 
-  function accionPrincipal(
+  function accionDocumento(
     presupuesto:
       PresupuestoBusqueda
   ) {
-    const hrefEditar =
-      `/admin/presupuestos/listado/${presupuesto.id}/editar`;
-
     const hrefPdf =
       `/admin/presupuestos/documentos?tipo=presupuestos&q=${encodeURIComponent(
         String(
@@ -372,16 +369,7 @@ export default function ListadoPresupuestos() {
       presupuesto.estado ===
       "borrador"
     ) {
-      return (
-        <Link
-          href={hrefEditar}
-          style={
-            primaryButtonStyle
-          }
-        >
-          Editar
-        </Link>
-      );
+      return null;
     }
 
     if (
@@ -406,7 +394,9 @@ export default function ListadoPresupuestos() {
 
     if (
       presupuesto.estado ===
-      "aceptado"
+        "aceptado" ||
+      presupuesto.estado ===
+        "realizado"
     ) {
       if (
         presupuesto
@@ -414,12 +404,14 @@ export default function ListadoPresupuestos() {
       ) {
         return (
           <Link
-            href={hrefEditar}
+            href={
+              hrefConformidad
+            }
             style={
-              primaryButtonStyle
+              conformityButtonStyle
             }
           >
-            Editar
+            Ver Conformidad
           </Link>
         );
       }
@@ -454,32 +446,7 @@ export default function ListadoPresupuestos() {
       );
     }
 
-    if (
-      presupuesto.estado ===
-      "realizado"
-    ) {
-      return (
-        <Link
-          href={hrefEditar}
-          style={
-            primaryButtonStyle
-          }
-        >
-          Editar
-        </Link>
-      );
-    }
-
-    return (
-      <Link
-        href={hrefPdf}
-        style={
-          pdfButtonStyle
-        }
-      >
-        Ver PDF
-      </Link>
-    );
+    return null;
   }
 
   return (
@@ -823,8 +790,17 @@ export default function ListadoPresupuestos() {
                       accionesStyle
                     }
                   >
+                    <Link
+                      href={`/admin/presupuestos/listado/${presupuesto.id}/editar`}
+                      style={
+                        primaryButtonStyle
+                      }
+                    >
+                      Editar
+                    </Link>
+
                     {
-                      accionPrincipal(
+                      accionDocumento(
                         presupuesto
                       )
                     }
