@@ -151,7 +151,7 @@ export async function buscarPresupuestosAction(
 
   /*
    * =========================================
-   * ÓRDENES DE TRABAJO VIGENTES
+   * ÓRDENES DE TRABAJO EXISTENTES
    * =========================================
    */
 
@@ -199,7 +199,7 @@ export async function buscarPresupuestosAction(
 
   /*
    * =========================================
-   * CONFORMIDADES VIGENTES
+   * CONFORMIDADES EXISTENTES
    * =========================================
    */
 
@@ -298,11 +298,9 @@ export async function buscarPresupuestosAction(
    * TOMAR EL DOCUMENTO ACTUAL DE CADA TIPO
    * =========================================
    *
-   * En OT y conformidad ya recibimos
-   * solamente los documentos vigentes.
-   *
-   * En PDF de presupuesto conservamos
-   * el más nuevo que tenga storage_path.
+   * Como vienen ordenados del más nuevo
+   * al más viejo, conservamos el primero
+   * encontrado para cada presupuesto.
    */
 
   const ordenPorPresupuesto =
@@ -458,6 +456,119 @@ export async function buscarPresupuestosAction(
       presupuestos,
   };
 }
+
+export async function obtenerPdfConformidadAction(
+  conformidadId: string
+): Promise<
+  ActionResult<{
+    url: string;
+    nombreArchivo: string;
+  }>
+> {
+  await requireAdminUser();
+
+  if (!conformidadId) {
+    return {
+      ok: false,
+      error:
+        "Conformidad inexistente.",
+    };
+  }
+
+  const supabase =
+    await createSupabaseServerClient();
+
+  const {
+    data: archivo,
+    error: archivoError,
+  } = await supabase
+    .from(
+      "archivos_trabajo"
+    )
+    .select(`
+      storage_bucket,
+      storage_path,
+      nombre_original
+    `)
+    .eq(
+      "conformidad_id",
+      conformidadId
+    )
+    .eq(
+      "documento_clase",
+      "conformidad"
+    )
+    .eq(
+      "documento_variante",
+      "unico"
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (archivoError) {
+    return {
+      ok: false,
+      error:
+        archivoError.message ||
+        "No se pudo consultar el PDF de la conformidad.",
+    };
+  }
+
+  if (
+    !archivo?.storage_path
+  ) {
+    return {
+      ok: false,
+      error:
+        "Esta conformidad todavía no tiene un PDF guardado.",
+    };
+  }
+
+  const bucket =
+    archivo.storage_bucket ||
+    "trabajos-enfri-ar";
+
+  const {
+    data: firmado,
+    error: firmadoError,
+  } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(
+      archivo.storage_path,
+      60 * 10
+    );
+
+  if (
+    firmadoError ||
+    !firmado?.signedUrl
+  ) {
+    return {
+      ok: false,
+      error:
+        firmadoError?.message ||
+        "No se pudo abrir el PDF de la conformidad.",
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      url:
+        firmado.signedUrl,
+      nombreArchivo:
+        archivo.nombre_original ||
+        "conformidad.pdf",
+    },
+  };
+}
+
 
 export async function duplicarPresupuestoAction(
   presupuestoId: string
