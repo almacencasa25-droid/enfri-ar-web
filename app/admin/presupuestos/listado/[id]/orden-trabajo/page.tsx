@@ -378,6 +378,10 @@ export default async function OrdenTrabajoPage({
       "presupuesto_id",
       presupuesto.id
     )
+    .eq(
+      "vigente",
+      true
+    )
     .order(
       "secuencia",
       {
