@@ -78,51 +78,6 @@ function nombreEstado(
   }
 }
 
-function colorEstado(
-  estado: string
-) {
-  switch (estado) {
-    case "aceptado":
-    case "realizado":
-      return {
-        background:
-          "rgba(35, 107, 67, 0.09)",
-        border:
-          "1px solid rgba(35, 107, 67, 0.22)",
-        color: "#236b43",
-      };
-
-    case "rechazado":
-    case "anulado":
-      return {
-        background:
-          "rgba(180, 40, 40, 0.08)",
-        border:
-          "1px solid rgba(180, 40, 40, 0.20)",
-        color: "#982828",
-      };
-
-    case "enviado":
-      return {
-        background:
-          "rgba(20, 110, 160, 0.08)",
-        border:
-          "1px solid rgba(20, 110, 160, 0.20)",
-        color: "#146e9f",
-      };
-
-    default:
-      return {
-        background:
-          "rgba(120, 120, 120, 0.08)",
-        border:
-          "1px solid rgba(80, 80, 80, 0.16)",
-        color:
-          "var(--foreground)",
-      };
-  }
-}
-
 export default function ListadoPresupuestos() {
   const [
     busqueda,
@@ -451,7 +406,7 @@ export default function ListadoPresupuestos() {
 
     if (
       presupuesto.estado ===
-        "aceptado"
+      "aceptado"
     ) {
       if (
         presupuesto
@@ -666,6 +621,58 @@ export default function ListadoPresupuestos() {
                       }
                     </strong>
 
+                    <select
+                      value={
+                        presupuesto.estado
+                      }
+                      disabled={
+                        procesando
+                      }
+                      onClick={(
+                        event
+                      ) => {
+                        event.stopPropagation();
+                      }}
+                      onChange={(
+                        event
+                      ) => {
+                        event.stopPropagation();
+
+                        cambiarEstado(
+                          presupuesto.id,
+                          event.target.value
+                        );
+                      }}
+                      aria-label={`Estado del presupuesto Nº ${presupuesto.numero}`}
+                      style={
+                        estadoSelectStyle
+                      }
+                    >
+                      <option value="borrador">
+                        Borrador
+                      </option>
+
+                      <option value="enviado">
+                        Enviado
+                      </option>
+
+                      <option value="aceptado">
+                        Aceptado
+                      </option>
+
+                      <option value="rechazado">
+                        Rechazado
+                      </option>
+
+                      <option value="realizado">
+                        Realizado
+                      </option>
+
+                      <option value="anulado">
+                        Anulado
+                      </option>
+                    </select>
+
                     <span
                       style={
                         clienteResumenStyle
@@ -681,19 +688,6 @@ export default function ListadoPresupuestos() {
                       resumenDatosStyle
                     }
                   >
-                    <span
-                      style={{
-                        ...estadoBadgeStyle,
-                        ...colorEstado(
-                          presupuesto.estado
-                        ),
-                      }}
-                    >
-                      {nombreEstado(
-                        presupuesto.estado
-                      )}
-                    </span>
-
                     <span>
                       {fechaArgentina(
                         presupuesto.fecha
@@ -814,74 +808,15 @@ export default function ListadoPresupuestos() {
                     </div>
                   ) : null}
 
-                  <div
-                    style={
-                      estadoRowStyle
-                    }
-                  >
-                    <label
+                  {presupuesto.trabajo_realizado ? (
+                    <span
                       style={
-                        estadoLabelStyle
+                        realizadoStyle
                       }
                     >
-                      Estado
-
-                      <select
-                        value={
-                          presupuesto.estado
-                        }
-                        disabled={
-                          procesando
-                        }
-                        onChange={(
-                          event
-                        ) =>
-                          cambiarEstado(
-                            presupuesto.id,
-                            event.target.value
-                          )
-                        }
-                        aria-label={`Estado del presupuesto Nº ${presupuesto.numero}`}
-                        style={
-                          estadoSelectStyle
-                        }
-                      >
-                        <option value="borrador">
-                          Borrador
-                        </option>
-
-                        <option value="enviado">
-                          Enviado
-                        </option>
-
-                        <option value="aceptado">
-                          Aceptado
-                        </option>
-
-                        <option value="rechazado">
-                          Rechazado
-                        </option>
-
-                        <option value="realizado">
-                          Realizado
-                        </option>
-
-                        <option value="anulado">
-                          Anulado
-                        </option>
-                      </select>
-                    </label>
-
-                    {presupuesto.trabajo_realizado ? (
-                      <span
-                        style={
-                          realizadoStyle
-                        }
-                      >
-                        Trabajo realizado
-                      </span>
-                    ) : null}
-                  </div>
+                      Trabajo realizado
+                    </span>
+                  ) : null}
 
                   <div
                     style={
@@ -1107,7 +1042,7 @@ const resumenPrincipalStyle = {
   display: "flex",
   flexWrap: "wrap" as const,
   alignItems: "center",
-  gap: "12px",
+  gap: "10px",
 };
 
 const numeroStyle = {
@@ -1132,13 +1067,6 @@ const resumenDatosStyle = {
   color:
     "var(--muted)",
   fontSize: "0.80rem",
-};
-
-const estadoBadgeStyle = {
-  padding: "4px 8px",
-  borderRadius: "999px",
-  fontSize: "0.74rem",
-  fontWeight: 800,
 };
 
 const abrirStyle = {
@@ -1184,36 +1112,20 @@ const detalleTrabajoStyle = {
   fontSize: "0.84rem",
 };
 
-const estadoRowStyle = {
-  display: "flex",
-  flexWrap: "wrap" as const,
-  alignItems: "end",
-  gap: "14px",
-};
-
-const estadoLabelStyle = {
-  display: "grid",
-  gap: "5px",
-  color:
-    "var(--muted)",
-  fontSize: "0.76rem",
-  fontWeight: 700,
-};
-
 const estadoSelectStyle = {
-  minHeight: "36px",
+  minHeight: "34px",
   boxSizing:
     "border-box" as const,
   padding: "5px 10px",
   border:
     "1px solid rgba(38, 40, 42, 0.16)",
-  borderRadius: "9px",
+  borderRadius: "999px",
   background:
-    "#ffffff",
+    "rgba(35, 107, 67, 0.08)",
   color:
     "var(--foreground)",
   font: "inherit",
-  fontSize: "0.80rem",
+  fontSize: "0.78rem",
   fontWeight: 800,
   cursor: "pointer",
 };
