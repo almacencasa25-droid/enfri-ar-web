@@ -104,6 +104,17 @@ function numeroVisible(
   );
 }
 
+function snapshotValido(
+  snapshot: unknown
+): snapshot is PresupuestoPdfSnapshot {
+  return Boolean(
+    snapshot &&
+      typeof snapshot ===
+        "object" &&
+      !Array.isArray(snapshot)
+  );
+}
+
 export async function emitirPresupuestoPdfAction(
   presupuestoId: string
 ) {
@@ -248,10 +259,7 @@ export async function emitirPresupuestoPdfAction(
     }
 
     if (
-      !documento.snapshot ||
-      typeof documento.snapshot !==
-        "object" ||
-      Array.isArray(
+      !snapshotValido(
         documento.snapshot
       )
     ) {
@@ -263,15 +271,11 @@ export async function emitirPresupuestoPdfAction(
     }
 
     const snapshot =
-      documento.snapshot as PresupuestoPdfSnapshot;
+      documento.snapshot;
 
     /*
      * El PDF se genera exclusivamente
      * con el snapshot histórico.
-     *
-     * Si el presupuesto se modifica
-     * posteriormente, esta versión
-     * seguirá siendo exactamente igual.
      */
     const pdfBytes =
       await generarPresupuestoPdf(
@@ -297,10 +301,6 @@ export async function emitirPresupuestoPdfAction(
     const storagePath =
       `${presupuestoId}/${nombreArchivo}`;
 
-    /*
-     * Guardamos el PDF en el
-     * bucket privado.
-     */
     const {
       error: uploadError,
     } = await supabase.storage
@@ -319,13 +319,6 @@ export async function emitirPresupuestoPdfAction(
         }
       );
 
-    /*
-     * Si el archivo ya existe,
-     * puede provenir de un intento
-     * anterior que llegó a subirlo
-     * pero no terminó de registrar
-     * la ruta.
-     */
     if (
       uploadError &&
       !esErrorArchivoExistente(
@@ -339,14 +332,6 @@ export async function emitirPresupuestoPdfAction(
       };
     }
 
-    /*
-     * Antes de cerrar definitivamente
-     * la emisión generamos el enlace.
-     *
-     * Si esto falla, storage_path queda
-     * pendiente y podremos reintentar
-     * la misma versión sin crear otra.
-     */
     const {
       data: enlace,
       error: enlaceError,
@@ -373,11 +358,6 @@ export async function emitirPresupuestoPdfAction(
       };
     }
 
-    /*
-     * Ahora sí dejamos vinculada
-     * definitivamente esta versión
-     * con su archivo histórico.
-     */
     const {
       error: guardarError,
     } = await supabase.rpc(
@@ -403,6 +383,203 @@ export async function emitirPresupuestoPdfAction(
 
       documentoId:
         documento.id,
+
+      version,
+
+      nombreArchivo,
+
+      storagePath,
+
+      url:
+        enlace.signedUrl,
+    };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error:
+        mensajeError(error),
+    };
+  }
+}
+
+/*
+ * =========================================================
+ * REPARAR PDF HISTÓRICO EXISTENTE
+ * =========================================================
+ *
+ * Esta acción NO crea una nueva versión.
+ *
+ * Utiliza:
+ * - el mismo registro histórico;
+ * - el mismo snapshot;
+ * - la misma versión;
+ * - el mismo storage_path.
+ *
+ * Sirve para recuperar un archivo físico
+ * que haya sido eliminado accidentalmente
+ * de Storage.
+ */
+export async function repararPresupuestoPdfHistoricoAction(
+  documentoId: string
+) {
+  try {
+    await requireAdminUser();
+
+    if (
+      !documentoId ||
+      typeof documentoId !==
+        "string"
+    ) {
+      return {
+        ok: false as const,
+        error:
+          "El documento histórico no es válido.",
+      };
+    }
+
+    const supabase =
+      await createSupabaseServerClient();
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "presupuesto_documentos"
+      )
+      .select(`
+        id,
+        presupuesto_id,
+        version,
+        snapshot,
+        storage_path
+      `)
+      .eq(
+        "id",
+        documentoId
+      )
+      .single();
+
+    if (
+      error ||
+      !data
+    ) {
+      return {
+        ok: false as const,
+        error:
+          error?.message ||
+          "No se encontró el documento histórico.",
+      };
+    }
+
+    const documento =
+      data as DocumentoPresupuesto;
+
+    if (
+      !snapshotValido(
+        documento.snapshot
+      )
+    ) {
+      return {
+        ok: false as const,
+        error:
+          "El documento histórico no contiene un snapshot válido.",
+      };
+    }
+
+    if (
+      !documento.storage_path
+    ) {
+      return {
+        ok: false as const,
+        error:
+          "El documento histórico no tiene una ruta de almacenamiento registrada.",
+      };
+    }
+
+    const version =
+      Number(
+        documento.version
+      );
+
+    const pdfBytes =
+      await generarPresupuestoPdf(
+        documento.snapshot,
+        version
+      );
+
+    const storagePath =
+      documento.storage_path;
+
+    const nombreArchivo =
+      storagePath
+        .split("/")
+        .pop() ||
+      `presupuesto-version-${version}.pdf`;
+
+    /*
+     * Usamos upsert porque estamos
+     * reparando una versión que ya
+     * existe históricamente.
+     *
+     * No se crea ningún registro nuevo.
+     */
+    const {
+      error: uploadError,
+    } = await supabase.storage
+      .from(BUCKET)
+      .upload(
+        storagePath,
+        Buffer.from(
+          pdfBytes
+        ),
+        {
+          contentType:
+            "application/pdf",
+          cacheControl:
+            "3600",
+          upsert: true,
+        }
+      );
+
+    if (uploadError) {
+      return {
+        ok: false as const,
+        error:
+          uploadError.message,
+      };
+    }
+
+    const {
+      data: enlace,
+      error: enlaceError,
+    } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(
+        storagePath,
+        300
+      );
+
+    if (
+      enlaceError ||
+      !enlace?.signedUrl
+    ) {
+      return {
+        ok: false as const,
+        error:
+          enlaceError?.message ||
+          "El PDF histórico fue reparado, pero no se pudo generar su enlace de comprobación.",
+      };
+    }
+
+    return {
+      ok: true as const,
+
+      documentoId:
+        documento.id,
+
+      presupuestoId:
+        documento.presupuesto_id,
 
       version,
 
