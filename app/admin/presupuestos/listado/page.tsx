@@ -6,7 +6,27 @@ export const metadata = {
   title: "Presupuestos realizados",
 };
 
-export default function PresupuestosRealizadosPage() {
+type Props = {
+  searchParams?: Promise<{
+    abrir?: string | string[];
+  }>;
+};
+
+export default async function PresupuestosRealizadosPage({
+  searchParams,
+}: Props) {
+  const parametros =
+    searchParams
+      ? await searchParams
+      : {};
+
+  const abrirId =
+    typeof parametros.abrir === "string"
+      ? parametros.abrir
+      : Array.isArray(parametros.abrir)
+        ? parametros.abrir[0] || null
+        : null;
+
   return (
     <main
       style={{
@@ -75,7 +95,9 @@ export default function PresupuestosRealizadosPage() {
             marginTop: "20px",
           }}
         >
-          <ListadoPresupuestos />
+          <ListadoPresupuestos
+            abrirId={abrirId}
+          />
         </div>
 
         <div
