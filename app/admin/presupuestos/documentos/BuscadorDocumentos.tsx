@@ -18,16 +18,29 @@ type DocumentoOrdenTrabajo = {
   matricula: string | null;
 };
 
+type DocumentoConformidad = {
+  id: string;
+  numero_conformidad: string;
+  numero_presupuesto: string | number;
+  cliente: string;
+  tecnico: string;
+  matricula: string | null;
+};
+
 type Props = {
   tipoActivo: string;
   busquedaInicial: string;
   presupuestos: DocumentoPresupuesto[];
   ordenes: DocumentoOrdenTrabajo[];
+  conformidades?: DocumentoConformidad[];
 };
 
 type Sugerencia = {
   id: string;
-  tipo: "presupuesto" | "orden";
+  tipo:
+    | "presupuesto"
+    | "orden"
+    | "conformidad";
   titulo: string;
   detalle: string;
   valorBusqueda: string;
@@ -44,6 +57,7 @@ export default function BuscadorDocumentos({
   busquedaInicial,
   presupuestos,
   ordenes,
+  conformidades = [],
 }: Props) {
   const router = useRouter();
 
@@ -120,8 +134,56 @@ export default function BuscadorDocumentos({
       }
     }
 
+    for (
+      const conformidad
+      of conformidades
+    ) {
+      const coincide = [
+        conformidad.numero_conformidad,
+        conformidad.numero_presupuesto,
+        conformidad.cliente,
+        conformidad.tecnico,
+        conformidad.matricula,
+      ].some((valor) =>
+        normalizar(valor).includes(termino)
+      );
+
+      if (coincide) {
+        const datosSecundarios = [
+          conformidad.cliente,
+          conformidad.tecnico
+            ? `Técnico: ${conformidad.tecnico}`
+            : "",
+          conformidad.matricula
+            ? `Matrícula: ${conformidad.matricula}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
+        resultados.push({
+          id:
+            `conformidad-${conformidad.id}`,
+          tipo:
+            "conformidad",
+          titulo:
+            conformidad.numero_conformidad,
+          detalle:
+            datosSecundarios ||
+            `Presupuesto Nº ${conformidad.numero_presupuesto}`,
+          valorBusqueda:
+            conformidad.numero_conformidad,
+        });
+      }
+    }
+
     return resultados.slice(0, 8);
-  }, [busqueda, presupuestos, ordenes]);
+  }, [
+    busqueda,
+    presupuestos,
+    ordenes,
+    conformidades,
+  ]);
 
   function ejecutarBusqueda(valor: string) {
     const termino = valor.trim();
@@ -190,7 +252,7 @@ export default function BuscadorDocumentos({
               id="buscar-documento"
               type="search"
               value={busqueda}
-              placeholder="Ej.: 1051, OT-001051-01, cliente, técnico o matrícula"
+              placeholder="Ej.: 1051, OT-001051-01, CONF-001051-01, cliente, técnico o matrícula"
               autoComplete="off"
               onChange={(event) => {
                 setBusqueda(
@@ -256,7 +318,10 @@ export default function BuscadorDocumentos({
                           {sugerencia.tipo ===
                           "presupuesto"
                             ? "Presupuesto"
-                            : "Orden de Trabajo"}
+                            : sugerencia.tipo ===
+                                "orden"
+                              ? "Orden de Trabajo"
+                              : "Conformidad"}
                         </span>
 
                         <strong
