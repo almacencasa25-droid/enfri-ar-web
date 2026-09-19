@@ -29,9 +29,7 @@ function moneda(valor: number) {
       currency: "ARS",
       maximumFractionDigits: 2,
     }
-  ).format(
-    Number(valor || 0)
-  );
+  ).format(Number(valor || 0));
 }
 
 function fechaArgentina(
@@ -414,8 +412,7 @@ export default function ListadoPresupuestos() {
               event
             ) =>
               setBusqueda(
-                event.target
-                  .value
+                event.target.value
               )
             }
             placeholder="Número, cliente, DNI, CUIT, dirección, detalle o estado"
@@ -426,18 +423,15 @@ export default function ListadoPresupuestos() {
         <p
           style={ayudaStyle}
         >
-          La búsqueda se
-          actualiza
-          automáticamente
-          mientras escribís.
+          La búsqueda se actualiza
+          automáticamente mientras
+          escribís.
         </p>
       </section>
 
       {mensaje ? (
         <div
-          style={
-            successStyle
-          }
+          style={successStyle}
         >
           {mensaje}
         </div>
@@ -507,23 +501,60 @@ export default function ListadoPresupuestos() {
             (
               presupuesto
             ) => {
-              const permiteOrden =
+              const permiteDocumentos =
                 presupuesto.estado ===
                   "aceptado" ||
                 presupuesto.estado ===
                   "realizado";
 
-              const textoOrden =
-                presupuesto
-                  .tiene_orden_trabajo
-                  ? "Ver Orden de Trabajo"
-                  : "Generar Orden de Trabajo";
+              let accionPrincipal:
+                React.ReactNode =
+                null;
 
-              const textoConformidad =
-                presupuesto
-                  .tiene_conformidad
-                  ? "Ver Conformidad"
-                  : "Generar Conformidad";
+              if (
+                permiteDocumentos
+              ) {
+                if (
+                  presupuesto
+                    .tiene_conformidad
+                ) {
+                  accionPrincipal = (
+                    <Link
+                      href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
+                      style={
+                        conformityButtonStyle
+                      }
+                    >
+                      Ver Conformidad
+                    </Link>
+                  );
+                } else if (
+                  presupuesto
+                    .tiene_orden_trabajo
+                ) {
+                  accionPrincipal = (
+                    <Link
+                      href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
+                      style={
+                        conformityButtonStyle
+                      }
+                    >
+                      Generar Conformidad
+                    </Link>
+                  );
+                } else {
+                  accionPrincipal = (
+                    <Link
+                      href={`/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`}
+                      style={
+                        orderButtonStyle
+                      }
+                    >
+                      Generar Orden de Trabajo
+                    </Link>
+                  );
+                }
+              }
 
               return (
                 <article
@@ -593,8 +624,7 @@ export default function ListadoPresupuestos() {
                           ) =>
                             cambiarEstado(
                               presupuesto.id,
-                              event.target
-                                .value
+                              event.target.value
                             )
                           }
                           aria-label={`Estado del presupuesto Nº ${presupuesto.numero}`}
@@ -629,9 +659,7 @@ export default function ListadoPresupuestos() {
                       </div>
 
                       <span
-                        style={
-                          ayudaStyle
-                        }
+                        style={ayudaStyle}
                       >
                         {fechaArgentina(
                           presupuesto.fecha
@@ -711,32 +739,6 @@ export default function ListadoPresupuestos() {
                         Trabajo realizado
                       </span>
                     ) : null}
-
-                    {presupuesto
-                      .numero_orden_trabajo ? (
-                      <span>
-                        Orden:{" "}
-                        <strong>
-                          {
-                            presupuesto
-                              .numero_orden_trabajo
-                          }
-                        </strong>
-                      </span>
-                    ) : null}
-
-                    {presupuesto
-                      .numero_conformidad ? (
-                      <span>
-                        Conformidad:{" "}
-                        <strong>
-                          {
-                            presupuesto
-                              .numero_conformidad
-                          }
-                        </strong>
-                      </span>
-                    ) : null}
                   </div>
 
                   <div
@@ -759,124 +761,153 @@ export default function ListadoPresupuestos() {
                       Modificar
                     </Link>
 
-                    {permiteOrden ? (
-                      <Link
-                        href={`/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`}
-                        style={
-                          presupuesto
-                            .tiene_orden_trabajo
-                            ? existingOrderButtonStyle
-                            : orderButtonStyle
-                        }
-                      >
-                        {textoOrden}
-                      </Link>
-                    ) : null}
+                    {
+                      accionPrincipal
+                    }
 
-                    {permiteOrden ? (
-                      <Link
-                        href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
-                        style={
-                          presupuesto
-                            .tiene_conformidad
-                            ? existingConformityButtonStyle
-                            : conformityButtonStyle
-                        }
-                      >
-                        {
-                          textoConformidad
-                        }
-                      </Link>
-                    ) : null}
-
-                    {presupuesto
-                      .tiene_pdf_presupuesto ? (
-                      <Link
-                        href={`/admin/presupuestos/documentos?tipo=presupuestos&q=${encodeURIComponent(
-                          String(
-                            presupuesto.numero
-                          )
-                        )}`}
-                        style={
-                          pdfExistingButtonStyle
-                        }
-                      >
-                        Ver PDF
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={
-                          procesando
-                        }
-                        onClick={() =>
-                          emitirPdf(
-                            presupuesto
-                          )
-                        }
-                        style={
-                          pdfButtonStyle
-                        }
-                      >
-                        {procesando
-                          ? "Procesando..."
-                          : "Emitir PDF"}
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      disabled={
-                        procesando
-                      }
-                      onClick={() =>
-                        duplicar(
-                          presupuesto
-                        )
-                      }
+                    <details
                       style={
-                        buttonStyle
+                        moreDetailsStyle
                       }
                     >
-                      Duplicar
-                    </button>
-
-                    {presupuesto.estado !==
-                    "anulado" ? (
-                      <button
-                        type="button"
-                        disabled={
-                          procesando
-                        }
-                        onClick={() =>
-                          anular(
-                            presupuesto
-                          )
-                        }
+                      <summary
                         style={
-                          buttonStyle
+                          moreSummaryStyle
                         }
                       >
-                        Anular
-                      </button>
-                    ) : null}
+                        Más ⋮
+                      </summary>
 
-                    <button
-                      type="button"
-                      disabled={
-                        procesando
-                      }
-                      onClick={() =>
-                        eliminar(
-                          presupuesto
-                        )
-                      }
-                      style={
-                        deleteButtonStyle
-                      }
-                    >
-                      Eliminar
-                    </button>
+                      <div
+                        style={
+                          moreMenuStyle
+                        }
+                      >
+                        {presupuesto
+                          .tiene_orden_trabajo ? (
+                          <Link
+                            href={`/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`}
+                            style={
+                              menuLinkStyle
+                            }
+                          >
+                            Ver Orden de Trabajo
+                          </Link>
+                        ) : null}
+
+                        {presupuesto
+                          .tiene_conformidad ? (
+                          <Link
+                            href={`/admin/presupuestos/listado/${presupuesto.id}/conformidad`}
+                            style={
+                              menuLinkStyle
+                            }
+                          >
+                            Ver Conformidad
+                          </Link>
+                        ) : null}
+
+                        {presupuesto
+                          .tiene_pdf_presupuesto ? (
+                          <Link
+                            href={`/admin/presupuestos/documentos?tipo=presupuestos&q=${encodeURIComponent(
+                              String(
+                                presupuesto.numero
+                              )
+                            )}`}
+                            style={
+                              menuLinkStyle
+                            }
+                          >
+                            Ver PDF del presupuesto
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={
+                              procesando
+                            }
+                            onClick={() =>
+                              emitirPdf(
+                                presupuesto
+                              )
+                            }
+                            style={
+                              menuButtonStyle
+                            }
+                          >
+                            Emitir PDF del presupuesto
+                          </button>
+                        )}
+
+                        <Link
+                          href={`/admin/presupuestos/documentos?q=${encodeURIComponent(
+                            String(
+                              presupuesto.numero
+                            )
+                          )}`}
+                          style={
+                            menuLinkStyle
+                          }
+                        >
+                          Ver documentos
+                        </Link>
+
+                        <button
+                          type="button"
+                          disabled={
+                            procesando
+                          }
+                          onClick={() =>
+                            duplicar(
+                              presupuesto
+                            )
+                          }
+                          style={
+                            menuButtonStyle
+                          }
+                        >
+                          Duplicar
+                        </button>
+
+                        {presupuesto.estado !==
+                        "anulado" ? (
+                          <button
+                            type="button"
+                            disabled={
+                              procesando
+                            }
+                            onClick={() =>
+                              anular(
+                                presupuesto
+                              )
+                            }
+                            style={
+                              menuButtonStyle
+                            }
+                          >
+                            Anular
+                          </button>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          disabled={
+                            procesando
+                          }
+                          onClick={() =>
+                            eliminar(
+                              presupuesto
+                            )
+                          }
+                          style={
+                            menuDeleteButtonStyle
+                          }
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </details>
                   </div>
                 </article>
               );
@@ -959,21 +990,6 @@ const presupuestoStyle = {
     "rgba(255,255,255,0.72)",
 };
 
-const buttonStyle = {
-  minHeight: "38px",
-  padding: "7px 12px",
-  border:
-    "1px solid rgba(38, 40, 42, 0.16)",
-  borderRadius: "9px",
-  background: "#ffffff",
-  color:
-    "var(--foreground)",
-  font: "inherit",
-  fontSize: "0.82rem",
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
 const linkButtonStyle = {
   minHeight: "38px",
   display:
@@ -1004,15 +1020,6 @@ const orderButtonStyle = {
   color: "#a55a18",
 };
 
-const existingOrderButtonStyle = {
-  ...linkButtonStyle,
-  background:
-    "rgba(224, 130, 35, 0.20)",
-  border:
-    "1px solid rgba(224, 130, 35, 0.50)",
-  color: "#8b4811",
-};
-
 const conformityButtonStyle = {
   ...linkButtonStyle,
   background:
@@ -1022,40 +1029,86 @@ const conformityButtonStyle = {
   color: "#236b43",
 };
 
-const existingConformityButtonStyle = {
-  ...linkButtonStyle,
-  background:
-    "rgba(35, 107, 67, 0.18)",
-  border:
-    "1px solid rgba(35, 107, 67, 0.46)",
-  color: "#185132",
+const moreDetailsStyle = {
+  position:
+    "relative" as const,
 };
 
-const pdfButtonStyle = {
-  ...buttonStyle,
+const moreSummaryStyle = {
+  minHeight: "38px",
+  display:
+    "inline-flex",
+  alignItems: "center",
+  justifyContent:
+    "center",
+  boxSizing:
+    "border-box" as const,
+  padding: "7px 12px",
   border:
-    "1px solid rgba(20, 110, 160, 0.32)",
-  background:
-    "rgba(20, 110, 160, 0.08)",
-  color: "#146e9f",
+    "1px solid rgba(38, 40, 42, 0.16)",
+  borderRadius: "9px",
+  background: "#ffffff",
+  color:
+    "var(--foreground)",
+  fontSize: "0.82rem",
+  fontWeight: 800,
+  cursor: "pointer",
+  listStyle: "none",
 };
 
-const pdfExistingButtonStyle = {
-  ...linkButtonStyle,
+const moreMenuStyle = {
+  position:
+    "absolute" as const,
+  zIndex: 30,
+  top: "44px",
+  right: 0,
+  width: "230px",
+  display: "grid",
+  gap: "4px",
+  padding: "8px",
   border:
-    "1px solid rgba(20, 110, 160, 0.42)",
-  background:
-    "rgba(20, 110, 160, 0.14)",
-  color: "#146e9f",
+    "1px solid rgba(38, 40, 42, 0.14)",
+  borderRadius: "11px",
+  background: "#ffffff",
+  boxShadow:
+    "0 12px 30px rgba(0,0,0,0.12)",
 };
 
-const deleteButtonStyle = {
-  ...buttonStyle,
-  border:
-    "1px solid rgba(160, 35, 35, 0.3)",
-  background:
-    "rgba(180, 40, 40, 0.06)",
-  color: "#8f2222",
+const menuLinkStyle = {
+  display: "block",
+  width: "100%",
+  boxSizing:
+    "border-box" as const,
+  padding: "9px 10px",
+  borderRadius: "7px",
+  color:
+    "var(--foreground)",
+  fontSize: "0.82rem",
+  fontWeight: 700,
+  textDecoration: "none",
+};
+
+const menuButtonStyle = {
+  width: "100%",
+  boxSizing:
+    "border-box" as const,
+  padding: "9px 10px",
+  border: 0,
+  borderRadius: "7px",
+  background: "transparent",
+  color:
+    "var(--foreground)",
+  font: "inherit",
+  fontSize: "0.82rem",
+  fontWeight: 700,
+  textAlign:
+    "left" as const,
+  cursor: "pointer",
+};
+
+const menuDeleteButtonStyle = {
+  ...menuButtonStyle,
+  color: "#982828",
 };
 
 const successStyle = {
