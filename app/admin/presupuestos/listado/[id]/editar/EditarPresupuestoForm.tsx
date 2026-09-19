@@ -635,12 +635,15 @@ export default function EditarPresupuestoForm({
   }
 
   function eliminarItem(
-    key: string
+    indiceAEliminar: number
   ) {
+    setMensaje("");
+    setError("");
+
     setItems((actuales) =>
       actuales.filter(
-        (item) =>
-          item.key !== key
+        (_, indice) =>
+          indice !== indiceAEliminar
       )
     );
   }
@@ -1119,7 +1122,7 @@ export default function EditarPresupuestoForm({
                     type="button"
                     onClick={() =>
                       eliminarItem(
-                        item.key
+                        indice
                       )
                     }
                     style={
@@ -1290,6 +1293,13 @@ export default function EditarPresupuestoForm({
               </div>
             )
           )}
+
+          {items.length === 0 ? (
+            <div style={emptyItemsStyle}>
+              No hay trabajos cargados. Agregá un trabajo
+              antes de guardar el presupuesto.
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -1689,6 +1699,18 @@ const deleteButtonStyle = {
   fontSize: "0.78rem",
   fontWeight: 800,
   cursor: "pointer",
+};
+
+const emptyItemsStyle = {
+  padding: "12px 14px",
+  border:
+    "1px solid rgba(224, 130, 35, 0.28)",
+  borderRadius: "10px",
+  background:
+    "rgba(224, 130, 35, 0.07)",
+  color: "#8a4a13",
+  fontSize: "0.84rem",
+  fontWeight: 800,
 };
 
 const totalesStyle = {
