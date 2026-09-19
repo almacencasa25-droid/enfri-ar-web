@@ -15,6 +15,7 @@ import {
   duplicarPresupuestoAction,
   eliminarPresupuestoAction,
   obtenerPdfConformidadAction,
+  obtenerPdfOrdenTrabajoAction,
   type PresupuestoBusqueda,
 } from "./actions";
 
@@ -176,6 +177,73 @@ export default function ListadoPresupuestos() {
   function refrescar() {
     void cargarPresupuestos(
       busqueda
+    );
+  }
+
+  function abrirPdfOrdenTrabajo(
+    presupuesto:
+      PresupuestoBusqueda
+  ) {
+    if (
+      !presupuesto.orden_trabajo_id
+    ) {
+      setError(
+        "No se encontró la Orden de Trabajo vigente."
+      );
+      return;
+    }
+
+    setMensaje("");
+    setError("");
+
+    const ventanaPdf =
+      window.open(
+        "",
+        "_blank"
+      );
+
+    if (ventanaPdf) {
+      ventanaPdf.document.title =
+        "Abriendo Orden de Trabajo...";
+
+      ventanaPdf.document.body.innerHTML =
+        "<p style='font-family:Arial,sans-serif;padding:24px'>Abriendo PDF de Orden de Trabajo...</p>";
+    }
+
+    startTransition(
+      async () => {
+        const resultado =
+          await obtenerPdfOrdenTrabajoAction(
+            presupuesto.orden_trabajo_id!
+          );
+
+        if (
+          !resultado.ok ||
+          !resultado.data?.url
+        ) {
+          if (ventanaPdf) {
+            ventanaPdf.close();
+          }
+
+          setError(
+            resultado.error ||
+              "No se pudo abrir el PDF de la Orden de Trabajo."
+          );
+
+          return;
+        }
+
+        if (ventanaPdf) {
+          ventanaPdf.location.href =
+            resultado.data.url;
+        } else {
+          window.open(
+            resultado.data.url,
+            "_blank",
+            "noopener,noreferrer"
+          );
+        }
+      }
     );
   }
 
@@ -917,14 +985,22 @@ export default function ListadoPresupuestos() {
 
                         {presupuesto
                           .tiene_orden_trabajo ? (
-                          <Link
-                            href={`/admin/presupuestos/listado/${presupuesto.id}/orden-trabajo`}
+                          <button
+                            type="button"
+                            disabled={
+                              procesando
+                            }
+                            onClick={() =>
+                              abrirPdfOrdenTrabajo(
+                                presupuesto
+                              )
+                            }
                             style={
-                              menuLinkStyle
+                              menuButtonStyle
                             }
                           >
                             Ver Orden de Trabajo
-                          </Link>
+                          </button>
                         ) : null}
 
                         {presupuesto
