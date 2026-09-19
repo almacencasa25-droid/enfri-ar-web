@@ -8,6 +8,10 @@ import {
 } from "react";
 
 import {
+  useRouter,
+} from "next/navigation";
+
+import {
   crearConformidadAction,
 } from "./actions";
 
@@ -48,6 +52,9 @@ export default function ConformidadForm({
   cliente,
   ordenes = [],
 }: Props) {
+  const router =
+    useRouter();
+
   const [
     ordenTrabajoId,
     setOrdenTrabajoId,
@@ -382,7 +389,15 @@ export default function ConformidadForm({
           setMensaje(
             `Conformidad ${conformidad.numeroConformidad} creada correctamente.`
           );
+
+          return;
         }
+
+        router.push(
+          `/admin/presupuestos/listado?abrir=${encodeURIComponent(
+            presupuestoId
+          )}`
+        );
       }
     );
   }
