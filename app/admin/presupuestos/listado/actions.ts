@@ -151,7 +151,7 @@ export async function buscarPresupuestosAction(
 
   /*
    * =========================================
-   * ÓRDENES DE TRABAJO EXISTENTES
+   * ÓRDENES DE TRABAJO VIGENTES
    * =========================================
    */
 
@@ -171,6 +171,10 @@ export async function buscarPresupuestosAction(
     .in(
       "presupuesto_id",
       presupuestoIds
+    )
+    .eq(
+      "vigente",
+      true
     )
     .order(
       "created_at",
@@ -195,7 +199,7 @@ export async function buscarPresupuestosAction(
 
   /*
    * =========================================
-   * CONFORMIDADES EXISTENTES
+   * CONFORMIDADES VIGENTES
    * =========================================
    */
 
@@ -216,6 +220,10 @@ export async function buscarPresupuestosAction(
     .in(
       "presupuesto_id",
       presupuestoIds
+    )
+    .eq(
+      "vigente",
+      true
     )
     .order(
       "created_at",
@@ -290,9 +298,11 @@ export async function buscarPresupuestosAction(
    * TOMAR EL DOCUMENTO ACTUAL DE CADA TIPO
    * =========================================
    *
-   * Como vienen ordenados del más nuevo
-   * al más viejo, conservamos el primero
-   * encontrado para cada presupuesto.
+   * En OT y conformidad ya recibimos
+   * solamente los documentos vigentes.
+   *
+   * En PDF de presupuesto conservamos
+   * el más nuevo que tenga storage_path.
    */
 
   const ordenPorPresupuesto =
