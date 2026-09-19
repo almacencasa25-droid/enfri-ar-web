@@ -16,6 +16,7 @@ import {
   eliminarPresupuestoAction,
   obtenerPdfConformidadAction,
   obtenerPdfOrdenTrabajoAction,
+  obtenerPdfPresupuestoAction,
   type PresupuestoBusqueda,
 } from "./actions";
 
@@ -177,6 +178,73 @@ export default function ListadoPresupuestos() {
   function refrescar() {
     void cargarPresupuestos(
       busqueda
+    );
+  }
+
+  function abrirPdfPresupuesto(
+    presupuesto:
+      PresupuestoBusqueda
+  ) {
+    if (
+      !presupuesto.pdf_presupuesto_id
+    ) {
+      setError(
+        "No se encontró el PDF actual del presupuesto."
+      );
+      return;
+    }
+
+    setMensaje("");
+    setError("");
+
+    const ventanaPdf =
+      window.open(
+        "",
+        "_blank"
+      );
+
+    if (ventanaPdf) {
+      ventanaPdf.document.title =
+        "Abriendo presupuesto...";
+
+      ventanaPdf.document.body.innerHTML =
+        "<p style='font-family:Arial,sans-serif;padding:24px'>Abriendo PDF del presupuesto...</p>";
+    }
+
+    startTransition(
+      async () => {
+        const resultado =
+          await obtenerPdfPresupuestoAction(
+            presupuesto.pdf_presupuesto_id!
+          );
+
+        if (
+          !resultado.ok ||
+          !resultado.data?.url
+        ) {
+          if (ventanaPdf) {
+            ventanaPdf.close();
+          }
+
+          setError(
+            resultado.error ||
+              "No se pudo abrir el PDF del presupuesto."
+          );
+
+          return;
+        }
+
+        if (ventanaPdf) {
+          ventanaPdf.location.href =
+            resultado.data.url;
+        } else {
+          window.open(
+            resultado.data.url,
+            "_blank",
+            "noopener,noreferrer"
+          );
+        }
+      }
     );
   }
 
@@ -961,18 +1029,22 @@ export default function ListadoPresupuestos() {
                       >
                         {presupuesto
                           .tiene_pdf_presupuesto ? (
-                          <Link
-                            href={`/admin/presupuestos/documentos?tipo=presupuestos&q=${encodeURIComponent(
-                              String(
-                                presupuesto.numero
+                          <button
+                            type="button"
+                            disabled={
+                              procesando
+                            }
+                            onClick={() =>
+                              abrirPdfPresupuesto(
+                                presupuesto
                               )
-                            )}`}
+                            }
                             style={
-                              menuLinkStyle
+                              menuButtonStyle
                             }
                           >
                             Ver PDF del presupuesto
-                          </Link>
+                          </button>
                         ) : (
                           <div
                             style={
