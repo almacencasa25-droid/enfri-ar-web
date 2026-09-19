@@ -789,10 +789,16 @@ export default function ListadoPresupuestos({
                 key={
                   presupuesto.id
                 }
-                defaultOpen={
-                  presupuesto.id ===
-                  abrirId
-                }
+                ref={(elemento) => {
+                  if (
+                    elemento &&
+                    presupuesto.id ===
+                      abrirId
+                  ) {
+                    elemento.open =
+                      true;
+                  }
+                }}
                 style={
                   presupuestoStyle
                 }
