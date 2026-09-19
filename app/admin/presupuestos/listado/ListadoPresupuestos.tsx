@@ -625,19 +625,14 @@ export default function ListadoPresupuestos({
         return (
           <button
             type="button"
-            disabled={
-              procesando
-            }
-            onClick={() =>
-              abrirPdfConformidad(
-                presupuesto
-              )
-            }
-            style={
-              conformityButtonStyle
-            }
+            disabled
+            style={{
+              ...conformityButtonStyle,
+              opacity: 0.6,
+              cursor: "not-allowed",
+            }}
           >
-            Ver Conformidad
+            Documentos generados
           </button>
         );
       }
