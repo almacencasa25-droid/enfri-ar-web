@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import {
+  emitirPresupuestoPdfAction,
+} from "../listado/pdf/actions";
+
 type ActionResult<T = undefined> = {
   ok: boolean;
   data?: T;
@@ -434,12 +438,41 @@ export async function crearPresupuestoAction(
     };
   }
 
+  /*
+   * El presupuesto ya fue creado correctamente.
+   * Ahora emitimos automáticamente su PDF versión 1.
+   *
+   * Esta acción reutiliza exactamente la misma
+   * lógica histórica que ya usamos al editar:
+   * crea la versión en presupuesto_documentos,
+   * genera el PDF y guarda su storage_path.
+   */
+  const resultadoPdf =
+    await emitirPresupuestoPdfAction(
+      presupuestoId
+    );
+
+  if (!resultadoPdf.ok) {
+    return {
+      ok: false,
+      error:
+        `El presupuesto fue creado, pero no se pudo generar automáticamente su PDF. ${
+          resultadoPdf.error ||
+          "Podés volver a intentar la emisión desde Documentos."
+        }`,
+    };
+  }
+
   revalidatePath(
     "/admin/presupuestos"
   );
 
   revalidatePath(
     "/admin/presupuestos/listado"
+  );
+
+  revalidatePath(
+    "/admin/presupuestos/documentos"
   );
 
   return {
