@@ -457,6 +457,101 @@ export async function buscarPresupuestosAction(
   };
 }
 
+export async function obtenerPdfPresupuestoAction(
+  documentoId: string
+): Promise<
+  ActionResult<{
+    url: string;
+    nombreArchivo: string;
+  }>
+> {
+  await requireAdminUser();
+
+  if (!documentoId) {
+    return {
+      ok: false,
+      error:
+        "PDF de presupuesto inexistente.",
+    };
+  }
+
+  const supabase =
+    await createSupabaseServerClient();
+
+  const {
+    data: documento,
+    error: documentoError,
+  } = await supabase
+    .from(
+      "presupuesto_documentos"
+    )
+    .select(`
+      id,
+      presupuesto_id,
+      version,
+      storage_path
+    `)
+    .eq(
+      "id",
+      documentoId
+    )
+    .maybeSingle();
+
+  if (documentoError) {
+    return {
+      ok: false,
+      error:
+        documentoError.message ||
+        "No se pudo consultar el PDF del presupuesto.",
+    };
+  }
+
+  if (
+    !documento?.storage_path
+  ) {
+    return {
+      ok: false,
+      error:
+        "Este presupuesto todavía no tiene un PDF guardado.",
+    };
+  }
+
+  const {
+    data: firmado,
+    error: firmadoError,
+  } = await supabase.storage
+    .from(
+      "presupuestos-enfri-ar"
+    )
+    .createSignedUrl(
+      documento.storage_path,
+      60 * 10
+    );
+
+  if (
+    firmadoError ||
+    !firmado?.signedUrl
+  ) {
+    return {
+      ok: false,
+      error:
+        firmadoError?.message ||
+        "No se pudo abrir el PDF del presupuesto.",
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      url:
+        firmado.signedUrl,
+      nombreArchivo:
+        `presupuesto-${documento.presupuesto_id}-v${documento.version}.pdf`,
+    },
+  };
+}
+
+
 export async function obtenerPdfOrdenTrabajoAction(
   planillaTrabajoId: string
 ): Promise<
