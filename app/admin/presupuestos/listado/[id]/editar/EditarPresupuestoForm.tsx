@@ -725,7 +725,11 @@ export default function EditarPresupuestoForm({
         "Presupuesto modificado correctamente."
       );
 
-      router.refresh();
+      router.push(
+        `/admin/presupuestos/listado?abrir=${encodeURIComponent(
+          presupuesto.id
+        )}`
+      );
     });
   }
 
