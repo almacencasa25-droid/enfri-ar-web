@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   Calculator,
+  ClipboardCheck,
   ClipboardList,
   FileText,
   HardHat,
@@ -46,6 +47,13 @@ export default function PresupuestosPage() {
         "Buscar, revisar, modificar, duplicar, anular y consultar presupuestos anteriores.",
       href: "/admin/presupuestos/listado",
       icono: ClipboardList,
+    },
+    {
+      titulo: "Ficha de revisión técnica",
+      descripcion:
+        "Generar fichas numeradas para realizar una revisión técnica previa al presupuesto.",
+      href: "/admin/presupuestos/ficha-revision",
+      icono: ClipboardCheck,
     },
     {
       titulo: "Clientes",
