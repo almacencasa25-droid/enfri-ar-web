@@ -1,4 +1,5 @@
 import { requireAdminUser } from "@/lib/auth/admin";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type WorkGalleryCategory =
@@ -22,20 +23,50 @@ export type WorkGalleryItem = {
 
 type WorkGalleryRow = Omit<WorkGalleryItem, "image_url">;
 
-function addPublicUrl(
-  supabase: Awaited<
-    ReturnType<typeof createSupabaseServerClient>
-  >,
+const GALLERY_BUCKET = "trabajos-enfri-ar";
+const SIGNED_URL_SECONDS = 60 * 60;
+
+async function addSignedUrl(
   row: WorkGalleryRow
-): WorkGalleryItem {
-  const { data } = supabase.storage
-    .from("trabajos-enfri-ar")
-    .getPublicUrl(row.storage_path);
+): Promise<WorkGalleryItem | null> {
+  const supabaseAdmin = createSupabaseAdminClient();
+
+  const { data, error } = await supabaseAdmin.storage
+    .from(GALLERY_BUCKET)
+    .createSignedUrl(
+      row.storage_path,
+      SIGNED_URL_SECONDS
+    );
+
+  if (error || !data?.signedUrl) {
+    console.error(
+      "Error al generar URL firmada para imagen de galería:",
+      {
+        storagePath: row.storage_path,
+        error,
+      }
+    );
+
+    return null;
+  }
 
   return {
     ...row,
-    image_url: data.publicUrl,
+    image_url: data.signedUrl,
   };
+}
+
+async function addSignedUrls(
+  rows: WorkGalleryRow[]
+): Promise<WorkGalleryItem[]> {
+  const items = await Promise.all(
+    rows.map((row) => addSignedUrl(row))
+  );
+
+  return items.filter(
+    (item): item is WorkGalleryItem =>
+      item !== null
+  );
 }
 
 export async function getPublishedWorkGallery(): Promise<
@@ -79,8 +110,8 @@ export async function getPublishedWorkGallery(): Promise<
     return [];
   }
 
-  return ((data ?? []) as WorkGalleryRow[]).map(
-    (row) => addPublicUrl(supabase, row)
+  return addSignedUrls(
+    (data ?? []) as WorkGalleryRow[]
   );
 }
 
@@ -128,7 +159,7 @@ export async function getAdminWorkGallery(): Promise<
     );
   }
 
-  return ((data ?? []) as WorkGalleryRow[]).map(
-    (row) => addPublicUrl(supabase, row)
+  return addSignedUrls(
+    (data ?? []) as WorkGalleryRow[]
   );
 }
