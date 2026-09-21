@@ -26,7 +26,7 @@ export type GenerarFichaRevisionPdfInput = {
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
-const MARGIN_X = 26;
+const MARGIN_X = 28;
 
 const COLOR_AZUL = rgb(
   0.1,
@@ -59,8 +59,8 @@ const COLOR_NARANJA = rgb(
 );
 
 const COLOR_LINEA = rgb(
-  0.68,
-  0.71,
+  0.7,
+  0.72,
   0.75
 );
 
@@ -152,14 +152,14 @@ async function cargarLogo(
 function escribirTexto(
   page: PDFPage,
   font: PDFFont,
-  texto: string,
+  valor: string,
   x: number,
   y: number,
   size: number,
   color = COLOR_NEGRO
 ) {
   page.drawText(
-    texto,
+    valor,
     {
       x,
       y,
@@ -172,20 +172,20 @@ function escribirTexto(
 
 function escribirTextoNegrita(
   page: PDFPage,
-  fontBold: PDFFont,
-  texto: string,
+  font: PDFFont,
+  valor: string,
   x: number,
   y: number,
   size: number,
   color = COLOR_NEGRO
 ) {
   page.drawText(
-    texto,
+    valor,
     {
       x,
       y,
       size,
-      font: fontBold,
+      font,
       color,
     }
   );
@@ -197,7 +197,7 @@ function linea(
   y1: number,
   x2: number,
   y2: number,
-  grosor = 0.7,
+  grosor = 0.6,
   color = COLOR_LINEA
 ) {
   page.drawLine({
@@ -225,7 +225,7 @@ function tituloSeccion(
     marginX,
   } = ctx;
 
-  const alto = 16;
+  const alto = 17;
 
   const yBase =
     ctx.y - alto;
@@ -251,60 +251,72 @@ function tituloSeccion(
     page,
     fontBold,
     titulo.toUpperCase(),
-    marginX + 6,
+    marginX + 7,
     yBase + 5,
-    7.1,
+    7.3,
     COLOR_AZUL
   );
 
   ctx.y =
-    yBase - 8;
+    yBase - 9;
 }
 
-function campoLinea(
-  ctx: ContextoDibujo,
-  label: string,
-  x: number,
-  anchoLabel: number,
-  anchoLinea: number,
-  y?: number
-) {
+function campoLinea({
+  ctx,
+  etiqueta,
+  x,
+  y,
+  ancho,
+}: {
+  ctx: ContextoDibujo;
+  etiqueta: string;
+  x: number;
+  y: number;
+  ancho: number;
+}) {
   const {
     page,
     fontBold,
   } = ctx;
 
-  const yy =
-    y ?? ctx.y;
-
   escribirTextoNegrita(
     page,
     fontBold,
-    label,
+    etiqueta,
     x,
-    yy + 2,
-    6.3,
+    y + 2,
+    6.4,
     COLOR_GRIS
   );
 
+  const etiquetaWidth =
+    fontBold.widthOfTextAtSize(
+      etiqueta,
+      6.4
+    );
+
   linea(
     page,
-    x + anchoLabel,
-    yy + 1,
     x +
-      anchoLabel +
-      anchoLinea,
-    yy + 1,
-    0.6
+      etiquetaWidth +
+      5,
+    y + 1,
+    x + ancho,
+    y + 1
   );
 }
 
-function checkbox(
-  ctx: ContextoDibujo,
-  x: number,
-  y: number,
-  label: string
-) {
+function checkbox({
+  ctx,
+  etiqueta,
+  x,
+  y,
+}: {
+  ctx: ContextoDibujo;
+  etiqueta: string;
+  x: number;
+  y: number;
+}) {
   const {
     page,
     font,
@@ -323,10 +335,10 @@ function checkbox(
   escribirTexto(
     page,
     font,
-    label,
-    x + 12,
+    etiqueta,
+    x + 13,
     y + 1,
-    6.25,
+    6.3,
     COLOR_NEGRO
   );
 }
@@ -342,111 +354,80 @@ function filaConsulta({
 }) {
   const {
     page,
-    font,
     fontBold,
     marginX,
+    width,
   } = ctx;
 
   const y =
     ctx.y;
 
-  const inicioOpciones =
-    marginX + 142;
-
-  const columnas = [
-    inicioOpciones,
-    inicioOpciones + 94,
-    inicioOpciones + 188,
-    inicioOpciones + 282,
-  ];
-
   escribirTextoNegrita(
     page,
     fontBold,
     nombre,
-    marginX + 4,
+    marginX + 5,
     y + 1,
     6.35,
     COLOR_GRIS
   );
 
-  opciones
-    .slice(
-      0,
-      4
-    )
-    .forEach(
-      (
-        opcion,
-        indice
-      ) => {
-        checkbox(
-          ctx,
-          columnas[
-            indice
-          ],
-          y,
-          opcion
-        );
-      }
-    );
+  /*
+   * Las opciones se distribuyen
+   * uniformemente según cantidad.
+   */
+  const inicio =
+    marginX + 155;
+
+  const final =
+    width -
+    marginX -
+    8;
+
+  const espacio =
+    final -
+    inicio;
+
+  const paso =
+    opciones.length > 1
+      ? espacio /
+        opciones.length
+      : espacio;
+
+  opciones.forEach(
+    (
+      item,
+      indice
+    ) => {
+      checkbox({
+        ctx,
+        etiqueta:
+          item,
+        x:
+          inicio +
+          paso *
+            indice,
+        y,
+      });
+    }
+  );
 
   linea(
     page,
     marginX,
-    y - 5,
-    PAGE_WIDTH -
+    y - 6,
+    width -
       marginX,
-    y - 5,
-    0.28,
+    y - 6,
+    0.25,
     rgb(
-      0.84,
-      0.85,
-      0.87
+      0.86,
+      0.87,
+      0.89
     )
   );
 
-  ctx.y -= 16;
-}
-
-function observaciones(
-  ctx: ContextoDibujo
-) {
-  const {
-    page,
-    fontBold,
-    width,
-    marginX,
-  } = ctx;
-
-  escribirTextoNegrita(
-    page,
-    fontBold,
-    "Descripción / observaciones técnicas",
-    marginX,
-    ctx.y,
-    6.6,
-    COLOR_GRIS
-  );
-
-  ctx.y -= 11;
-
-  for (
-    let i = 0;
-    i < 4;
-    i += 1
-  ) {
-    linea(
-      page,
-      marginX,
-      ctx.y,
-      width - marginX,
-      ctx.y,
-      0.6
-    );
-
-    ctx.y -= 17;
-  }
+  ctx.y -= 17;
 }
 
 function dibujarEncabezado(
@@ -471,14 +452,14 @@ function dibujarEncabezado(
   } = ctx;
 
   const top =
-    height - 16;
+    height - 17;
 
   if (logo) {
     const escala =
       Math.min(
-        55 /
+        58 /
           logo.width,
-        23 /
+        25 /
           logo.height
       );
 
@@ -498,16 +479,6 @@ function dibujarEncabezado(
           escala,
       }
     );
-  } else {
-    escribirTextoNegrita(
-      page,
-      fontBold,
-      "Enfri.Ar",
-      marginX,
-      top - 10,
-      12,
-      COLOR_AZUL
-    );
   }
 
   escribirTextoNegrita(
@@ -515,8 +486,8 @@ function dibujarEncabezado(
     fontBold,
     "FICHA DE REVISIÓN TÉCNICA",
     width / 2 - 73,
-    top - 9,
-    8.2,
+    top - 10,
+    8.4,
     COLOR_NEGRO
   );
 
@@ -531,28 +502,28 @@ function dibujarEncabezado(
     )}`,
     width -
       marginX -
-      54,
-    top - 9,
-    7.4,
+      58,
+    top - 10,
+    7.5,
     COLOR_NARANJA
   );
 
   escribirTexto(
     page,
     font,
-    empresa.nombre,
+    `${empresa.nombre} | CUIT: ${empresa.cuit}`,
     marginX,
-    top - 30,
-    5.8,
+    top - 34,
+    5.6,
     COLOR_GRIS
   );
 
   escribirTexto(
     page,
     font,
-    `CUIT: ${empresa.cuit} | ${empresa.direccion} | Tel: ${empresa.telefono} | ${empresa.email}`,
+    `${empresa.direccion} | Tel: ${empresa.telefono} | ${empresa.email}`,
     marginX,
-    top - 39,
+    top - 44,
     5.4,
     COLOR_GRIS
   );
@@ -560,9 +531,10 @@ function dibujarEncabezado(
   linea(
     page,
     marginX,
-    top - 47,
-    width - marginX,
-    top - 47,
+    top - 52,
+    width -
+      marginX,
+    top - 52,
     0.9,
     rgb(
       0.68,
@@ -572,7 +544,7 @@ function dibujarEncabezado(
   );
 
   ctx.y =
-    top - 59;
+    top - 65;
 }
 
 function dibujarContenido(
@@ -586,17 +558,10 @@ function dibujarContenido(
     marginX,
   } = ctx;
 
-  const col1 =
-    marginX;
-
-  const col2 =
-    187;
-
-  const col3 =
-    365;
-
   /*
+   * ==========================
    * DATOS DE LA VISITA
+   * ==========================
    */
 
   tituloSeccion(
@@ -604,70 +569,85 @@ function dibujarContenido(
     "Datos de la visita"
   );
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Fecha:",
-    col1,
-    28,
-    105
-  );
+    etiqueta:
+      "Fecha:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 150,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Hora:",
-    col2,
-    25,
-    75
-  );
+    etiqueta:
+      "Hora:",
+    x: 180,
+    y: ctx.y,
+    ancho: 275,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Cliente / empresa:",
-    col3,
-    72,
-    130
-  );
+    etiqueta:
+      "Cliente / empresa:",
+    x: 305,
+    y: ctx.y,
+    ancho:
+      width -
+      marginX,
+  });
 
-  ctx.y -= 19;
+  ctx.y -= 20;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Dirección:",
-    col1,
-    42,
-    225
-  );
+    etiqueta:
+      "Dirección:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 330,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Localidad:",
-    col3,
-    45,
-    135
-  );
+    etiqueta:
+      "Localidad:",
+    x: 355,
+    y: ctx.y,
+    ancho:
+      width -
+      marginX,
+  });
 
-  ctx.y -= 19;
+  ctx.y -= 20;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Teléfono:",
-    col1,
-    43,
-    145
-  );
+    etiqueta:
+      "Teléfono:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 210,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Sector / ubicación:",
-    260,
-    72,
-    235
-  );
+    etiqueta:
+      "Sector / ubicación:",
+    x: 245,
+    y: ctx.y,
+    ancho:
+      width -
+      marginX,
+  });
 
-  ctx.y -= 23;
+  ctx.y -= 25;
 
   /*
+   * ==========================
    * TIPO DE VISITA
+   * ==========================
    */
 
   tituloSeccion(
@@ -675,40 +655,47 @@ function dibujarContenido(
     "Tipo de visita"
   );
 
-  checkbox(
+  checkbox({
     ctx,
-    marginX + 8,
-    ctx.y,
-    "Consulta técnica"
-  );
+    etiqueta:
+      "Consulta técnica",
+    x:
+      marginX +
+      10,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    205,
-    ctx.y,
-    "Relevamiento para instalación"
-  );
+    etiqueta:
+      "Relevamiento para instalación",
+    x: 205,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    430,
-    ctx.y,
-    "Otro"
-  );
+    etiqueta:
+      "Otro",
+    x: 445,
+    y: ctx.y,
+  });
 
   linea(
     page,
-    474,
+    488,
     ctx.y + 1,
-    width - marginX,
-    ctx.y + 1,
-    0.6
+    width -
+      marginX,
+    ctx.y + 1
   );
 
-  ctx.y -= 22;
+  ctx.y -= 24;
 
   /*
+   * ==========================
    * IDENTIFICACIÓN
+   * ==========================
    */
 
   tituloSeccion(
@@ -720,102 +707,108 @@ function dibujarContenido(
     page,
     fontBold,
     "Tipo:",
-    col1,
+    marginX,
     ctx.y + 2,
-    6.3,
+    6.4,
     COLOR_GRIS
   );
 
-  checkbox(
+  checkbox({
     ctx,
-    70,
-    ctx.y,
-    "Split"
-  );
+    etiqueta:
+      "Split",
+    x: 70,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    130,
-    ctx.y,
-    "Piso techo"
-  );
+    etiqueta:
+      "Piso techo",
+    x: 135,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    225,
-    ctx.y,
-    "Cassette"
-  );
+    etiqueta:
+      "Cassette",
+    x: 235,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    310,
-    ctx.y,
-    "Ventana"
-  );
+    etiqueta:
+      "Ventana",
+    x: 330,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    400,
-    ctx.y,
-    "Otro"
-  );
+    etiqueta:
+      "Otro",
+    x: 425,
+    y: ctx.y,
+  });
 
-  ctx.y -= 19;
+  ctx.y -= 20;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Marca:",
-    col1,
-    31,
-    135
-  );
+    etiqueta:
+      "Marca:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 180,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Modelo:",
-    205,
-    37,
-    120
-  );
+    etiqueta:
+      "Modelo:",
+    x: 205,
+    y: ctx.y,
+    ancho: 365,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Capacidad:",
-    390,
-    50,
-    125
-  );
+    etiqueta:
+      "Capacidad:",
+    x: 390,
+    y: ctx.y,
+    ancho:
+      width -
+      marginX,
+  });
 
-  ctx.y -= 19;
+  ctx.y -= 20;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Serie / inventario:",
-    col1,
-    74,
-    175
-  );
+    etiqueta:
+      "Refrigerante:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 275,
+  });
 
-  campoLinea(
+  checkbox({
     ctx,
-    "Refrigerante:",
-    325,
-    60,
-    110
-  );
+    etiqueta:
+      "Sin etiqueta",
+    x: 315,
+    y: ctx.y,
+  });
 
-  checkbox(
-    ctx,
-    505,
-    ctx.y,
-    "Sin etiqueta"
-  );
-
-  ctx.y -= 23;
+  ctx.y -= 25;
 
   /*
+   * ==========================
    * CONSULTA TÉCNICA
+   * ==========================
    */
 
   tituloSeccion(
@@ -827,7 +820,7 @@ function dibujarContenido(
     page,
     fontBold,
     "Control y diagnóstico del equipo",
-    marginX + 4,
+    marginX + 5,
     ctx.y + 2,
     6.7,
     COLOR_GRIS
@@ -836,18 +829,14 @@ function dibujarContenido(
   linea(
     page,
     marginX,
-    ctx.y - 5,
-    width - marginX,
-    ctx.y - 5,
-    0.55,
-    rgb(
-      0.75,
-      0.78,
-      0.82
-    )
+    ctx.y - 6,
+    width -
+      marginX,
+    ctx.y - 6,
+    0.5
   );
 
-  ctx.y -= 17;
+  ctx.y -= 19;
 
   filaConsulta({
     ctx,
@@ -866,7 +855,6 @@ function dibujarContenido(
     opciones: [
       "Correcto",
       "Sucio",
-      "Congelado",
       "Dañado",
     ],
   });
@@ -878,7 +866,6 @@ function dibujarContenido(
     opciones: [
       "Correcto",
       "Sucio",
-      "Obstruido",
       "Dañado",
     ],
   });
@@ -924,7 +911,6 @@ function dibujarContenido(
     opciones: [
       "Normal",
       "Falta",
-      "Sin carga",
       "Posible fuga",
     ],
   });
@@ -936,7 +922,7 @@ function dibujarContenido(
     opciones: [
       "Correcto",
       "Obstruido",
-      "Pierde agua",
+      "Pérdida",
     ],
   });
 
@@ -946,7 +932,7 @@ function dibujarContenido(
       "Instalación eléctrica",
     opciones: [
       "Correcta",
-      "A revisar",
+      "Revisar",
       "Riesgosa",
     ],
   });
@@ -964,52 +950,65 @@ function dibujarContenido(
 
   ctx.y -= 2;
 
-  campoLinea(
-    ctx,
-    "Tensión:",
-    col1,
-    40,
-    90
+  /*
+   * MEDICIONES EN UNA SOLA FILA
+   */
+
+  const mediciones = [
+    {
+      etiqueta:
+        "Tensión:",
+      x: marginX,
+      ancho: 118,
+    },
+    {
+      etiqueta:
+        "Consumo:",
+      x: 138,
+      ancho: 230,
+    },
+    {
+      etiqueta:
+        "Presión:",
+      x: 250,
+      ancho: 340,
+    },
+    {
+      etiqueta:
+        "Temp. entrada:",
+      x: 360,
+      ancho: 465,
+    },
+    {
+      etiqueta:
+        "Temp. salida:",
+      x: 480,
+      ancho:
+        width -
+        marginX,
+    },
+  ];
+
+  mediciones.forEach(
+    (item) => {
+      campoLinea({
+        ctx,
+        etiqueta:
+          item.etiqueta,
+        x: item.x,
+        y: ctx.y,
+        ancho:
+          item.ancho,
+      });
+    }
   );
 
-  campoLinea(
-    ctx,
-    "Consumo:",
-    165,
-    49,
-    75
-  );
-
-  campoLinea(
-    ctx,
-    "Presión:",
-    305,
-    42,
-    70
-  );
-
-  campoLinea(
-    ctx,
-    "Temp. entrada:",
-    425,
-    66,
-    70
-  );
-
-  ctx.y -= 19;
-
-  campoLinea(
-    ctx,
-    "Temp. salida:",
-    col1,
-    59,
-    110
-  );
-
-  ctx.y -= 24;
+  ctx.y -= 27;
 
   /*
+   * ==========================
    * INSTALACIÓN
+   * ==========================
    */
 
   tituloSeccion(
@@ -1017,104 +1016,114 @@ function dibujarContenido(
     "Relevamiento para instalación"
   );
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Equipo / capacidad estimada:",
-    col1,
-    106,
-    145
-  );
+    etiqueta:
+      "Capacidad estimada:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 275,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Interconexión aprox.:",
-    330,
-    80,
-    130
-  );
-
-  ctx.y -= 19;
-
-  campoLinea(
-    ctx,
-    "Ubicación evaporador:",
-    col1,
-    89,
-    150
-  );
-
-  campoLinea(
-    ctx,
-    "Ubicación condensador:",
-    325,
-    94,
-    135
-  );
+    etiqueta:
+      "Interconexión aprox.:",
+    x: 310,
+    y: ctx.y,
+    ancho:
+      width -
+      marginX,
+  });
 
   ctx.y -= 20;
 
-  checkbox(
+  campoLinea({
     ctx,
-    col1,
-    ctx.y,
-    "Desagüe disponible"
-  );
+    etiqueta:
+      "Ubicación evaporador:",
+    x: marginX,
+    y: ctx.y,
+    ancho: 275,
+  });
 
-  checkbox(
+  campoLinea({
     ctx,
-    165,
-    ctx.y,
-    "Alimentación eléctrica"
-  );
+    etiqueta:
+      "Ubicación condensador:",
+    x: 310,
+    y: ctx.y,
+    ancho:
+      width -
+      marginX,
+  });
 
-  checkbox(
+  ctx.y -= 21;
+
+  checkbox({
     ctx,
-    330,
-    ctx.y,
-    "Perforación"
-  );
+    etiqueta:
+      "Desagüe",
+    x: marginX,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    435,
-    ctx.y,
-    "Ménsulas / base"
-  );
+    etiqueta:
+      "Alimentación eléctrica",
+    x: 125,
+    y: ctx.y,
+  });
 
-  ctx.y -= 18;
-
-  checkbox(
+  checkbox({
     ctx,
-    col1,
-    ctx.y,
-    "Canaleta"
-  );
+    etiqueta:
+      "Perforación",
+    x: 285,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    130,
-    ctx.y,
-    "Trabajo en altura"
-  );
+    etiqueta:
+      "Ménsulas / base",
+    x: 390,
+    y: ctx.y,
+  });
 
-  checkbox(
+  ctx.y -= 19;
+
+  checkbox({
     ctx,
-    270,
-    ctx.y,
-    "Acceso complejo"
-  );
+    etiqueta:
+      "Canaleta",
+    x: marginX,
+    y: ctx.y,
+  });
 
-  checkbox(
+  checkbox({
     ctx,
-    405,
-    ctx.y,
-    "Andamio / elevación"
-  );
+    etiqueta:
+      "Trabajo en altura",
+    x: 150,
+    y: ctx.y,
+  });
 
-  ctx.y -= 23;
+  checkbox({
+    ctx,
+    etiqueta:
+      "Acceso especial",
+    x: 330,
+    y: ctx.y,
+  });
+
+  ctx.y -= 26;
 
   /*
+   * ==========================
    * CONCLUSIÓN
+   * ==========================
    */
 
   tituloSeccion(
@@ -1122,142 +1131,173 @@ function dibujarContenido(
     "Conclusión técnica"
   );
 
-  checkbox(
+  const conclusiones = [
+    {
+      etiqueta:
+        "Operativo",
+      x: marginX,
+    },
+    {
+      etiqueta:
+        "Mantenimiento",
+      x: 112,
+    },
+    {
+      etiqueta:
+        "Reparación",
+      x: 225,
+    },
+    {
+      etiqueta:
+        "Presupuestar",
+      x: 325,
+    },
+    {
+      etiqueta:
+        "Reemplazo",
+      x: 435,
+    },
+  ];
+
+  conclusiones.forEach(
+    (item) => {
+      checkbox({
+        ctx,
+        etiqueta:
+          item.etiqueta,
+        x: item.x,
+        y: ctx.y,
+      });
+    }
+  );
+
+  ctx.y -= 20;
+
+  checkbox({
     ctx,
-    col1,
-    ctx.y,
-    "Operativo"
-  );
+    etiqueta:
+      "Baja técnica",
+    x: marginX,
+    y: ctx.y,
+  });
 
-  checkbox(
-    ctx,
-    110,
-    ctx.y,
-    "Mantenimiento"
-  );
-
-  checkbox(
-    ctx,
-    215,
-    ctx.y,
-    "Reparación"
-  );
-
-  checkbox(
-    ctx,
-    310,
-    ctx.y,
-    "Presupuestar"
-  );
-
-  checkbox(
-    ctx,
-    415,
-    ctx.y,
-    "Reemplazo"
-  );
-
-  checkbox(
-    ctx,
-    505,
-    ctx.y,
-    "Baja técnica"
-  );
-
-  ctx.y -= 23;
-
-  observaciones(
-    ctx
-  );
-
-  ctx.y -= 8;
+  ctx.y -= 24;
 
   /*
-   * RESPONSABLES
+   * ==========================
+   * OBSERVACIONES
+   * ==========================
    */
 
-  const centro =
-    width / 2;
+  escribirTextoNegrita(
+    page,
+    fontBold,
+    "Descripción / observaciones técnicas",
+    marginX,
+    ctx.y,
+    6.7,
+    COLOR_GRIS
+  );
+
+  ctx.y -= 12;
+
+  for (
+    let indice = 0;
+    indice < 5;
+    indice += 1
+  ) {
+    linea(
+      page,
+      marginX,
+      ctx.y,
+      width -
+        marginX,
+      ctx.y
+    );
+
+    ctx.y -= 18;
+  }
+
+  ctx.y -= 6;
+
+  /*
+   * ==========================
+   * FIRMAS
+   * ==========================
+   */
+
+  const separacion =
+    12;
+
+  const anchoCaja =
+    (
+      width -
+      marginX * 2 -
+      separacion
+    ) /
+    2;
+
+  const izquierdaX =
+    marginX;
+
+  const derechaX =
+    marginX +
+    anchoCaja +
+    separacion;
 
   const altoCaja =
-    104;
+    108;
 
-  const yCaja =
-    ctx.y -
+  const cajaTop =
+    ctx.y;
+
+  const cajaBottom =
+    cajaTop -
     altoCaja;
 
-  page.drawRectangle({
-    x: marginX,
-    y: yCaja,
-    width:
-      centro -
-      marginX -
-      7,
-    height:
-      altoCaja,
-    borderColor:
-      rgb(
-        0.8,
-        0.83,
-        0.86
-      ),
-    borderWidth: 0.7,
-  });
+  [
+    izquierdaX,
+    derechaX,
+  ].forEach(
+    (x) => {
+      page.drawRectangle({
+        x,
+        y: cajaBottom,
+        width:
+          anchoCaja,
+        height:
+          altoCaja,
+        borderColor:
+          rgb(
+            0.8,
+            0.83,
+            0.86
+          ),
+        borderWidth:
+          0.7,
+      });
 
-  page.drawRectangle({
-    x: centro + 7,
-    y: yCaja,
-    width:
-      width -
-      marginX -
-      centro -
-      7,
-    height:
-      altoCaja,
-    borderColor:
-      rgb(
-        0.8,
-        0.83,
-        0.86
-      ),
-    borderWidth: 0.7,
-  });
-
-  page.drawRectangle({
-    x: marginX,
-    y:
-      ctx.y -
-      18,
-    width:
-      centro -
-      marginX -
-      7,
-    height: 18,
-    color: COLOR_CELESTE,
-  });
-
-  page.drawRectangle({
-    x:
-      centro + 7,
-    y:
-      ctx.y -
-      18,
-    width:
-      width -
-      marginX -
-      centro -
-      7,
-    height: 18,
-    color: COLOR_CELESTE,
-  });
+      page.drawRectangle({
+        x,
+        y:
+          cajaTop -
+          20,
+        width:
+          anchoCaja,
+        height: 20,
+        color:
+          COLOR_CELESTE,
+      });
+    }
+  );
 
   escribirTextoNegrita(
     page,
     fontBold,
     "RESPONSABLE DEL ESTABLECIMIENTO",
-    marginX + 6,
-    ctx.y - 12,
-    6.6,
+    izquierdaX + 7,
+    cajaTop - 13,
+    6.5,
     COLOR_AZUL
   );
 
@@ -1265,104 +1305,145 @@ function dibujarContenido(
     page,
     fontBold,
     "TÉCNICO RESPONSABLE",
-    centro + 13,
-    ctx.y - 12,
-    6.6,
+    derechaX + 7,
+    cajaTop - 13,
+    6.5,
     COLOR_AZUL
   );
 
-  const izquierdaX =
-    marginX + 8;
-
-  const derechaX =
-    centro + 15;
-
   let firmaY =
-    ctx.y - 34;
+    cajaTop - 37;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Nombre:",
-    izquierdaX,
-    39,
-    170,
-    firmaY
-  );
+    etiqueta:
+      "Nombre:",
+    x:
+      izquierdaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      izquierdaX +
+      anchoCaja -
+      8,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Nombre:",
-    derechaX,
-    39,
-    170,
-    firmaY
-  );
+    etiqueta:
+      "Nombre:",
+    x:
+      derechaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      derechaX +
+      anchoCaja -
+      8,
+  });
 
-  firmaY -= 21;
+  firmaY -= 22;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Cargo:",
-    izquierdaX,
-    34,
-    175,
-    firmaY
-  );
+    etiqueta:
+      "Cargo:",
+    x:
+      izquierdaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      izquierdaX +
+      anchoCaja -
+      8,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Matrícula:",
-    derechaX,
-    49,
-    160,
-    firmaY
-  );
+    etiqueta:
+      "Matrícula:",
+    x:
+      derechaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      derechaX +
+      anchoCaja -
+      8,
+  });
 
-  firmaY -= 21;
+  firmaY -= 22;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "DNI:",
-    izquierdaX,
-    25,
-    184,
-    firmaY
-  );
+    etiqueta:
+      "DNI:",
+    x:
+      izquierdaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      izquierdaX +
+      anchoCaja -
+      8,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Firma:",
-    derechaX,
-    32,
-    177,
-    firmaY
-  );
+    etiqueta:
+      "Firma:",
+    x:
+      derechaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      derechaX +
+      anchoCaja -
+      8,
+  });
 
-  firmaY -= 21;
+  firmaY -= 22;
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Firma:",
-    izquierdaX,
-    32,
-    177,
-    firmaY
-  );
+    etiqueta:
+      "Firma:",
+    x:
+      izquierdaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      izquierdaX +
+      anchoCaja -
+      8,
+  });
 
-  campoLinea(
+  campoLinea({
     ctx,
-    "Sello:",
-    derechaX,
-    30,
-    179,
-    firmaY
-  );
-
-  ctx.y =
-    yCaja - 12;
+    etiqueta:
+      "Sello:",
+    x:
+      derechaX +
+      8,
+    y:
+      firmaY,
+    ancho:
+      derechaX +
+      anchoCaja -
+      8,
+  });
 
   /*
-   * VALIDEZ
+   * ==========================
+   * PIE
+   * ==========================
    */
 
   escribirTextoNegrita(
@@ -1370,8 +1451,8 @@ function dibujarContenido(
     fontBold,
     "Este documento carece de validez si no cuenta con la firma y sello del técnico responsable.",
     marginX,
-    39,
-    5.8,
+    40,
+    5.7,
     rgb(
       0.5,
       0.18,
@@ -1384,8 +1465,8 @@ function dibujarContenido(
     font,
     "Cualquier alteración, enmienda o modificación posterior invalida el documento.",
     marginX,
-    28,
-    5.5,
+    29,
+    5.4,
     rgb(
       0.5,
       0.18,
@@ -1398,8 +1479,8 @@ function dibujarContenido(
     font,
     "Esta ficha corresponde a una revisión técnica preliminar y no constituye presupuesto ni factura.",
     marginX,
-    17,
-    5.3,
+    18,
+    5.2,
     COLOR_GRIS
   );
 
@@ -1409,9 +1490,9 @@ function dibujarContenido(
     "Pág. 1 de 1",
     width -
       marginX -
-      35,
-    17,
-    5.3,
+      36,
+    18,
+    5.2,
     COLOR_GRIS
   );
 }
@@ -1477,9 +1558,9 @@ export async function generarFichaRevisionPdf(
     );
 
   for (
-    let i = 0;
-    i < cantidad;
-    i += 1
+    let indice = 0;
+    indice < cantidad;
+    indice += 1
   ) {
     const page =
       pdfDoc.addPage([
@@ -1509,7 +1590,7 @@ export async function generarFichaRevisionPdf(
     dibujarEncabezado(
       ctx,
       numeroInicial +
-        i,
+        indice,
       empresa,
       logo
     );
