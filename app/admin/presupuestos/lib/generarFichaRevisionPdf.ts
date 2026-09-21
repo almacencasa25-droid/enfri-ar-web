@@ -23,18 +23,58 @@ export type GenerarFichaRevisionPdfInput = {
   empresa?: Partial<EmpresaFichaRevision>;
 };
 
-const COLOR_AZUL = rgb(0.10, 0.31, 0.52);
-const COLOR_CELESTE = rgb(0.93, 0.96, 0.99);
-const COLOR_GRIS = rgb(0.35, 0.35, 0.35);
-const COLOR_NEGRO = rgb(0.12, 0.12, 0.12);
-const COLOR_NARANJA = rgb(0.88, 0.48, 0.12);
+const PAGE_WIDTH = 595.28;
+const PAGE_HEIGHT = 841.89;
+
+const MARGIN_X = 26;
+
+const COLOR_AZUL = rgb(
+  0.1,
+  0.31,
+  0.52
+);
+
+const COLOR_CELESTE = rgb(
+  0.93,
+  0.96,
+  0.99
+);
+
+const COLOR_GRIS = rgb(
+  0.35,
+  0.35,
+  0.35
+);
+
+const COLOR_NEGRO = rgb(
+  0.12,
+  0.12,
+  0.12
+);
+
+const COLOR_NARANJA = rgb(
+  0.88,
+  0.48,
+  0.12
+);
+
+const COLOR_LINEA = rgb(
+  0.68,
+  0.71,
+  0.75
+);
 
 const EMPRESA_DEFAULT: EmpresaFichaRevision = {
-  nombre: "Enfri.Ar Refrigeración",
-  cuit: "20-93431894-4",
-  direccion: "Francia 2559 Moreno, Bs. As.",
-  telefono: "11-3847-3222",
-  email: "enfri.ar.refrigeracion@gmail.com",
+  nombre:
+    "Enfri.Ar Refrigeración",
+  cuit:
+    "20-93431894-4",
+  direccion:
+    "Francia 2559 Moreno, Bs. As.",
+  telefono:
+    "11-3847-3222",
+  email:
+    "enfri.ar.refrigeracion@gmail.com",
 };
 
 type ContextoDibujo = {
@@ -52,21 +92,38 @@ function normalizarEmpresa(
 ): EmpresaFichaRevision {
   return {
     nombre:
-      String(empresa?.nombre ?? EMPRESA_DEFAULT.nombre).trim() ||
+      String(
+        empresa?.nombre ??
+          EMPRESA_DEFAULT.nombre
+      ).trim() ||
       EMPRESA_DEFAULT.nombre,
+
     cuit:
-      String(empresa?.cuit ?? EMPRESA_DEFAULT.cuit).trim() ||
+      String(
+        empresa?.cuit ??
+          EMPRESA_DEFAULT.cuit
+      ).trim() ||
       EMPRESA_DEFAULT.cuit,
+
     direccion:
       String(
-        empresa?.direccion ?? EMPRESA_DEFAULT.direccion
-      ).trim() || EMPRESA_DEFAULT.direccion,
+        empresa?.direccion ??
+          EMPRESA_DEFAULT.direccion
+      ).trim() ||
+      EMPRESA_DEFAULT.direccion,
+
     telefono:
       String(
-        empresa?.telefono ?? EMPRESA_DEFAULT.telefono
-      ).trim() || EMPRESA_DEFAULT.telefono,
+        empresa?.telefono ??
+          EMPRESA_DEFAULT.telefono
+      ).trim() ||
+      EMPRESA_DEFAULT.telefono,
+
     email:
-      String(empresa?.email ?? EMPRESA_DEFAULT.email).trim() ||
+      String(
+        empresa?.email ??
+          EMPRESA_DEFAULT.email
+      ).trim() ||
       EMPRESA_DEFAULT.email,
   };
 }
@@ -74,33 +131,22 @@ function normalizarEmpresa(
 async function cargarLogo(
   pdfDoc: PDFDocument
 ) {
-  const candidatos = [
-    path.join(process.cwd(), "public", "logo-enfri-ar.png"),
-    path.join(process.cwd(), "public", "logo-enfri-ar.jpg"),
-    path.join(process.cwd(), "public", "logo-enfri-ar.jpeg"),
-    path.join(process.cwd(), "public", "logo-enfri-ar.webp"),
-  ];
+  try {
+    const ruta = path.join(
+      process.cwd(),
+      "public",
+      "logo-enfri-ar.png"
+    );
 
-  for (const ruta of candidatos) {
-    try {
-      const archivo = await readFile(ruta);
+    const archivo =
+      await readFile(ruta);
 
-      if (ruta.endsWith(".png")) {
-        return await pdfDoc.embedPng(archivo);
-      }
-
-      if (
-        ruta.endsWith(".jpg") ||
-        ruta.endsWith(".jpeg")
-      ) {
-        return await pdfDoc.embedJpg(archivo);
-      }
-    } catch {
-      // seguimos probando
-    }
+    return await pdfDoc.embedPng(
+      archivo
+    );
+  } catch {
+    return null;
   }
-
-  return null;
 }
 
 function escribirTexto(
@@ -112,13 +158,16 @@ function escribirTexto(
   size: number,
   color = COLOR_NEGRO
 ) {
-  page.drawText(texto, {
-    x,
-    y,
-    size,
-    font,
-    color,
-  });
+  page.drawText(
+    texto,
+    {
+      x,
+      y,
+      size,
+      font,
+      color,
+    }
+  );
 }
 
 function escribirTextoNegrita(
@@ -130,13 +179,16 @@ function escribirTextoNegrita(
   size: number,
   color = COLOR_NEGRO
 ) {
-  page.drawText(texto, {
-    x,
-    y,
-    size,
-    font: fontBold,
-    color,
-  });
+  page.drawText(
+    texto,
+    {
+      x,
+      y,
+      size,
+      font: fontBold,
+      color,
+    }
+  );
 }
 
 function linea(
@@ -145,33 +197,54 @@ function linea(
   y1: number,
   x2: number,
   y2: number,
-  grosor = 0.8,
-  color = rgb(0.55, 0.60, 0.66)
+  grosor = 0.7,
+  color = COLOR_LINEA
 ) {
   page.drawLine({
-    start: { x: x1, y: y1 },
-    end: { x: x2, y: y2 },
+    start: {
+      x: x1,
+      y: y1,
+    },
+    end: {
+      x: x2,
+      y: y2,
+    },
     thickness: grosor,
     color,
   });
 }
 
-function rectanguloTitulo(
+function tituloSeccion(
   ctx: ContextoDibujo,
   titulo: string
 ) {
-  const { page, fontBold, width, marginX } = ctx;
-  const alto = 14;
-  const yBase = ctx.y - alto;
+  const {
+    page,
+    fontBold,
+    width,
+    marginX,
+  } = ctx;
+
+  const alto = 16;
+
+  const yBase =
+    ctx.y - alto;
 
   page.drawRectangle({
     x: marginX,
     y: yBase,
-    width: width - marginX * 2,
+    width:
+      width -
+      marginX * 2,
     height: alto,
     color: COLOR_CELESTE,
-    borderColor: rgb(0.80, 0.85, 0.90),
-    borderWidth: 0.8,
+    borderColor:
+      rgb(
+        0.8,
+        0.85,
+        0.9
+      ),
+    borderWidth: 0.7,
   });
 
   escribirTextoNegrita(
@@ -179,12 +252,13 @@ function rectanguloTitulo(
     fontBold,
     titulo.toUpperCase(),
     marginX + 6,
-    yBase + 4,
-    7.2,
+    yBase + 5,
+    7.1,
     COLOR_AZUL
   );
 
-  ctx.y = yBase - 6;
+  ctx.y =
+    yBase - 8;
 }
 
 function campoLinea(
@@ -197,11 +271,11 @@ function campoLinea(
 ) {
   const {
     page,
-    font,
     fontBold,
   } = ctx;
 
-  const yy = y ?? ctx.y;
+  const yy =
+    y ?? ctx.y;
 
   escribirTextoNegrita(
     page,
@@ -209,7 +283,7 @@ function campoLinea(
     label,
     x,
     yy + 2,
-    6.2,
+    6.3,
     COLOR_GRIS
   );
 
@@ -217,12 +291,12 @@ function campoLinea(
     page,
     x + anchoLabel,
     yy + 1,
-    x + anchoLabel + anchoLinea,
+    x +
+      anchoLabel +
+      anchoLinea,
     yy + 1,
-    0.7
+    0.6
   );
-
-  return yy;
 }
 
 function checkbox(
@@ -231,14 +305,18 @@ function checkbox(
   y: number,
   label: string
 ) {
-  const { page, font } = ctx;
+  const {
+    page,
+    font,
+  } = ctx;
 
   page.drawRectangle({
     x,
     y,
     width: 8,
     height: 8,
-    borderColor: COLOR_GRIS,
+    borderColor:
+      COLOR_GRIS,
     borderWidth: 0.8,
   });
 
@@ -248,17 +326,20 @@ function checkbox(
     label,
     x + 12,
     y + 1,
-    6.2,
+    6.25,
     COLOR_NEGRO
   );
 }
 
-function filaChecks(
-  ctx: ContextoDibujo,
-  nombre: string,
-  opciones: string[],
-  y: number
-) {
+function filaConsulta({
+  ctx,
+  nombre,
+  opciones,
+}: {
+  ctx: ContextoDibujo;
+  nombre: string;
+  opciones: string[];
+}) {
   const {
     page,
     font,
@@ -266,51 +347,70 @@ function filaChecks(
     marginX,
   } = ctx;
 
-  const inicioX = marginX;
-  const nombreW = 118;
-  const inicioChecks = inicioX + nombreW;
-  const anchoDisponible = 520 - nombreW;
-  const columnas = opciones.length;
-  const anchoCol = anchoDisponible / columnas;
+  const y =
+    ctx.y;
+
+  const inicioOpciones =
+    marginX + 142;
+
+  const columnas = [
+    inicioOpciones,
+    inicioOpciones + 94,
+    inicioOpciones + 188,
+    inicioOpciones + 282,
+  ];
 
   escribirTextoNegrita(
     page,
     fontBold,
     nombre,
-    inicioX,
+    marginX + 4,
     y + 1,
-    6.2,
+    6.35,
     COLOR_GRIS
   );
 
-  for (let i = 0; i < opciones.length; i += 1) {
-    const x = inicioChecks + i * anchoCol;
-    page.drawRectangle({
-      x,
-      y,
-      width: 8,
-      height: 8,
-      borderColor: COLOR_GRIS,
-      borderWidth: 0.8,
-    });
-
-    escribirTexto(
-      page,
-      font,
-      opciones[i],
-      x + 12,
-      y + 1,
-      6.1,
-      COLOR_NEGRO
+  opciones
+    .slice(
+      0,
+      4
+    )
+    .forEach(
+      (
+        opcion,
+        indice
+      ) => {
+        checkbox(
+          ctx,
+          columnas[
+            indice
+          ],
+          y,
+          opcion
+        );
+      }
     );
-  }
+
+  linea(
+    page,
+    marginX,
+    y - 5,
+    PAGE_WIDTH -
+      marginX,
+    y - 5,
+    0.28,
+    rgb(
+      0.84,
+      0.85,
+      0.87
+    )
+  );
+
+  ctx.y -= 16;
 }
 
-function bloqueObservaciones(
-  ctx: ContextoDibujo,
-  titulo: string,
-  lineas: number,
-  altoLinea = 14
+function observaciones(
+  ctx: ContextoDibujo
 ) {
   const {
     page,
@@ -322,26 +422,30 @@ function bloqueObservaciones(
   escribirTextoNegrita(
     page,
     fontBold,
-    titulo,
+    "Descripción / observaciones técnicas",
     marginX,
     ctx.y,
     6.6,
     COLOR_GRIS
   );
 
-  ctx.y -= 8;
+  ctx.y -= 11;
 
-  for (let i = 0; i < lineas; i += 1) {
+  for (
+    let i = 0;
+    i < 4;
+    i += 1
+  ) {
     linea(
       page,
       marginX,
       ctx.y,
       width - marginX,
       ctx.y,
-      0.7,
-      rgb(0.68, 0.70, 0.74)
+      0.6
     );
-    ctx.y -= altoLinea;
+
+    ctx.y -= 17;
   }
 }
 
@@ -349,39 +453,60 @@ function dibujarEncabezado(
   ctx: ContextoDibujo,
   numero: number,
   empresa: EmpresaFichaRevision,
-  logo: Awaited<ReturnType<typeof cargarLogo>>
+  logo:
+    | Awaited<
+        ReturnType<
+          typeof cargarLogo
+        >
+      >
+    | null
 ) {
-  const { page, font, fontBold, width, height, marginX } = ctx;
+  const {
+    page,
+    font,
+    fontBold,
+    width,
+    height,
+    marginX,
+  } = ctx;
 
-  const top = height - 20;
+  const top =
+    height - 16;
 
   if (logo) {
-    const logoWidth = 60;
-    const logoHeight = 24;
-    page.drawImage(logo, {
-      x: marginX,
-      y: top - logoHeight + 2,
-      width: logoWidth,
-      height: logoHeight,
-    });
+    const escala =
+      Math.min(
+        55 /
+          logo.width,
+        23 /
+          logo.height
+      );
+
+    page.drawImage(
+      logo,
+      {
+        x: marginX,
+        y:
+          top -
+          logo.height *
+            escala,
+        width:
+          logo.width *
+          escala,
+        height:
+          logo.height *
+          escala,
+      }
+    );
   } else {
     escribirTextoNegrita(
       page,
       fontBold,
       "Enfri.Ar",
       marginX,
-      top - 8,
-      14,
+      top - 10,
+      12,
       COLOR_AZUL
-    );
-    escribirTexto(
-      page,
-      font,
-      "Refrigeración",
-      marginX,
-      top - 18,
-      8,
-      COLOR_GRIS
     );
   }
 
@@ -389,19 +514,26 @@ function dibujarEncabezado(
     page,
     fontBold,
     "FICHA DE REVISIÓN TÉCNICA",
-    width / 2 - 72,
-    top - 8,
-    8.5,
+    width / 2 - 73,
+    top - 9,
+    8.2,
     COLOR_NEGRO
   );
 
   escribirTextoNegrita(
     page,
     fontBold,
-    `N° ${String(numero).padStart(6, "0")}`,
-    width - marginX - 52,
-    top - 8,
-    8,
+    `N° ${String(
+      numero
+    ).padStart(
+      6,
+      "0"
+    )}`,
+    width -
+      marginX -
+      54,
+    top - 9,
+    7.4,
     COLOR_NARANJA
   );
 
@@ -410,45 +542,40 @@ function dibujarEncabezado(
     font,
     empresa.nombre,
     marginX,
-    top - 34,
-    6.1,
+    top - 30,
+    5.8,
     COLOR_GRIS
   );
 
   escribirTexto(
     page,
     font,
-    `CUIT: ${empresa.cuit}  |  ${empresa.direccion}`,
+    `CUIT: ${empresa.cuit} | ${empresa.direccion} | Tel: ${empresa.telefono} | ${empresa.email}`,
     marginX,
-    top - 42,
-    6,
-    COLOR_GRIS
-  );
-
-  escribirTexto(
-    page,
-    font,
-    `Tel: ${empresa.telefono}  |  Email: ${empresa.email}`,
-    marginX,
-    top - 50,
-    6,
+    top - 39,
+    5.4,
     COLOR_GRIS
   );
 
   linea(
     page,
     marginX,
-    top - 56,
+    top - 47,
     width - marginX,
-    top - 56,
-    1,
-    rgb(0.68, 0.78, 0.88)
+    top - 47,
+    0.9,
+    rgb(
+      0.68,
+      0.78,
+      0.88
+    )
   );
 
-  ctx.y = top - 68;
+  ctx.y =
+    top - 59;
 }
 
-function dibujarPrimeraHoja(
+function dibujarContenido(
   ctx: ContextoDibujo
 ) {
   const {
@@ -459,302 +586,912 @@ function dibujarPrimeraHoja(
     marginX,
   } = ctx;
 
-  rectanguloTitulo(ctx, "Datos de la visita");
+  const col1 =
+    marginX;
 
-  const col1 = marginX;
-  const col2 = marginX + 160;
-  const col3 = marginX + 330;
+  const col2 =
+    187;
 
-  campoLinea(ctx, "Fecha:", col1, 26, 108);
-  campoLinea(ctx, "Hora:", col2, 24, 74);
-  campoLinea(ctx, "Cliente / empresa:", col3, 70, 145);
-  ctx.y -= 16;
+  const col3 =
+    365;
 
-  campoLinea(ctx, "Dirección:", col1, 38, 190);
-  campoLinea(ctx, "Localidad:", col3, 45, 170);
-  ctx.y -= 16;
+  /*
+   * DATOS DE LA VISITA
+   */
 
-  campoLinea(ctx, "Teléfono:", col1, 42, 130);
-  campoLinea(ctx, "Sector / ubicación:", col2, 70, 192);
-  ctx.y -= 18;
+  tituloSeccion(
+    ctx,
+    "Datos de la visita"
+  );
 
-  rectanguloTitulo(ctx, "Motivo de la visita");
+  campoLinea(
+    ctx,
+    "Fecha:",
+    col1,
+    28,
+    105
+  );
 
-  checkbox(ctx, marginX, ctx.y - 1, "Diagnóstico");
-  checkbox(ctx, marginX + 96, ctx.y - 1, "Presupuesto");
-  checkbox(ctx, marginX + 192, ctx.y - 1, "Instalación");
-  checkbox(ctx, marginX + 296, ctx.y - 1, "Mantenimiento");
-  checkbox(ctx, marginX + 418, ctx.y - 1, "Garantía");
-  ctx.y -= 18;
+  campoLinea(
+    ctx,
+    "Hora:",
+    col2,
+    25,
+    75
+  );
 
-  rectanguloTitulo(ctx, "Identificación del equipo");
+  campoLinea(
+    ctx,
+    "Cliente / empresa:",
+    col3,
+    72,
+    130
+  );
 
-  campoLinea(ctx, "Tipo:", col1, 20, 110);
-  checkbox(ctx, col1 + 138, ctx.y - 1, "Split");
-  checkbox(ctx, col1 + 200, ctx.y - 1, "Cassette");
-  checkbox(ctx, col1 + 282, ctx.y - 1, "Ventana");
-  checkbox(ctx, col1 + 370, ctx.y - 1, "Otro");
-  ctx.y -= 16;
+  ctx.y -= 19;
 
-  campoLinea(ctx, "Marca:", col1, 28, 150);
-  campoLinea(ctx, "Modelo:", col2 + 10, 36, 140);
-  campoLinea(ctx, "Capacidad:", col3, 48, 102);
-  ctx.y -= 16;
+  campoLinea(
+    ctx,
+    "Dirección:",
+    col1,
+    42,
+    225
+  );
 
-  campoLinea(ctx, "Serie / inventario:", col1, 72, 150);
-  campoLinea(ctx, "Refrigerante:", col3, 58, 100);
-  checkbox(ctx, col3 + 165, ctx.y - 1, "Sin etiqueta");
-  ctx.y -= 18;
+  campoLinea(
+    ctx,
+    "Localidad:",
+    col3,
+    45,
+    135
+  );
 
-  rectanguloTitulo(ctx, "Consulta técnica");
+  ctx.y -= 19;
+
+  campoLinea(
+    ctx,
+    "Teléfono:",
+    col1,
+    43,
+    145
+  );
+
+  campoLinea(
+    ctx,
+    "Sector / ubicación:",
+    260,
+    72,
+    235
+  );
+
+  ctx.y -= 23;
+
+  /*
+   * TIPO DE VISITA
+   */
+
+  tituloSeccion(
+    ctx,
+    "Tipo de visita"
+  );
+
+  checkbox(
+    ctx,
+    marginX + 8,
+    ctx.y,
+    "Consulta técnica"
+  );
+
+  checkbox(
+    ctx,
+    205,
+    ctx.y,
+    "Relevamiento para instalación"
+  );
+
+  checkbox(
+    ctx,
+    430,
+    ctx.y,
+    "Otro"
+  );
+
+  linea(
+    page,
+    474,
+    ctx.y + 1,
+    width - marginX,
+    ctx.y + 1,
+    0.6
+  );
+
+  ctx.y -= 22;
+
+  /*
+   * IDENTIFICACIÓN
+   */
+
+  tituloSeccion(
+    ctx,
+    "Identificación del equipo"
+  );
+
+  escribirTextoNegrita(
+    page,
+    fontBold,
+    "Tipo:",
+    col1,
+    ctx.y + 2,
+    6.3,
+    COLOR_GRIS
+  );
+
+  checkbox(
+    ctx,
+    70,
+    ctx.y,
+    "Split"
+  );
+
+  checkbox(
+    ctx,
+    130,
+    ctx.y,
+    "Piso techo"
+  );
+
+  checkbox(
+    ctx,
+    225,
+    ctx.y,
+    "Cassette"
+  );
+
+  checkbox(
+    ctx,
+    310,
+    ctx.y,
+    "Ventana"
+  );
+
+  checkbox(
+    ctx,
+    400,
+    ctx.y,
+    "Otro"
+  );
+
+  ctx.y -= 19;
+
+  campoLinea(
+    ctx,
+    "Marca:",
+    col1,
+    31,
+    135
+  );
+
+  campoLinea(
+    ctx,
+    "Modelo:",
+    205,
+    37,
+    120
+  );
+
+  campoLinea(
+    ctx,
+    "Capacidad:",
+    390,
+    50,
+    125
+  );
+
+  ctx.y -= 19;
+
+  campoLinea(
+    ctx,
+    "Serie / inventario:",
+    col1,
+    74,
+    175
+  );
+
+  campoLinea(
+    ctx,
+    "Refrigerante:",
+    325,
+    60,
+    110
+  );
+
+  checkbox(
+    ctx,
+    505,
+    ctx.y,
+    "Sin etiqueta"
+  );
+
+  ctx.y -= 23;
+
+  /*
+   * CONSULTA TÉCNICA
+   */
+
+  tituloSeccion(
+    ctx,
+    "Consulta técnica"
+  );
 
   escribirTextoNegrita(
     page,
     fontBold,
     "Control y diagnóstico del equipo",
-    marginX,
-    ctx.y,
-    6.6,
+    marginX + 4,
+    ctx.y + 2,
+    6.7,
     COLOR_GRIS
   );
 
-  ctx.y -= 12;
-
-  filaChecks(
-    ctx,
-    "Equipo enciende",
-    ["Sí", "No"],
-    ctx.y
+  linea(
+    page,
+    marginX,
+    ctx.y - 5,
+    width - marginX,
+    ctx.y - 5,
+    0.55,
+    rgb(
+      0.75,
+      0.78,
+      0.82
+    )
   );
-  ctx.y -= 13;
 
-  filaChecks(
+  ctx.y -= 17;
+
+  filaConsulta({
     ctx,
-    "Evaporador",
-    ["Correcto", "Sucio", "Congelado", "Dañado"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Equipo enciende",
+    opciones: [
+      "Sí",
+      "No",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Condensador",
-    ["Correcto", "Sucio", "Obstruido", "Dañado"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Evaporador",
+    opciones: [
+      "Correcto",
+      "Sucio",
+      "Congelado",
+      "Dañado",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Forzador evaporador",
-    ["Funciona", "No funciona", "Ruidoso"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Condensador",
+    opciones: [
+      "Correcto",
+      "Sucio",
+      "Obstruido",
+      "Dañado",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Forzador condensador",
-    ["Funciona", "No funciona", "Ruidoso"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Forzador evaporador",
+    opciones: [
+      "Funciona",
+      "No funciona",
+      "Ruidoso",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Motocompresor",
-    ["Funciona", "No arranca", "Corta", "Ruidoso"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Forzador condensador",
+    opciones: [
+      "Funciona",
+      "No funciona",
+      "Ruidoso",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Refrigerante",
-    ["Normal", "Falta", "Sin carga", "Posible fuga"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Motocompresor",
+    opciones: [
+      "Funciona",
+      "No arranca",
+      "Corta",
+      "Ruidoso",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Drenaje",
-    ["Correcto", "Obstruido", "Pérdida de agua"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Refrigerante",
+    opciones: [
+      "Normal",
+      "Falta",
+      "Sin carga",
+      "Posible fuga",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Instalación eléctrica",
-    ["Correcta", "A revisar", "Riesgosa"],
-    ctx.y
-  );
-  ctx.y -= 13;
+    nombre:
+      "Drenaje",
+    opciones: [
+      "Correcto",
+      "Obstruido",
+      "Pierde agua",
+    ],
+  });
 
-  filaChecks(
+  filaConsulta({
     ctx,
-    "Filtros",
-    ["Correctos", "Sucios", "Deteriorados"],
-    ctx.y
+    nombre:
+      "Instalación eléctrica",
+    opciones: [
+      "Correcta",
+      "A revisar",
+      "Riesgosa",
+    ],
+  });
+
+  filaConsulta({
+    ctx,
+    nombre:
+      "Filtros",
+    opciones: [
+      "Correctos",
+      "Sucios",
+      "Deteriorados",
+    ],
+  });
+
+  ctx.y -= 2;
+
+  campoLinea(
+    ctx,
+    "Tensión:",
+    col1,
+    40,
+    90
   );
-  ctx.y -= 18;
 
-  campoLinea(ctx, "Tensión:", col1, 38, 82);
-  campoLinea(ctx, "Consumo:", col2, 48, 70);
-  campoLinea(ctx, "Presión:", col2 + 130, 40, 66);
-  campoLinea(ctx, "Temp. entrada:", col3, 70, 60);
-  ctx.y -= 16;
+  campoLinea(
+    ctx,
+    "Consumo:",
+    165,
+    49,
+    75
+  );
 
-  campoLinea(ctx, "Temp. salida:", col1, 55, 90);
-  ctx.y -= 18;
+  campoLinea(
+    ctx,
+    "Presión:",
+    305,
+    42,
+    70
+  );
 
-  rectanguloTitulo(ctx, "Relevamiento para instalación");
+  campoLinea(
+    ctx,
+    "Temp. entrada:",
+    425,
+    66,
+    70
+  );
+
+  ctx.y -= 19;
+
+  campoLinea(
+    ctx,
+    "Temp. salida:",
+    col1,
+    59,
+    110
+  );
+
+  ctx.y -= 24;
+
+  /*
+   * INSTALACIÓN
+   */
+
+  tituloSeccion(
+    ctx,
+    "Relevamiento para instalación"
+  );
 
   campoLinea(
     ctx,
     "Equipo / capacidad estimada:",
     col1,
-    102,
-    150
+    106,
+    145
   );
+
   campoLinea(
     ctx,
     "Interconexión aprox.:",
-    col3,
+    330,
     80,
-    86
+    130
   );
-  ctx.y -= 16;
+
+  ctx.y -= 19;
 
   campoLinea(
     ctx,
     "Ubicación evaporador:",
     col1,
-    86,
-    130
+    89,
+    150
   );
+
   campoLinea(
     ctx,
     "Ubicación condensador:",
-    col3,
-    90,
-    100
+    325,
+    94,
+    135
   );
-  ctx.y -= 16;
 
-  checkbox(ctx, col1, ctx.y - 1, "Desagüe disponible");
-  checkbox(ctx, col1 + 118, ctx.y - 1, "Alimentación eléctrica");
-  checkbox(ctx, col1 + 280, ctx.y - 1, "Perforación");
-  checkbox(ctx, col1 + 378, ctx.y - 1, "Ménsulas / base");
-  ctx.y -= 14;
+  ctx.y -= 20;
 
-  checkbox(ctx, col1, ctx.y - 1, "Canaleta");
-  checkbox(ctx, col1 + 78, ctx.y - 1, "Trabajo en altura");
-  checkbox(ctx, col1 + 210, ctx.y - 1, "Acceso complejo");
-  checkbox(ctx, col1 + 330, ctx.y - 1, "Requiere andamio / elevación");
-  ctx.y -= 18;
-
-  rectanguloTitulo(ctx, "Conclusión técnica");
-
-  checkbox(ctx, col1, ctx.y - 1, "Operativo");
-  checkbox(ctx, col1 + 72, ctx.y - 1, "Mantenimiento");
-  checkbox(ctx, col1 + 160, ctx.y - 1, "Reparación");
-  checkbox(ctx, col1 + 262, ctx.y - 1, "Presupuestar");
-  checkbox(ctx, col1 + 378, ctx.y - 1, "Reemplazo");
-  checkbox(ctx, col1 + 470, ctx.y - 1, "Baja técnica");
-  ctx.y -= 18;
-
-  bloqueObservaciones(
+  checkbox(
     ctx,
-    "Descripción / observaciones técnicas",
-    3,
-    14
-  );
-
-  ctx.y -= 2;
-
-  const medio = width / 2;
-
-  escribirTextoNegrita(
-    page,
-    fontBold,
-    "Responsable del establecimiento",
-    marginX,
+    col1,
     ctx.y,
-    6.6,
-    COLOR_GRIS
+    "Desagüe disponible"
   );
 
-  escribirTextoNegrita(
-    page,
-    fontBold,
-    "Técnico responsable",
-    medio + 10,
+  checkbox(
+    ctx,
+    165,
     ctx.y,
-    6.6,
-    COLOR_GRIS
+    "Alimentación eléctrica"
   );
 
-  ctx.y -= 10;
+  checkbox(
+    ctx,
+    330,
+    ctx.y,
+    "Perforación"
+  );
 
-  campoLinea(ctx, "Nombre:", marginX, 40, 180, ctx.y);
-  campoLinea(ctx, "Nombre:", medio + 10, 40, 120, ctx.y);
-  ctx.y -= 16;
+  checkbox(
+    ctx,
+    435,
+    ctx.y,
+    "Ménsulas / base"
+  );
 
-  campoLinea(ctx, "Cargo:", marginX, 32, 188, ctx.y);
-  campoLinea(ctx, "Matrícula:", medio + 10, 48, 112, ctx.y);
-  ctx.y -= 16;
-
-  campoLinea(ctx, "DNI:", marginX, 24, 198, ctx.y);
-  campoLinea(ctx, "Firma y sello:", medio + 10, 62, 98, ctx.y);
   ctx.y -= 18;
+
+  checkbox(
+    ctx,
+    col1,
+    ctx.y,
+    "Canaleta"
+  );
+
+  checkbox(
+    ctx,
+    130,
+    ctx.y,
+    "Trabajo en altura"
+  );
+
+  checkbox(
+    ctx,
+    270,
+    ctx.y,
+    "Acceso complejo"
+  );
+
+  checkbox(
+    ctx,
+    405,
+    ctx.y,
+    "Andamio / elevación"
+  );
+
+  ctx.y -= 23;
+
+  /*
+   * CONCLUSIÓN
+   */
+
+  tituloSeccion(
+    ctx,
+    "Conclusión técnica"
+  );
+
+  checkbox(
+    ctx,
+    col1,
+    ctx.y,
+    "Operativo"
+  );
+
+  checkbox(
+    ctx,
+    110,
+    ctx.y,
+    "Mantenimiento"
+  );
+
+  checkbox(
+    ctx,
+    215,
+    ctx.y,
+    "Reparación"
+  );
+
+  checkbox(
+    ctx,
+    310,
+    ctx.y,
+    "Presupuestar"
+  );
+
+  checkbox(
+    ctx,
+    415,
+    ctx.y,
+    "Reemplazo"
+  );
+
+  checkbox(
+    ctx,
+    505,
+    ctx.y,
+    "Baja técnica"
+  );
+
+  ctx.y -= 23;
+
+  observaciones(
+    ctx
+  );
+
+  ctx.y -= 8;
+
+  /*
+   * RESPONSABLES
+   */
+
+  const centro =
+    width / 2;
+
+  const altoCaja =
+    104;
+
+  const yCaja =
+    ctx.y -
+    altoCaja;
+
+  page.drawRectangle({
+    x: marginX,
+    y: yCaja,
+    width:
+      centro -
+      marginX -
+      7,
+    height:
+      altoCaja,
+    borderColor:
+      rgb(
+        0.8,
+        0.83,
+        0.86
+      ),
+    borderWidth: 0.7,
+  });
+
+  page.drawRectangle({
+    x: centro + 7,
+    y: yCaja,
+    width:
+      width -
+      marginX -
+      centro -
+      7,
+    height:
+      altoCaja,
+    borderColor:
+      rgb(
+        0.8,
+        0.83,
+        0.86
+      ),
+    borderWidth: 0.7,
+  });
+
+  page.drawRectangle({
+    x: marginX,
+    y:
+      ctx.y -
+      18,
+    width:
+      centro -
+      marginX -
+      7,
+    height: 18,
+    color: COLOR_CELESTE,
+  });
+
+  page.drawRectangle({
+    x:
+      centro + 7,
+    y:
+      ctx.y -
+      18,
+    width:
+      width -
+      marginX -
+      centro -
+      7,
+    height: 18,
+    color: COLOR_CELESTE,
+  });
+
+  escribirTextoNegrita(
+    page,
+    fontBold,
+    "RESPONSABLE DEL ESTABLECIMIENTO",
+    marginX + 6,
+    ctx.y - 12,
+    6.6,
+    COLOR_AZUL
+  );
+
+  escribirTextoNegrita(
+    page,
+    fontBold,
+    "TÉCNICO RESPONSABLE",
+    centro + 13,
+    ctx.y - 12,
+    6.6,
+    COLOR_AZUL
+  );
+
+  const izquierdaX =
+    marginX + 8;
+
+  const derechaX =
+    centro + 15;
+
+  let firmaY =
+    ctx.y - 34;
+
+  campoLinea(
+    ctx,
+    "Nombre:",
+    izquierdaX,
+    39,
+    170,
+    firmaY
+  );
+
+  campoLinea(
+    ctx,
+    "Nombre:",
+    derechaX,
+    39,
+    170,
+    firmaY
+  );
+
+  firmaY -= 21;
+
+  campoLinea(
+    ctx,
+    "Cargo:",
+    izquierdaX,
+    34,
+    175,
+    firmaY
+  );
+
+  campoLinea(
+    ctx,
+    "Matrícula:",
+    derechaX,
+    49,
+    160,
+    firmaY
+  );
+
+  firmaY -= 21;
+
+  campoLinea(
+    ctx,
+    "DNI:",
+    izquierdaX,
+    25,
+    184,
+    firmaY
+  );
+
+  campoLinea(
+    ctx,
+    "Firma:",
+    derechaX,
+    32,
+    177,
+    firmaY
+  );
+
+  firmaY -= 21;
+
+  campoLinea(
+    ctx,
+    "Firma:",
+    izquierdaX,
+    32,
+    177,
+    firmaY
+  );
+
+  campoLinea(
+    ctx,
+    "Sello:",
+    derechaX,
+    30,
+    179,
+    firmaY
+  );
+
+  ctx.y =
+    yCaja - 12;
+
+  /*
+   * VALIDEZ
+   */
+
+  escribirTextoNegrita(
+    page,
+    fontBold,
+    "Este documento carece de validez si no cuenta con la firma y sello del técnico responsable.",
+    marginX,
+    39,
+    5.8,
+    rgb(
+      0.5,
+      0.18,
+      0.18
+    )
+  );
 
   escribirTexto(
     page,
     font,
-    "Este documento no tiene validez si no se encuentra la firma y sello del técnico responsable.",
+    "Cualquier alteración, enmienda o modificación posterior invalida el documento.",
     marginX,
-    ctx.y,
-    6,
-    rgb(0.50, 0.18, 0.18)
+    28,
+    5.5,
+    rgb(
+      0.5,
+      0.18,
+      0.18
+    )
+  );
+
+  escribirTexto(
+    page,
+    font,
+    "Esta ficha corresponde a una revisión técnica preliminar y no constituye presupuesto ni factura.",
+    marginX,
+    17,
+    5.3,
+    COLOR_GRIS
   );
 
   escribirTexto(
     page,
     font,
     "Pág. 1 de 1",
-    width - marginX - 34,
-    14,
-    6,
-    rgb(0.45, 0.45, 0.45)
+    width -
+      marginX -
+      35,
+    17,
+    5.3,
+    COLOR_GRIS
   );
 }
 
 export async function generarFichaRevisionPdf(
   input: GenerarFichaRevisionPdfInput
 ): Promise<Uint8Array> {
-  const numeroInicial = Number(input.numeroInicial || 0);
-  const cantidad = Number(input.cantidad || 0);
+  const numeroInicial =
+    Number(
+      input.numeroInicial ||
+        0
+    );
 
-  if (!Number.isFinite(numeroInicial) || numeroInicial <= 0) {
-    throw new Error("El número inicial no es válido.");
+  const cantidad =
+    Number(
+      input.cantidad ||
+        0
+    );
+
+  if (
+    !Number.isFinite(
+      numeroInicial
+    ) ||
+    numeroInicial <= 0
+  ) {
+    throw new Error(
+      "El número inicial no es válido."
+    );
   }
 
-  if (!Number.isFinite(cantidad) || cantidad <= 0) {
-    throw new Error("La cantidad de fichas no es válida.");
+  if (
+    !Number.isFinite(
+      cantidad
+    ) ||
+    cantidad <= 0
+  ) {
+    throw new Error(
+      "La cantidad de fichas no es válida."
+    );
   }
 
-  const empresa = normalizarEmpresa(input.empresa);
+  const empresa =
+    normalizarEmpresa(
+      input.empresa
+    );
 
-  const pdfDoc = await PDFDocument.create();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const logo = await cargarLogo(pdfDoc);
+  const pdfDoc =
+    await PDFDocument.create();
 
-  for (let i = 0; i < cantidad; i += 1) {
-    const page = pdfDoc.addPage([595.28, 841.89]);
-    const { width, height } = page.getSize();
+  const font =
+    await pdfDoc.embedFont(
+      StandardFonts.Helvetica
+    );
+
+  const fontBold =
+    await pdfDoc.embedFont(
+      StandardFonts.HelveticaBold
+    );
+
+  const logo =
+    await cargarLogo(
+      pdfDoc
+    );
+
+  for (
+    let i = 0;
+    i < cantidad;
+    i += 1
+  ) {
+    const page =
+      pdfDoc.addPage([
+        PAGE_WIDTH,
+        PAGE_HEIGHT,
+      ]);
+
+    const {
+      width,
+      height,
+    } =
+      page.getSize();
 
     const ctx: ContextoDibujo = {
       page,
@@ -762,18 +1499,24 @@ export async function generarFichaRevisionPdf(
       fontBold,
       width,
       height,
-      marginX: 24,
-      y: height - 24,
+      marginX:
+        MARGIN_X,
+      y:
+        height -
+        20,
     };
 
     dibujarEncabezado(
       ctx,
-      numeroInicial + i,
+      numeroInicial +
+        i,
       empresa,
       logo
     );
 
-    dibujarPrimeraHoja(ctx);
+    dibujarContenido(
+      ctx
+    );
   }
 
   return await pdfDoc.save();
