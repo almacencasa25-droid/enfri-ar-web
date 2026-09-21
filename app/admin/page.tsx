@@ -3,6 +3,7 @@ import {
   ArrowRight,
   ClipboardList,
   ExternalLink,
+  FileText,
   Images,
   LogOut,
   Settings,
@@ -314,6 +315,58 @@ export default async function AdminPage() {
                 style={actionLinkStyle}
               >
                 Abrir configuración
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </article>
+
+            <article
+              style={{
+                ...cardStyle,
+                padding: "22px",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  display: "grid",
+                  placeItems: "center",
+                  marginBottom: "16px",
+                  borderRadius: "12px",
+                  background: "rgba(23, 109, 162, 0.10)",
+                  color: "var(--brand-blue)",
+                }}
+              >
+                <FileText size={22} aria-hidden="true" />
+              </div>
+
+              <h3
+                style={{
+                  margin: "0 0 8px",
+                  color: "var(--foreground)",
+                  fontSize: "1.12rem",
+                }}
+              >
+                Presupuestos y trabajos
+              </h3>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--muted)",
+                  lineHeight: 1.6,
+                }}
+              >
+                Gestioná presupuestos, Órdenes de Trabajo,
+                conformidades, documentos y equipo técnico
+                desde un mismo módulo.
+              </p>
+
+              <Link
+                href="/admin/presupuestos"
+                style={actionLinkStyle}
+              >
+                Abrir presupuestos
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </article>
