@@ -5,7 +5,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import {
   generarFichaRevisionPdf,
-  type FichaRevisionEmpresa,
 } from "../lib/generarFichaRevisionPdf";
 
 export type GenerarFichasRevisionResultado =
@@ -21,6 +20,16 @@ export type GenerarFichasRevisionResultado =
       ok: false;
       error: string;
     };
+
+type EmpresaSnapshot = {
+  company_name?: string | null;
+  short_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  address?: string | null;
+  whatsapp_number?: string | null;
+};
 
 export async function generarFichasRevisionAction(
   cantidad: number
@@ -76,6 +85,9 @@ export async function generarFichasRevisionAction(
         "No fue posible obtener los datos de Enfri.Ar.",
     };
   }
+
+  const empresa =
+    empresaData as EmpresaSnapshot;
 
   /*
    * Reservamos el lote completo
@@ -164,8 +176,34 @@ export async function generarFichasRevisionAction(
           numeroInicial,
           cantidad:
             cantidadNormalizada,
-          empresa:
-            empresaData as FichaRevisionEmpresa,
+
+          empresa: {
+            nombre:
+              empresa.company_name ||
+              empresa.short_name ||
+              "Enfri.Ar Refrigeración",
+
+            direccion:
+              empresa.address ||
+              "",
+
+            telefono:
+              empresa.phone ||
+              empresa.whatsapp_number ||
+              "",
+
+            email:
+              empresa.email ||
+              "",
+
+            /*
+             * El snapshot actual no trae CUIT.
+             * Al enviarlo vacío, el generador
+             * conserva el valor configurado
+             * como respaldo.
+             */
+            cuit: "",
+          },
         }
       );
 
