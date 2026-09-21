@@ -23,7 +23,10 @@ export type FichaRevisionEmpresa = {
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
-const MARGIN = 32;
+const MARGIN = 30;
+
+const CONTENT_WIDTH =
+  PAGE_WIDTH - MARGIN * 2;
 
 const COLOR_DARK = rgb(
   0.09,
@@ -101,7 +104,7 @@ async function cargarLogo(
   }
 }
 
-function dibujarTituloSeccion({
+function tituloSeccion({
   page,
   titulo,
   y,
@@ -114,30 +117,27 @@ function dibujarTituloSeccion({
 }) {
   page.drawRectangle({
     x: MARGIN,
-    y: y - 4,
-    width:
-      PAGE_WIDTH -
-      MARGIN * 2,
-    height: 20,
+    y: y - 3,
+    width: CONTENT_WIDTH,
+    height: 18,
     color: COLOR_LIGHT,
-    borderColor:
-      COLOR_BORDER,
+    borderColor: COLOR_BORDER,
     borderWidth: 0.5,
   });
 
   page.drawText(
     titulo,
     {
-      x: MARGIN + 8,
+      x: MARGIN + 7,
       y: y + 2,
-      size: 8,
+      size: 7.7,
       font: bold,
       color: COLOR_DARK,
     }
   );
 }
 
-function dibujarCampo({
+function campo({
   page,
   etiqueta,
   x,
@@ -157,7 +157,7 @@ function dibujarCampo({
     {
       x,
       y,
-      size: 7.4,
+      size: 6.8,
       font: bold,
       color: COLOR_TEXT,
     }
@@ -166,7 +166,7 @@ function dibujarCampo({
   const anchoEtiqueta =
     bold.widthOfTextAtSize(
       etiqueta,
-      7.4
+      6.8
     );
 
   page.drawLine({
@@ -174,54 +174,69 @@ function dibujarCampo({
       x:
         x +
         anchoEtiqueta +
-        6,
+        5,
       y: y - 1,
     },
     end: {
       x: x + ancho,
       y: y - 1,
     },
-    thickness: 0.55,
+    thickness: 0.45,
     color: COLOR_BORDER,
   });
 }
 
-function dibujarOpcion({
+function casillero({
   page,
-  textoOpcion,
+  x,
+  y,
+}: {
+  page: PDFPage;
+  x: number;
+  y: number;
+}) {
+  page.drawRectangle({
+    x,
+    y: y - 1,
+    width: 8,
+    height: 8,
+    borderColor: COLOR_TEXT,
+    borderWidth: 0.65,
+  });
+}
+
+function opcion({
+  page,
+  etiqueta,
   x,
   y,
   regular,
 }: {
   page: PDFPage;
-  textoOpcion: string;
+  etiqueta: string;
   x: number;
   y: number;
   regular: PDFFont;
 }) {
-  page.drawRectangle({
+  casillero({
+    page,
     x,
-    y: y - 2,
-    width: 8,
-    height: 8,
-    borderColor:
-      COLOR_TEXT,
-    borderWidth: 0.65,
+    y,
   });
 
   page.drawText(
-    textoOpcion,
+    etiqueta,
     {
-      x: x + 13,
+      x: x + 12,
       y,
-      size: 6.7,
+      size: 6.4,
       font: regular,
       color: COLOR_TEXT,
     }
   );
 }
 
-function dibujarFilaControl({
+function filaTablaDiagnostico({
   page,
   etiqueta,
   opciones,
@@ -236,102 +251,117 @@ function dibujarFilaControl({
   regular: PDFFont;
   bold: PDFFont;
 }) {
+  const etiquetaX =
+    MARGIN + 6;
+
   page.drawText(
     etiqueta,
     {
-      x: MARGIN + 6,
+      x: etiquetaX,
       y,
-      size: 6.8,
+      size: 6.4,
       font: bold,
       color: COLOR_TEXT,
     }
   );
 
-  let x =
-    MARGIN + 132;
+  const columnas = [
+    184,
+    276,
+    368,
+    460,
+  ];
 
-  for (
-    const opcion
-    of opciones
-  ) {
-    dibujarOpcion({
-      page,
-      textoOpcion:
-        opcion,
-      x,
-      y,
-      regular,
-    });
+  opciones
+    .slice(0, 4)
+    .forEach(
+      (
+        valor,
+        indice
+      ) => {
+        opcion({
+          page,
+          etiqueta: valor,
+          x: columnas[indice],
+          y,
+          regular,
+        });
+      }
+    );
 
-    x +=
-      22 +
-      regular.widthOfTextAtSize(
-        opcion,
-        6.7
-      );
-  }
+  page.drawLine({
+    start: {
+      x: MARGIN,
+      y: y - 5,
+    },
+    end: {
+      x:
+        PAGE_WIDTH -
+        MARGIN,
+      y: y - 5,
+    },
+    thickness: 0.25,
+    color: COLOR_BORDER,
+  });
 }
 
-function dibujarObservaciones({
+function areaLineas({
   page,
-  ySuperior,
+  titulo,
+  yTop,
   alto,
   bold,
 }: {
   page: PDFPage;
-  ySuperior: number;
+  titulo: string;
+  yTop: number;
   alto: number;
   bold: PDFFont;
 }) {
   page.drawRectangle({
     x: MARGIN,
     y:
-      ySuperior -
+      yTop -
       alto,
-    width:
-      PAGE_WIDTH -
-      MARGIN * 2,
+    width: CONTENT_WIDTH,
     height: alto,
-    borderColor:
-      COLOR_BORDER,
-    borderWidth: 0.6,
+    borderColor: COLOR_BORDER,
+    borderWidth: 0.5,
   });
 
   page.drawText(
-    "Observaciones",
+    titulo,
     {
-      x: MARGIN + 8,
-      y:
-        ySuperior -
-        14,
-      size: 7.4,
+      x: MARGIN + 7,
+      y: yTop - 13,
+      size: 6.8,
       font: bold,
       color: COLOR_TEXT,
     }
   );
 
   for (
-    let y =
-      ySuperior - 30;
-    y >
-    ySuperior -
+    let lineaY =
+      yTop - 27;
+    lineaY >
+    yTop -
       alto +
-      10;
-    y -= 15
+      8;
+    lineaY -= 14
   ) {
     page.drawLine({
       start: {
-        x: MARGIN + 8,
-        y,
+        x: MARGIN + 7,
+        y: lineaY,
       },
       end: {
         x:
           PAGE_WIDTH -
           MARGIN -
-          8,
-        y,
+          7,
+        y: lineaY,
       },
-      thickness: 0.35,
+      thickness: 0.3,
       color: COLOR_BORDER,
     });
   }
@@ -372,12 +402,18 @@ export async function generarFichaRevisionPdf({
     "Enfri.Ar Refrigeración";
 
   const contacto = [
-    texto(empresa.phone),
     texto(
-      empresa.whatsapp_number
+      empresa.address
     ),
-    texto(empresa.email),
-    texto(empresa.website),
+    texto(
+      empresa.phone
+    ),
+    texto(
+      empresa.email
+    ),
+    texto(
+      empresa.website
+    ),
   ]
     .filter(Boolean)
     .join(" | ");
@@ -405,12 +441,18 @@ export async function generarFichaRevisionPdf({
         PAGE_HEIGHT,
       ]);
 
+    /*
+     * ==========================================
+     * ENCABEZADO
+     * ==========================================
+     */
+
     if (logo) {
       const escala =
         Math.min(
-          150 /
+          142 /
             logo.width,
-          48 /
+          45 /
             logo.height
         );
 
@@ -420,7 +462,7 @@ export async function generarFichaRevisionPdf({
           x: MARGIN,
           y:
             PAGE_HEIGHT -
-            77,
+            70,
           width:
             logo.width *
             escala,
@@ -434,11 +476,11 @@ export async function generarFichaRevisionPdf({
     page.drawText(
       "FICHA DE REVISIÓN TÉCNICA",
       {
-        x: 228,
+        x: 232,
         y:
           PAGE_HEIGHT -
-          48,
-        size: 12.5,
+          43,
+        size: 11.3,
         font: bold,
         color: COLOR_DARK,
       }
@@ -447,14 +489,13 @@ export async function generarFichaRevisionPdf({
     page.drawText(
       `N.º ${numeroVisible}`,
       {
-        x: 445,
+        x: 446,
         y:
           PAGE_HEIGHT -
-          68,
-        size: 10.5,
+          61,
+        size: 9.5,
         font: bold,
-        color:
-          COLOR_ORANGE,
+        color: COLOR_ORANGE,
       }
     );
 
@@ -464,8 +505,8 @@ export async function generarFichaRevisionPdf({
         x: MARGIN,
         y:
           PAGE_HEIGHT -
-          94,
-        size: 7.6,
+          88,
+        size: 7,
         font: bold,
         color: COLOR_TEXT,
       }
@@ -478,11 +519,10 @@ export async function generarFichaRevisionPdf({
           x: MARGIN,
           y:
             PAGE_HEIGHT -
-            106,
-          size: 6.3,
+            99,
+          size: 5.8,
           font: regular,
-          color:
-            COLOR_MUTED,
+          color: COLOR_MUTED,
         }
       );
     }
@@ -492,7 +532,7 @@ export async function generarFichaRevisionPdf({
         x: MARGIN,
         y:
           PAGE_HEIGHT -
-          116,
+          108,
       },
       end: {
         x:
@@ -500,17 +540,23 @@ export async function generarFichaRevisionPdf({
           MARGIN,
         y:
           PAGE_HEIGHT -
-          116,
+          108,
       },
-      thickness: 0.8,
+      thickness: 0.7,
       color: COLOR_BLUE,
     });
 
     let y =
       PAGE_HEIGHT -
-      140;
+      129;
 
-    dibujarTituloSeccion({
+    /*
+     * ==========================================
+     * DATOS DE VISITA
+     * ==========================================
+     */
+
+    tituloSeccion({
       page,
       titulo:
         "DATOS DE LA VISITA",
@@ -518,189 +564,279 @@ export async function generarFichaRevisionPdf({
       bold,
     });
 
-    y -= 25;
+    y -= 22;
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Fecha:",
-      x: MARGIN + 6,
+      x: MARGIN + 5,
       y,
-      ancho: 170,
+      ancho: 130,
       bold,
     });
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
-        "Solicitante / cliente:",
-      x: 240,
+        "Hora:",
+      x: 180,
       y,
-      ancho: 315,
+      ancho: 100,
       bold,
     });
 
-    y -= 20;
+    campo({
+      page,
+      etiqueta:
+        "Cliente / empresa:",
+      x: 300,
+      y,
+      ancho: 255,
+      bold,
+    });
 
-    dibujarCampo({
+    y -= 17;
+
+    campo({
       page,
       etiqueta:
         "Dirección:",
-      x: MARGIN + 6,
+      x: MARGIN + 5,
       y,
-      ancho: 325,
+      ancho: 300,
       bold,
     });
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Localidad:",
-      x: 375,
+      x: 355,
       y,
-      ancho: 180,
+      ancho: 200,
       bold,
     });
 
-    y -= 20;
+    y -= 17;
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Teléfono:",
-      x: MARGIN + 6,
+      x: MARGIN + 5,
       y,
-      ancho: 190,
+      ancho: 185,
       bold,
     });
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Sector / ubicación:",
-      x: 260,
+      x: 245,
       y,
-      ancho: 295,
-      bold,
-    });
-
-    y -= 30;
-
-    dibujarTituloSeccion({
-      page,
-      titulo:
-        "DATOS DEL EQUIPO",
-      y,
+      ancho: 310,
       bold,
     });
 
     y -= 25;
+
+    /*
+     * ==========================================
+     * MOTIVO
+     * ==========================================
+     */
+
+    tituloSeccion({
+      page,
+      titulo:
+        "MOTIVO DE LA VISITA",
+      y,
+      bold,
+    });
+
+    y -= 21;
+
+    const motivos = [
+      {
+        x: MARGIN + 5,
+        t: "Revisión / diagnóstico",
+      },
+      {
+        x: 155,
+        t: "Reparación",
+      },
+      {
+        x: 250,
+        t: "Mantenimiento",
+      },
+      {
+        x: 360,
+        t: "Presupuesto instalación",
+      },
+      {
+        x: 490,
+        t: "Reemplazo",
+      },
+    ];
+
+    motivos.forEach(
+      (item) => {
+        opcion({
+          page,
+          etiqueta: item.t,
+          x: item.x,
+          y,
+          regular,
+        });
+      }
+    );
+
+    y -= 25;
+
+    /*
+     * ==========================================
+     * EQUIPO
+     * ==========================================
+     */
+
+    tituloSeccion({
+      page,
+      titulo:
+        "IDENTIFICACIÓN DEL EQUIPO",
+      y,
+      bold,
+    });
+
+    y -= 21;
 
     page.drawText(
       "Tipo:",
       {
-        x: MARGIN + 6,
+        x: MARGIN + 5,
         y,
-        size: 6.8,
+        size: 6.4,
         font: bold,
         color: COLOR_TEXT,
       }
     );
 
-    let tipoX =
-      MARGIN + 45;
+    const tipos = [
+      {
+        x: 70,
+        t: "Split",
+      },
+      {
+        x: 120,
+        t: "Piso techo",
+      },
+      {
+        x: 205,
+        t: "Cassette",
+      },
+      {
+        x: 278,
+        t: "Ventana",
+      },
+      {
+        x: 350,
+        t: "Otro",
+      },
+    ];
 
-    for (
-      const tipo
-      of [
-        "Split",
-        "Piso techo",
-        "Cassette",
-        "Ventana",
-        "Otro",
-      ]
-    ) {
-      dibujarOpcion({
-        page,
-        textoOpcion:
-          tipo,
-        x: tipoX,
-        y,
-        regular,
-      });
+    tipos.forEach(
+      (item) => {
+        opcion({
+          page,
+          etiqueta: item.t,
+          x: item.x,
+          y,
+          regular,
+        });
+      }
+    );
 
-      tipoX +=
-        22 +
-        regular.widthOfTextAtSize(
-          tipo,
-          6.7
-        );
-    }
+    y -= 17;
 
-    y -= 20;
-
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Marca:",
-      x: MARGIN + 6,
-      y,
-      ancho: 165,
-      bold,
-    });
-
-    dibujarCampo({
-      page,
-      etiqueta:
-        "Modelo:",
-      x: 215,
-      y,
-      ancho: 165,
-      bold,
-    });
-
-    dibujarCampo({
-      page,
-      etiqueta:
-        "Capacidad:",
-      x: 395,
+      x: MARGIN + 5,
       y,
       ancho: 160,
       bold,
     });
 
-    y -= 20;
-
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
-        "Refrigerante:",
-      x: MARGIN + 6,
+        "Modelo:",
+      x: 205,
       y,
-      ancho: 220,
+      ancho: 155,
       bold,
     });
 
-    dibujarOpcion({
+    campo({
       page,
-      textoOpcion:
-        "Sin etiqueta / ilegible",
-      x: 310,
+      etiqueta:
+        "Capacidad:",
+      x: 380,
+      y,
+      ancho: 175,
+      bold,
+    });
+
+    y -= 17;
+
+    campo({
+      page,
+      etiqueta:
+        "Serie / inventario:",
+      x: MARGIN + 5,
+      y,
+      ancho: 225,
+      bold,
+    });
+
+    campo({
+      page,
+      etiqueta:
+        "Refrigerante:",
+      x: 285,
+      y,
+      ancho: 165,
+      bold,
+    });
+
+    opcion({
+      page,
+      etiqueta:
+        "Sin etiqueta",
+      x: 468,
       y,
       regular,
     });
 
-    y -= 30;
+    y -= 25;
 
-    dibujarTituloSeccion({
+    /*
+     * ==========================================
+     * DIAGNÓSTICO
+     * ==========================================
+     */
+
+    tituloSeccion({
       page,
       titulo:
-        "CONTROL Y DIAGNÓSTICO",
+        "CONTROL Y DIAGNÓSTICO DEL EQUIPO",
       y,
       bold,
     });
 
-    y -= 23;
+    y -= 20;
 
     const controles = [
       {
@@ -709,6 +845,8 @@ export async function generarFichaRevisionPdf({
         opciones: [
           "Sí",
           "No",
+          "",
+          "",
         ],
       },
       {
@@ -738,6 +876,7 @@ export async function generarFichaRevisionPdf({
           "Funciona",
           "No funciona",
           "Ruidoso",
+          "",
         ],
       },
       {
@@ -747,6 +886,7 @@ export async function generarFichaRevisionPdf({
           "Funciona",
           "No funciona",
           "Ruidoso",
+          "",
         ],
       },
       {
@@ -755,7 +895,7 @@ export async function generarFichaRevisionPdf({
         opciones: [
           "Funciona",
           "No arranca",
-          "Arranca y corta",
+          "Corta",
           "Ruidoso",
         ],
       },
@@ -775,7 +915,8 @@ export async function generarFichaRevisionPdf({
         opciones: [
           "Correcto",
           "Obstruido",
-          "Pérdida de agua",
+          "Pierde agua",
+          "",
         ],
       },
       {
@@ -785,6 +926,7 @@ export async function generarFichaRevisionPdf({
           "Correcta",
           "A revisar",
           "Riesgosa",
+          "",
         ],
       },
       {
@@ -794,6 +936,7 @@ export async function generarFichaRevisionPdf({
           "Correctos",
           "Sucios",
           "Deteriorados",
+          "",
         ],
       },
     ];
@@ -802,274 +945,460 @@ export async function generarFichaRevisionPdf({
       const control
       of controles
     ) {
-      dibujarFilaControl({
+      filaTablaDiagnostico({
         page,
         etiqueta:
           control.etiqueta,
         opciones:
-          control.opciones,
+          control.opciones.filter(
+            Boolean
+          ),
         y,
         regular,
         bold,
       });
 
-      y -= 15;
+      y -= 13;
     }
 
-    y -= 3;
+    y -= 4;
 
-    dibujarCampo({
+    /*
+     * ==========================================
+     * MEDICIONES
+     * ==========================================
+     */
+
+    campo({
       page,
       etiqueta:
         "Tensión:",
-      x: MARGIN + 6,
+      x: MARGIN + 5,
       y,
-      ancho: 145,
+      ancho: 105,
       bold,
     });
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Consumo:",
-      x: 195,
+      x: 160,
       y,
-      ancho: 145,
+      ancho: 105,
       bold,
     });
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
         "Presión:",
-      x: 355,
+      x: 290,
       y,
-      ancho: 200,
+      ancho: 105,
+      bold,
+    });
+
+    campo({
+      page,
+      etiqueta:
+        "Temp. entrada:",
+      x: 420,
+      y,
+      ancho: 135,
+      bold,
+    });
+
+    y -= 17;
+
+    campo({
+      page,
+      etiqueta:
+        "Temp. salida:",
+      x: MARGIN + 5,
+      y,
+      ancho: 150,
+      bold,
+    });
+
+    y -= 25;
+
+    /*
+     * ==========================================
+     * INSTALACIÓN NUEVA
+     * ==========================================
+     */
+
+    tituloSeccion({
+      page,
+      titulo:
+        "RELEVAMIENTO PARA INSTALACIÓN",
+      y,
       bold,
     });
 
     y -= 20;
 
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
-        "Temp. entrada:",
-      x: MARGIN + 6,
-      y,
-      ancho: 235,
-      bold,
-    });
-
-    dibujarCampo({
-      page,
-      etiqueta:
-        "Temp. salida:",
-      x: 315,
+        "Equipo / capacidad estimada:",
+      x: MARGIN + 5,
       y,
       ancho: 240,
       bold,
     });
 
-    y -= 30;
-
-    dibujarTituloSeccion({
-      page,
-      titulo:
-        "DIAGNÓSTICO PRELIMINAR",
-      y,
-      bold,
-    });
-
-    y -= 23;
-
-    let diagnosticoX =
-      MARGIN + 6;
-
-    for (
-      const opcion
-      of [
-        "Limpieza",
-        "Mantenimiento",
-        "Reparación",
-        "Búsqueda de fuga",
-      ]
-    ) {
-      dibujarOpcion({
-        page,
-        textoOpcion:
-          opcion,
-        x:
-          diagnosticoX,
-        y,
-        regular,
-      });
-
-      diagnosticoX +=
-        22 +
-        regular.widthOfTextAtSize(
-          opcion,
-          6.7
-        );
-    }
-
-    y -= 15;
-
-    diagnosticoX =
-      MARGIN + 6;
-
-    for (
-      const opcion
-      of [
-        "Carga refrigerante",
-        "Reemplazo componente",
-        "Reemplazo equipo",
-        "Diagnóstico adicional",
-      ]
-    ) {
-      dibujarOpcion({
-        page,
-        textoOpcion:
-          opcion,
-        x:
-          diagnosticoX,
-        y,
-        regular,
-      });
-
-      diagnosticoX +=
-        22 +
-        regular.widthOfTextAtSize(
-          opcion,
-          6.7
-        );
-    }
-
-    y -= 22;
-
-    dibujarObservaciones({
-      page,
-      ySuperior: y,
-      alto: 62,
-      bold,
-    });
-
-    y -= 72;
-
-    dibujarTituloSeccion({
-      page,
-      titulo:
-        "SEGUIMIENTO",
-      y,
-      bold,
-    });
-
-    y -= 23;
-
-    let seguimientoX =
-      MARGIN + 6;
-
-    for (
-      const opcion
-      of [
-        "Requiere fotografías",
-        "Segunda visita",
-        "Presupuestar",
-        "Sin intervención",
-      ]
-    ) {
-      dibujarOpcion({
-        page,
-        textoOpcion:
-          opcion,
-        x:
-          seguimientoX,
-        y,
-        regular,
-      });
-
-      seguimientoX +=
-        22 +
-        regular.widthOfTextAtSize(
-          opcion,
-          6.7
-        );
-    }
-
-    y -= 30;
-
-    dibujarTituloSeccion({
-      page,
-      titulo:
-        "RESPONSABLE DEL LUGAR",
-      y,
-      bold,
-    });
-
-    y -= 24;
-
-    dibujarCampo({
+    campo({
       page,
       etiqueta:
-        "Nombre y apellido:",
-      x: MARGIN + 6,
-      y,
-      ancho: 270,
-      bold,
-    });
-
-    dibujarCampo({
-      page,
-      etiqueta:
-        "Cargo:",
-      x: 340,
-      y,
-      ancho: 215,
-      bold,
-    });
-
-    y -= 23;
-
-    dibujarCampo({
-      page,
-      etiqueta:
-        "Firma:",
-      x: MARGIN + 6,
+        "Interconexión aprox.:",
+      x: 310,
       y,
       ancho: 245,
       bold,
     });
 
-    dibujarCampo({
+    y -= 17;
+
+    campo({
+      page,
+      etiqueta:
+        "Ubicación evaporador:",
+      x: MARGIN + 5,
+      y,
+      ancho: 245,
+      bold,
+    });
+
+    campo({
+      page,
+      etiqueta:
+        "Ubicación condensador:",
+      x: 305,
+      y,
+      ancho: 250,
+      bold,
+    });
+
+    y -= 17;
+
+    const instalacion1 = [
+      {
+        x: MARGIN + 5,
+        t: "Desagüe disponible",
+      },
+      {
+        x: 160,
+        t: "Alimentación eléctrica",
+      },
+      {
+        x: 325,
+        t: "Perforación",
+      },
+      {
+        x: 420,
+        t: "Ménsulas / base",
+      },
+    ];
+
+    instalacion1.forEach(
+      (item) => {
+        opcion({
+          page,
+          etiqueta:
+            item.t,
+          x: item.x,
+          y,
+          regular,
+        });
+      }
+    );
+
+    y -= 16;
+
+    const instalacion2 = [
+      {
+        x: MARGIN + 5,
+        t: "Canaleta",
+      },
+      {
+        x: 120,
+        t: "Trabajo en altura",
+      },
+      {
+        x: 250,
+        t: "Acceso complejo",
+      },
+      {
+        x: 385,
+        t: "Requiere andamio / elevación",
+      },
+    ];
+
+    instalacion2.forEach(
+      (item) => {
+        opcion({
+          page,
+          etiqueta:
+            item.t,
+          x: item.x,
+          y,
+          regular,
+        });
+      }
+    );
+
+    y -= 24;
+
+    /*
+     * ==========================================
+     * CONCLUSIÓN
+     * ==========================================
+     */
+
+    tituloSeccion({
+      page,
+      titulo:
+        "CONCLUSIÓN TÉCNICA",
+      y,
+      bold,
+    });
+
+    y -= 20;
+
+    const conclusiones1 = [
+      {
+        x: MARGIN + 5,
+        t: "Operativo",
+      },
+      {
+        x: 105,
+        t: "Mantenimiento",
+      },
+      {
+        x: 215,
+        t: "Reparación",
+      },
+      {
+        x: 305,
+        t: "Presupuestar",
+      },
+      {
+        x: 405,
+        t: "Reemplazo",
+      },
+      {
+        x: 495,
+        t: "Baja técnica",
+      },
+    ];
+
+    conclusiones1.forEach(
+      (item) => {
+        opcion({
+          page,
+          etiqueta:
+            item.t,
+          x: item.x,
+          y,
+          regular,
+        });
+      }
+    );
+
+    y -= 21;
+
+    areaLineas({
+      page,
+      titulo:
+        "Descripción / observaciones técnicas",
+      yTop: y,
+      alto: 50,
+      bold,
+    });
+
+    y -= 59;
+
+    /*
+     * ==========================================
+     * SEGUIMIENTO
+     * ==========================================
+     */
+
+    const seguimiento = [
+      {
+        x: MARGIN + 5,
+        t: "Fotografías",
+      },
+      {
+        x: 130,
+        t: "Segunda visita",
+      },
+      {
+        x: 245,
+        t: "Generar presupuesto",
+      },
+      {
+        x: 390,
+        t: "Sin intervención",
+      },
+    ];
+
+    seguimiento.forEach(
+      (item) => {
+        opcion({
+          page,
+          etiqueta:
+            item.t,
+          x: item.x,
+          y,
+          regular,
+        });
+      }
+    );
+
+    y -= 26;
+
+    /*
+     * ==========================================
+     * FIRMAS
+     * ==========================================
+     */
+
+    tituloSeccion({
+      page,
+      titulo:
+        "FIRMAS Y RESPONSABLES",
+      y,
+      bold,
+    });
+
+    y -= 21;
+
+    campo({
+      page,
+      etiqueta:
+        "Responsable del lugar:",
+      x: MARGIN + 5,
+      y,
+      ancho: 245,
+      bold,
+    });
+
+    campo({
+      page,
+      etiqueta:
+        "Cargo:",
+      x: 305,
+      y,
+      ancho: 115,
+      bold,
+    });
+
+    campo({
+      page,
+      etiqueta:
+        "DNI:",
+      x: 445,
+      y,
+      ancho: 110,
+      bold,
+    });
+
+    y -= 18;
+
+    campo({
+      page,
+      etiqueta:
+        "Firma responsable:",
+      x: MARGIN + 5,
+      y,
+      ancho: 245,
+      bold,
+    });
+
+    campo({
       page,
       etiqueta:
         "Técnico:",
-      x: 320,
+      x: 305,
       y,
-      ancho: 235,
+      ancho: 250,
       bold,
     });
+
+    y -= 18;
+
+    campo({
+      page,
+      etiqueta:
+        "Matrícula:",
+      x: 305,
+      y,
+      ancho: 130,
+      bold,
+    });
+
+    campo({
+      page,
+      etiqueta:
+        "Firma y sello:",
+      x: 445,
+      y,
+      ancho: 110,
+      bold,
+    });
+
+    /*
+     * ==========================================
+     * PIE / VALIDEZ
+     * ==========================================
+     */
 
     page.drawLine({
       start: {
         x: MARGIN,
-        y: 43,
+        y: 54,
       },
       end: {
         x:
           PAGE_WIDTH -
           MARGIN,
-        y: 43,
+        y: 54,
       },
-      thickness: 0.6,
+      thickness: 0.55,
       color: COLOR_BORDER,
     });
 
     page.drawText(
-      "Revisión técnica preliminar. No constituye presupuesto, factura ni comprobante fiscal.",
+      "Esta ficha corresponde a una revisión técnica preliminar y no constituye presupuesto ni factura.",
       {
         x: MARGIN,
-        y: 28,
-        size: 6.2,
+        y: 42,
+        size: 5.7,
+        font: regular,
+        color: COLOR_MUTED,
+      }
+    );
+
+    page.drawText(
+      "Este documento carece de validez si no cuenta con la firma y sello del técnico responsable.",
+      {
+        x: MARGIN,
+        y: 31,
+        size: 5.7,
+        font: bold,
+        color: COLOR_DARK,
+      }
+    );
+
+    page.drawText(
+      "Cualquier alteración, enmienda o modificación posterior invalida el documento.",
+      {
+        x: MARGIN,
+        y: 20,
+        size: 5.7,
         font: bold,
         color: COLOR_DARK,
       }
@@ -1080,9 +1409,9 @@ export async function generarFichaRevisionPdf({
       {
         x:
           PAGE_WIDTH -
-          126,
-        y: 28,
-        size: 6.2,
+          117,
+        y: 20,
+        size: 5.7,
         font: regular,
         color: COLOR_MUTED,
       }
