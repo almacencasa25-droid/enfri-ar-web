@@ -251,13 +251,10 @@ function filaTablaDiagnostico({
   regular: PDFFont;
   bold: PDFFont;
 }) {
-  const etiquetaX =
-    MARGIN + 6;
-
   page.drawText(
     etiqueta,
     {
-      x: etiquetaX,
+      x: MARGIN + 6,
       y,
       size: 6.4,
       font: bold,
@@ -443,16 +440,16 @@ export async function generarFichaRevisionPdf({
 
     /*
      * ==========================================
-     * ENCABEZADO
+     * ENCABEZADO COMPACTO
      * ==========================================
      */
 
     if (logo) {
       const escala =
         Math.min(
-          142 /
+          110 /
             logo.width,
-          45 /
+          34 /
             logo.height
         );
 
@@ -462,7 +459,7 @@ export async function generarFichaRevisionPdf({
           x: MARGIN,
           y:
             PAGE_HEIGHT -
-            70,
+            55,
           width:
             logo.width *
             escala,
@@ -479,8 +476,8 @@ export async function generarFichaRevisionPdf({
         x: 232,
         y:
           PAGE_HEIGHT -
-          43,
-        size: 11.3,
+          35,
+        size: 9.5,
         font: bold,
         color: COLOR_DARK,
       }
@@ -489,11 +486,11 @@ export async function generarFichaRevisionPdf({
     page.drawText(
       `N.º ${numeroVisible}`,
       {
-        x: 446,
+        x: 463,
         y:
           PAGE_HEIGHT -
-          61,
-        size: 9.5,
+          50,
+        size: 8.3,
         font: bold,
         color: COLOR_ORANGE,
       }
@@ -505,8 +502,8 @@ export async function generarFichaRevisionPdf({
         x: MARGIN,
         y:
           PAGE_HEIGHT -
-          88,
-        size: 7,
+          68,
+        size: 6.5,
         font: bold,
         color: COLOR_TEXT,
       }
@@ -519,8 +516,8 @@ export async function generarFichaRevisionPdf({
           x: MARGIN,
           y:
             PAGE_HEIGHT -
-            99,
-          size: 5.8,
+            78,
+          size: 5.3,
           font: regular,
           color: COLOR_MUTED,
         }
@@ -532,7 +529,7 @@ export async function generarFichaRevisionPdf({
         x: MARGIN,
         y:
           PAGE_HEIGHT -
-          108,
+          87,
       },
       end: {
         x:
@@ -540,7 +537,7 @@ export async function generarFichaRevisionPdf({
           MARGIN,
         y:
           PAGE_HEIGHT -
-          108,
+          87,
       },
       thickness: 0.7,
       color: COLOR_BLUE,
@@ -548,7 +545,7 @@ export async function generarFichaRevisionPdf({
 
     let y =
       PAGE_HEIGHT -
-      129;
+      108;
 
     /*
      * ==========================================
@@ -644,60 +641,67 @@ export async function generarFichaRevisionPdf({
 
     /*
      * ==========================================
-     * MOTIVO
+     * TIPO DE VISITA
      * ==========================================
      */
 
     tituloSeccion({
       page,
       titulo:
-        "MOTIVO DE LA VISITA",
+        "TIPO DE VISITA",
       y,
       bold,
     });
 
     y -= 21;
 
-    const motivos = [
-      {
-        x: MARGIN + 5,
-        t: "Revisión / diagnóstico",
-      },
-      {
-        x: 155,
-        t: "Reparación",
-      },
-      {
-        x: 250,
-        t: "Mantenimiento",
-      },
-      {
-        x: 360,
-        t: "Presupuesto instalación",
-      },
-      {
-        x: 490,
-        t: "Reemplazo",
-      },
-    ];
+    opcion({
+      page,
+      etiqueta:
+        "Consulta técnica",
+      x: MARGIN + 5,
+      y,
+      regular,
+    });
 
-    motivos.forEach(
-      (item) => {
-        opcion({
-          page,
-          etiqueta: item.t,
-          x: item.x,
-          y,
-          regular,
-        });
-      }
-    );
+    opcion({
+      page,
+      etiqueta:
+        "Relevamiento para instalación",
+      x: 185,
+      y,
+      regular,
+    });
+
+    opcion({
+      page,
+      etiqueta:
+        "Otro:",
+      x: 390,
+      y,
+      regular,
+    });
+
+    page.drawLine({
+      start: {
+        x: 434,
+        y: y - 1,
+      },
+      end: {
+        x:
+          PAGE_WIDTH -
+          MARGIN,
+        y: y - 1,
+      },
+      thickness: 0.45,
+      color: COLOR_BORDER,
+    });
 
     y -= 25;
 
     /*
      * ==========================================
-     * EQUIPO
+     * IDENTIFICACIÓN DEL EQUIPO
      * ==========================================
      */
 
@@ -749,7 +753,8 @@ export async function generarFichaRevisionPdf({
       (item) => {
         opcion({
           page,
-          etiqueta: item.t,
+          etiqueta:
+            item.t,
           x: item.x,
           y,
           regular,
@@ -824,14 +829,14 @@ export async function generarFichaRevisionPdf({
 
     /*
      * ==========================================
-     * DIAGNÓSTICO
+     * CONSULTA TÉCNICA
      * ==========================================
      */
 
     tituloSeccion({
       page,
       titulo:
-        "CONTROL Y DIAGNÓSTICO DEL EQUIPO",
+        "CONSULTA TÉCNICA",
       y,
       bold,
     });
@@ -845,8 +850,6 @@ export async function generarFichaRevisionPdf({
         opciones: [
           "Sí",
           "No",
-          "",
-          "",
         ],
       },
       {
@@ -876,7 +879,6 @@ export async function generarFichaRevisionPdf({
           "Funciona",
           "No funciona",
           "Ruidoso",
-          "",
         ],
       },
       {
@@ -886,7 +888,6 @@ export async function generarFichaRevisionPdf({
           "Funciona",
           "No funciona",
           "Ruidoso",
-          "",
         ],
       },
       {
@@ -916,7 +917,6 @@ export async function generarFichaRevisionPdf({
           "Correcto",
           "Obstruido",
           "Pierde agua",
-          "",
         ],
       },
       {
@@ -926,7 +926,6 @@ export async function generarFichaRevisionPdf({
           "Correcta",
           "A revisar",
           "Riesgosa",
-          "",
         ],
       },
       {
@@ -936,7 +935,6 @@ export async function generarFichaRevisionPdf({
           "Correctos",
           "Sucios",
           "Deteriorados",
-          "",
         ],
       },
     ];
@@ -950,9 +948,7 @@ export async function generarFichaRevisionPdf({
         etiqueta:
           control.etiqueta,
         opciones:
-          control.opciones.filter(
-            Boolean
-          ),
+          control.opciones,
         y,
         regular,
         bold,
@@ -1025,7 +1021,7 @@ export async function generarFichaRevisionPdf({
 
     /*
      * ==========================================
-     * INSTALACIÓN NUEVA
+     * RELEVAMIENTO PARA INSTALACIÓN
      * ==========================================
      */
 
@@ -1086,19 +1082,23 @@ export async function generarFichaRevisionPdf({
     const instalacion1 = [
       {
         x: MARGIN + 5,
-        t: "Desagüe disponible",
+        t:
+          "Desagüe disponible",
       },
       {
         x: 160,
-        t: "Alimentación eléctrica",
+        t:
+          "Alimentación eléctrica",
       },
       {
         x: 325,
-        t: "Perforación",
+        t:
+          "Perforación",
       },
       {
         x: 420,
-        t: "Ménsulas / base",
+        t:
+          "Ménsulas / base",
       },
     ];
 
@@ -1120,19 +1120,23 @@ export async function generarFichaRevisionPdf({
     const instalacion2 = [
       {
         x: MARGIN + 5,
-        t: "Canaleta",
+        t:
+          "Canaleta",
       },
       {
         x: 120,
-        t: "Trabajo en altura",
+        t:
+          "Trabajo en altura",
       },
       {
         x: 250,
-        t: "Acceso complejo",
+        t:
+          "Acceso complejo",
       },
       {
         x: 385,
-        t: "Requiere andamio / elevación",
+        t:
+          "Requiere andamio / elevación",
       },
     ];
 
@@ -1167,34 +1171,42 @@ export async function generarFichaRevisionPdf({
 
     y -= 20;
 
-    const conclusiones1 = [
+    const conclusiones = [
       {
-        x: MARGIN + 5,
-        t: "Operativo",
+        x:
+          MARGIN +
+          5,
+        t:
+          "Operativo",
       },
       {
         x: 105,
-        t: "Mantenimiento",
+        t:
+          "Mantenimiento",
       },
       {
         x: 215,
-        t: "Reparación",
+        t:
+          "Reparación",
       },
       {
         x: 305,
-        t: "Presupuestar",
+        t:
+          "Presupuestar",
       },
       {
         x: 405,
-        t: "Reemplazo",
+        t:
+          "Reemplazo",
       },
       {
         x: 495,
-        t: "Baja técnica",
+        t:
+          "Baja técnica",
       },
     ];
 
-    conclusiones1.forEach(
+    conclusiones.forEach(
       (item) => {
         opcion({
           page,
@@ -1228,20 +1240,26 @@ export async function generarFichaRevisionPdf({
 
     const seguimiento = [
       {
-        x: MARGIN + 5,
-        t: "Fotografías",
+        x:
+          MARGIN +
+          5,
+        t:
+          "Fotografías",
       },
       {
         x: 130,
-        t: "Segunda visita",
+        t:
+          "Segunda visita",
       },
       {
         x: 245,
-        t: "Generar presupuesto",
+        t:
+          "Generar presupuesto",
       },
       {
         x: 390,
-        t: "Sin intervención",
+        t:
+          "Sin intervención",
       },
     ];
 
