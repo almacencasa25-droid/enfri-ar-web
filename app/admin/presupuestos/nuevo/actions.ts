@@ -49,6 +49,7 @@ type ItemPresupuesto = {
 };
 
 type CrearPresupuestoInput = {
+  numeroFichaRevision?: string | null;
   fecha: string;
 
   clienteId?: string | null;
@@ -445,7 +446,10 @@ export async function crearPresupuestoAction(
    */
   const resultadoPdf =
     await emitirPresupuestoPdfAction(
-      presupuestoId
+      presupuestoId,
+      limpiarTexto(
+        input.numeroFichaRevision
+      )
     );
 
   if (!resultadoPdf.ok) {
