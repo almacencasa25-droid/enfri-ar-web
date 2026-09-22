@@ -2019,9 +2019,11 @@ const inputStyle = {
   boxSizing: "border-box" as const,
   padding: "10px 12px",
   border:
-    "1px solid rgba(38, 40, 42, 0.18)",
+    "1px solid rgba(74, 113, 145, 0.42)",
   borderRadius: "10px",
-  background: "#ffffff",
+  background: "#eef5fa",
+  boxShadow:
+    "inset 0 1px 2px rgba(25, 58, 85, 0.08)",
   color: "var(--foreground)",
   font: "inherit",
 };
