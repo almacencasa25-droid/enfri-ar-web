@@ -41,8 +41,21 @@ type Trabajo = {
   relevancia: number;
 };
 
+type Equipo = {
+  key: string;
+  tipo: string;
+  marca: string;
+  modelo: string;
+  capacidad: string;
+  ubicacion: string;
+  refrigerante: string;
+  serie: string;
+  observaciones: string;
+};
+
 type Item = {
   key: string;
+  equipoKey: string;
   trabajo_id: string | null;
   nombre_corto: string;
   detalle: string;
@@ -79,6 +92,22 @@ function moneda(valor: number) {
 
 function nuevaKey() {
   return `${Date.now()}-${Math.random()}`;
+}
+
+function equipoVacio(
+  key: string
+): Equipo {
+  return {
+    key,
+    tipo: "Split",
+    marca: "",
+    modelo: "",
+    capacidad: "",
+    ubicacion: "",
+    refrigerante: "",
+    serie: "",
+    observaciones: "",
+  };
 }
 
 export default function NuevoPresupuestoForm() {
@@ -164,8 +193,36 @@ export default function NuevoPresupuestoForm() {
   const trabajoBusquedaActual =
     useRef(0);
 
+  const [
+    trabajoSeleccionado,
+    setTrabajoSeleccionado,
+  ] = useState<Trabajo | null>(null);
+
+  const [equipos, setEquipos] =
+    useState<Equipo[]>([
+      equipoVacio("equipo-1"),
+    ]);
+
+  const [
+    equipoActivoKey,
+    setEquipoActivoKey,
+  ] = useState("equipo-1");
+
   const [items, setItems] =
     useState<Item[]>([]);
+
+  const equipoActivo =
+    equipos.find(
+      (equipo) =>
+        equipo.key === equipoActivoKey
+    ) || equipos[0];
+
+  const itemsEquipoActivo =
+    items.filter(
+      (item) =>
+        item.equipoKey ===
+        equipoActivo?.key
+    );
 
   const [detalleCorto, setDetalleCorto] =
     useState("");
@@ -424,44 +481,114 @@ export default function NuevoPresupuestoForm() {
     );
   }
 
-  function agregarTrabajo(
+  function seleccionarTrabajo(
     trabajo: Trabajo
   ) {
+    setTrabajoSeleccionado(trabajo);
+    setTrabajoBusqueda(
+      trabajo.nombre_corto
+    );
+    setTrabajosEncontrados([]);
+  }
+
+  function agregarTrabajoSeleccionado() {
+    if (
+      !trabajoSeleccionado ||
+      !equipoActivo
+    ) {
+      return;
+    }
+
     setItems((actuales) => [
       ...actuales,
       {
         key: nuevaKey(),
-        trabajo_id: trabajo.id,
+        equipoKey:
+          equipoActivo.key,
+        trabajo_id:
+          trabajoSeleccionado.id,
         nombre_corto:
-          trabajo.nombre_corto,
-        detalle: trabajo.detalle,
+          trabajoSeleccionado.nombre_corto,
+        detalle:
+          trabajoSeleccionado.detalle,
         tipo:
-          trabajo.tipo ||
+          trabajoSeleccionado.tipo ||
           "mano_obra",
         cantidad: 1,
         precio_unitario: Number(
-          trabajo.precio_unitario || 0
+          trabajoSeleccionado.precio_unitario ||
+            0
         ),
       },
     ]);
 
+    setTrabajoSeleccionado(null);
     setTrabajoBusqueda("");
     setTrabajosEncontrados([]);
   }
 
-  function agregarTrabajoManual() {
-    setItems((actuales) => [
+  function agregarEquipo() {
+    const nuevo =
+      equipoVacio(nuevaKey());
+
+    setEquipos((actuales) => [
       ...actuales,
-      {
-        key: nuevaKey(),
-        trabajo_id: null,
-        nombre_corto: "",
-        detalle: "",
-        tipo: "mano_obra",
-        cantidad: 1,
-        precio_unitario: 0,
-      },
+      nuevo,
     ]);
+
+    setEquipoActivoKey(nuevo.key);
+    setTrabajoSeleccionado(null);
+    setTrabajoBusqueda("");
+    setTrabajosEncontrados([]);
+  }
+
+  function actualizarEquipo(
+    key: string,
+    cambios: Partial<Equipo>
+  ) {
+    setEquipos((actuales) =>
+      actuales.map((equipo) =>
+        equipo.key === key
+          ? {
+              ...equipo,
+              ...cambios,
+            }
+          : equipo
+      )
+    );
+  }
+
+  function eliminarEquipo(
+    key: string
+  ) {
+    if (equipos.length <= 1) {
+      return;
+    }
+
+    const restantes =
+      equipos.filter(
+        (equipo) =>
+          equipo.key !== key
+      );
+
+    setEquipos(restantes);
+
+    setItems((actuales) =>
+      actuales.filter(
+        (item) =>
+          item.equipoKey !== key
+      )
+    );
+
+    if (equipoActivoKey === key) {
+      setEquipoActivoKey(
+        restantes[0].key
+      );
+    }
+
+    setTrabajoSeleccionado(null);
+    setTrabajoBusqueda("");
+    setTrabajosEncontrados([]);
   }
 
   function modificarItem(
@@ -508,6 +635,12 @@ export default function NuevoPresupuestoForm() {
 
     setTrabajoBusqueda("");
     setTrabajosEncontrados([]);
+    setTrabajoSeleccionado(null);
+
+    setEquipos([
+      equipoVacio("equipo-1"),
+    ]);
+    setEquipoActivoKey("equipo-1");
 
     setItems([]);
 
@@ -585,7 +718,60 @@ export default function NuevoPresupuestoForm() {
           horaProgramada:
             horaProgramada || null,
 
-          items,
+          items: items.map(
+            (item) => {
+              const equipo =
+                equipos.find(
+                  (actual) =>
+                    actual.key ===
+                    item.equipoKey
+                );
+
+              const equipoOrden =
+                equipos.findIndex(
+                  (actual) =>
+                    actual.key ===
+                    item.equipoKey
+                ) + 1;
+
+              return {
+                trabajo_id:
+                  item.trabajo_id,
+                nombre_corto:
+                  item.nombre_corto,
+                detalle:
+                  item.detalle,
+                tipo: item.tipo,
+                cantidad:
+                  item.cantidad,
+                precio_unitario:
+                  item.precio_unitario,
+
+                equipo_orden:
+                  equipoOrden > 0
+                    ? equipoOrden
+                    : null,
+                equipo_tipo:
+                  equipo?.tipo || null,
+                equipo_marca:
+                  equipo?.marca || null,
+                equipo_modelo:
+                  equipo?.modelo || null,
+                equipo_capacidad:
+                  equipo?.capacidad || null,
+                equipo_ubicacion:
+                  equipo?.ubicacion || null,
+                equipo_refrigerante:
+                  equipo?.refrigerante ||
+                  null,
+                equipo_serie:
+                  equipo?.serie || null,
+                equipo_observaciones:
+                  equipo?.observaciones ||
+                  null,
+              };
+            }
+          ),
         });
 
       if (!resultado.ok) {
@@ -910,291 +1096,613 @@ export default function NuevoPresupuestoForm() {
       </section>
 
       <section style={boxStyle}>
-        <h2 style={tituloStyle}>
-          Trabajos
-        </h2>
-
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
             gap: "10px",
-            alignItems: "flex-end",
           }}
         >
-          <label
-            style={{
-              ...labelStyle,
-              flex: "1 1 300px",
-            }}
-          >
-            Buscar trabajo o precio
-            <input
-              value={trabajoBusqueda}
-              onChange={(event) =>
-                void buscarTrabajos(
-                  event.target.value
-                )
-              }
-              placeholder="Ej.: instalación, limpieza, reparación..."
-              style={inputStyle}
-            />
-          </label>
+          <div>
+            <h2 style={tituloStyle}>
+              Equipos y trabajos
+            </h2>
+
+            <p style={ayudaStyle}>
+              Identificá el equipo y agregá
+              únicamente los trabajos que
+              correspondan a ese equipo.
+            </p>
+          </div>
 
           <button
             type="button"
-            onClick={agregarTrabajoManual}
+            onClick={agregarEquipo}
             style={buttonStyle}
           >
-            + Trabajo manual
+            + Agregar equipo
           </button>
         </div>
 
-        {buscandoTrabajos ? (
-          <p style={ayudaStyle}>
-            Buscando...
-          </p>
-        ) : null}
+        <div style={equipoTabsStyle}>
+          {equipos.map(
+            (equipo, indice) => {
+              const activo =
+                equipo.key ===
+                equipoActivo?.key;
 
-        {trabajosEncontrados.length >
-        0 ? (
-          <div style={resultadoStyle}>
-            {trabajosEncontrados.map(
-              (trabajo) => (
+              const etiqueta = [
+                `Equipo ${indice + 1}`,
+                equipo.marca,
+                equipo.ubicacion,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+
+              return (
                 <button
-                  key={trabajo.id}
+                  key={equipo.key}
+                  type="button"
+                  onClick={() => {
+                    setEquipoActivoKey(
+                      equipo.key
+                    );
+                    setTrabajoSeleccionado(
+                      null
+                    );
+                    setTrabajoBusqueda("");
+                    setTrabajosEncontrados(
+                      []
+                    );
+                  }}
+                  style={{
+                    ...equipoTabStyle,
+                    background: activo
+                      ? "var(--foreground)"
+                      : "#ffffff",
+                    color: activo
+                      ? "#ffffff"
+                      : "var(--foreground)",
+                  }}
+                >
+                  {etiqueta}
+                </button>
+              );
+            }
+          )}
+        </div>
+
+        {equipoActivo ? (
+          <>
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <strong>
+                Datos del equipo{" "}
+                {equipos.findIndex(
+                  (equipo) =>
+                    equipo.key ===
+                    equipoActivo.key
+                ) + 1}
+              </strong>
+
+              {equipos.length > 1 ? (
+                <button
                   type="button"
                   onClick={() =>
-                    agregarTrabajo(
-                      trabajo
+                    eliminarEquipo(
+                      equipoActivo.key
                     )
                   }
-                  style={resultadoBotonStyle}
+                  style={deleteButtonStyle}
                 >
-                  <strong>
-                    {trabajo.nombre_corto}
-                  </strong>
-
-                  <span>
-                    {trabajo.detalle}
-                  </span>
-
-                  <span>
-                    {trabajo.categoria ||
-                      "Sin categoría"}{" "}
-                    ·{" "}
-                    {moneda(
-                      Number(
-                        trabajo.precio_unitario ||
-                          0
-                      )
-                    )}
-                  </span>
+                  Eliminar equipo
                 </button>
-              )
-            )}
-          </div>
-        ) : null}
+              ) : null}
+            </div>
 
-        {items.length === 0 ? (
-          <p style={ayudaStyle}>
-            Todavía no agregaste trabajos.
-          </p>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gap: "12px",
-            }}
-          >
-            {items.map(
-              (item, indice) => {
-                const itemSubtotal =
-                  Number(
-                    item.cantidad || 0
-                  ) *
-                  Number(
-                    item.precio_unitario ||
-                      0
+            <div style={gridStyle}>
+              <label style={labelStyle}>
+                Tipo de equipo
+                <select
+                  value={equipoActivo.tipo}
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        tipo:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  style={inputStyle}
+                >
+                  <option value="Split">
+                    Split
+                  </option>
+                  <option value="Piso techo">
+                    Piso techo
+                  </option>
+                  <option value="Cassette">
+                    Cassette
+                  </option>
+                  <option value="Ventana">
+                    Ventana
+                  </option>
+                  <option value="Otro">
+                    Otro
+                  </option>
+                </select>
+              </label>
+
+              <label style={labelStyle}>
+                Marca
+                <input
+                  value={equipoActivo.marca}
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        marca:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  placeholder="Ej.: BGH"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Modelo
+                <input
+                  value={equipoActivo.modelo}
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        modelo:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Capacidad
+                <input
+                  value={
+                    equipoActivo.capacidad
+                  }
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        capacidad:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  placeholder="Ej.: 4500 fg"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Ubicación / sector
+                <input
+                  value={
+                    equipoActivo.ubicacion
+                  }
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        ubicacion:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  placeholder="Ej.: Office enfermería"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Refrigerante
+                <input
+                  value={
+                    equipoActivo.refrigerante
+                  }
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        refrigerante:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  placeholder="Ej.: R410A"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                N.º de serie
+                <input
+                  value={equipoActivo.serie}
+                  onChange={(event) =>
+                    actualizarEquipo(
+                      equipoActivo.key,
+                      {
+                        serie:
+                          event.target
+                            .value,
+                      }
+                    )
+                  }
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+
+            <label style={labelStyle}>
+              Observaciones del equipo
+              <input
+                value={
+                  equipoActivo.observaciones
+                }
+                onChange={(event) =>
+                  actualizarEquipo(
+                    equipoActivo.key,
+                    {
+                      observaciones:
+                        event.target.value,
+                    }
+                  )
+                }
+                placeholder="Ej.: sin etiqueta, acceso en altura..."
+                style={inputStyle}
+              />
+            </label>
+
+            <div style={separadorStyle} />
+
+            <label style={labelStyle}>
+              Buscar trabajo
+              <input
+                value={trabajoBusqueda}
+                onChange={(event) => {
+                  setTrabajoSeleccionado(
+                    null
                   );
+                  void buscarTrabajos(
+                    event.target.value
+                  );
+                }}
+                placeholder="Ej.: limpieza, fuga, instalación..."
+                style={inputStyle}
+              />
+            </label>
 
-                return (
-                  <div
-                    key={item.key}
-                    style={itemStyle}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent:
-                          "space-between",
-                        gap: "10px",
-                        alignItems: "center",
-                      }}
+            {buscandoTrabajos ? (
+              <p style={ayudaStyle}>
+                Buscando...
+              </p>
+            ) : null}
+
+            {trabajosEncontrados.length >
+            0 ? (
+              <div style={resultadoStyle}>
+                {trabajosEncontrados.map(
+                  (trabajo) => (
+                    <button
+                      key={trabajo.id}
+                      type="button"
+                      onClick={() =>
+                        seleccionarTrabajo(
+                          trabajo
+                        )
+                      }
+                      style={
+                        resultadoBotonStyle
+                      }
                     >
                       <strong>
-                        Trabajo {indice + 1}
+                        {
+                          trabajo.nombre_corto
+                        }
                       </strong>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          eliminarItem(
-                            item.key
+                      <span>
+                        {trabajo.categoria ||
+                          "Sin categoría"}{" "}
+                        ·{" "}
+                        {moneda(
+                          Number(
+                            trabajo.precio_unitario ||
+                              0
                           )
-                        }
-                        style={deleteButtonStyle}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
+                        )}
+                      </span>
+                    </button>
+                  )
+                )}
+              </div>
+            ) : null}
 
-                    <div style={gridStyle}>
-                      <label style={labelStyle}>
-                        Trabajo *
-                        <input
-                          value={
-                            item.nombre_corto
-                          }
+            {trabajoSeleccionado ? (
+              <div style={previewTrabajoStyle}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    gap: "12px",
+                    alignItems:
+                      "flex-start",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "6px",
+                    }}
+                  >
+                    <strong>
+                      {
+                        trabajoSeleccionado.nombre_corto
+                      }
+                    </strong>
+
+                    <span
+                      style={{
+                        fontSize:
+                          "0.84rem",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {
+                        trabajoSeleccionado.detalle
+                      }
+                    </span>
+
+                    <strong>
+                      {moneda(
+                        Number(
+                          trabajoSeleccionado.precio_unitario ||
+                            0
+                        )
+                      )}
+                    </strong>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={
+                      agregarTrabajoSeleccionado
+                    }
+                    style={buttonStyle}
+                  >
+                    Agregar
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            <div>
+              <strong>
+                Trabajos del equipo
+              </strong>
+
+              <p style={ayudaStyle}>
+                {itemsEquipoActivo.length}{" "}
+                trabajo
+                {itemsEquipoActivo.length ===
+                1
+                  ? ""
+                  : "s"}{" "}
+                agregado
+                {itemsEquipoActivo.length ===
+                1
+                  ? ""
+                  : "s"}.
+              </p>
+            </div>
+
+            <div style={trabajosScrollStyle}>
+              {itemsEquipoActivo.length ===
+              0 ? (
+                <p style={ayudaStyle}>
+                  Todavía no agregaste
+                  trabajos a este equipo.
+                </p>
+              ) : (
+                itemsEquipoActivo.map(
+                  (item) => {
+                    const itemSubtotal =
+                      Number(
+                        item.cantidad || 0
+                      ) *
+                      Number(
+                        item.precio_unitario ||
+                          0
+                      );
+
+                    return (
+                      <div
+                        key={item.key}
+                        style={
+                          itemCompactoStyle
+                        }
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent:
+                              "space-between",
+                            gap: "10px",
+                            alignItems:
+                              "flex-start",
+                          }}
+                        >
+                          <strong>
+                            {
+                              item.nombre_corto
+                            }
+                          </strong>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              eliminarItem(
+                                item.key
+                              )
+                            }
+                            style={
+                              deleteButtonStyle
+                            }
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+
+                        <textarea
+                          rows={2}
+                          value={item.detalle}
                           onChange={(event) =>
                             modificarItem(
                               item.key,
                               {
-                                nombre_corto:
-                                  event
-                                    .target
+                                detalle:
+                                  event.target
                                     .value,
                               }
                             )
                           }
-                          style={inputStyle}
+                          style={{
+                            ...inputStyle,
+                            minHeight: "70px",
+                            resize: "vertical",
+                          }}
                         />
-                      </label>
 
-                      <label style={labelStyle}>
-                        Tipo
-                        <select
-                          value={item.tipo}
-                          onChange={(event) =>
-                            modificarItem(
-                              item.key,
-                              {
-                                tipo: event
-                                  .target
-                                  .value,
-                              }
-                            )
-                          }
-                          style={inputStyle}
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns:
+                              "minmax(90px, 0.7fr) minmax(140px, 1fr) minmax(120px, auto)",
+                            gap: "10px",
+                            alignItems: "end",
+                          }}
                         >
-                          <option value="mano_obra">
-                            Mano de obra
-                          </option>
-
-                          <option value="material">
-                            Material
-                          </option>
-
-                          <option value="servicio">
-                            Servicio
-                          </option>
-
-                          <option value="otro">
-                            Otro
-                          </option>
-                        </select>
-                      </label>
-
-                      <label style={labelStyle}>
-                        Cantidad *
-                        <input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          value={
-                            item.cantidad
-                          }
-                          onChange={(event) =>
-                            modificarItem(
-                              item.key,
-                              {
-                                cantidad:
-                                  Number(
-                                    event
-                                      .target
-                                      .value
-                                  ),
-                              }
-                            )
-                          }
-                          style={inputStyle}
-                        />
-                      </label>
-
-                      <label style={labelStyle}>
-                        Precio unitario *
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={
-                            item.precio_unitario
-                          }
-                          onChange={(event) =>
-                            modificarItem(
-                              item.key,
-                              {
-                                precio_unitario:
-                                  Number(
-                                    event
-                                      .target
-                                      .value
-                                  ),
-                              }
-                            )
-                          }
-                          style={inputStyle}
-                        />
-                      </label>
-                    </div>
-
-                    <label style={labelStyle}>
-                      Detalle *
-                      <textarea
-                        rows={3}
-                        value={item.detalle}
-                        onChange={(event) =>
-                          modificarItem(
-                            item.key,
-                            {
-                              detalle:
-                                event.target
-                                  .value,
+                          <label
+                            style={
+                              labelStyle
                             }
-                          )
-                        }
-                        style={{
-                          ...inputStyle,
-                          resize: "vertical",
-                        }}
-                      />
-                    </label>
+                          >
+                            Cant.
+                            <input
+                              type="number"
+                              min="0.01"
+                              step="0.01"
+                              value={
+                                item.cantidad
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                modificarItem(
+                                  item.key,
+                                  {
+                                    cantidad:
+                                      Number(
+                                        event
+                                          .target
+                                          .value
+                                      ),
+                                  }
+                                )
+                              }
+                              style={
+                                inputStyle
+                              }
+                            />
+                          </label>
 
-                    <div
-                      style={{
-                        textAlign: "right",
-                        fontWeight: 800,
-                      }}
-                    >
-                      Subtotal:{" "}
-                      {moneda(itemSubtotal)}
-                    </div>
-                  </div>
-                );
-              }
-            )}
-          </div>
-        )}
+                          <label
+                            style={
+                              labelStyle
+                            }
+                          >
+                            Precio
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={
+                                item.precio_unitario
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                modificarItem(
+                                  item.key,
+                                  {
+                                    precio_unitario:
+                                      Number(
+                                        event
+                                          .target
+                                          .value
+                                      ),
+                                  }
+                                )
+                              }
+                              style={
+                                inputStyle
+                              }
+                            />
+                          </label>
+
+                          <strong
+                            style={{
+                              textAlign:
+                                "right",
+                              paddingBottom:
+                                "12px",
+                            }}
+                          >
+                            {moneda(
+                              itemSubtotal
+                            )}
+                          </strong>
+                        </div>
+                      </div>
+                    );
+                  }
+                )
+              )}
+            </div>
+          </>
+        ) : null}
       </section>
 
       <section style={boxStyle}>
@@ -1559,15 +2067,62 @@ const resultadoBotonStyle = {
   fontSize: "0.82rem",
 };
 
-const itemStyle = {
-  display: "grid",
-  gap: "12px",
+const equipoTabsStyle = {
+  display: "flex",
+  gap: "8px",
+  overflowX: "auto" as const,
+  paddingBottom: "4px",
+};
+
+const equipoTabStyle = {
+  flex: "0 0 auto",
+  minHeight: "38px",
+  padding: "8px 12px",
+  border:
+    "1px solid rgba(38, 40, 42, 0.16)",
+  borderRadius: "999px",
+  font: "inherit",
+  fontSize: "0.82rem",
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const separadorStyle = {
+  height: "1px",
+  background:
+    "rgba(38, 40, 42, 0.1)",
+};
+
+const previewTrabajoStyle = {
   padding: "14px",
   border:
-    "1px solid rgba(38, 40, 42, 0.1)",
+    "1px solid rgba(38, 40, 42, 0.12)",
   borderRadius: "12px",
   background:
-    "rgba(255,255,255,0.72)",
+    "rgba(255,255,255,0.82)",
+};
+
+const trabajosScrollStyle = {
+  display: "grid",
+  gap: "10px",
+  maxHeight: "430px",
+  overflowY: "auto" as const,
+  padding: "10px",
+  border:
+    "1px solid rgba(38, 40, 42, 0.12)",
+  borderRadius: "12px",
+  background: "#ffffff",
+};
+
+const itemCompactoStyle = {
+  display: "grid",
+  gap: "10px",
+  padding: "12px",
+  border:
+    "1px solid rgba(38, 40, 42, 0.1)",
+  borderRadius: "10px",
+  background:
+    "rgba(255,255,255,0.82)",
 };
 
 const buttonStyle = {
