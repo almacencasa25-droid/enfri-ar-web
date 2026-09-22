@@ -458,9 +458,13 @@ function crearDetalleTrabajo(
 
   const firma = firmaTecnico(datos);
 
+  const limiteInferiorFirma = 72;
+
   const firmaY = Math.max(
-    145,
-    y - 55
+    limiteInferiorFirma + 24,
+    limiteInferiorFirma +
+      (y - limiteInferiorFirma) /
+        2
   );
 
   page.drawText(firma.nombre, {
@@ -485,7 +489,10 @@ function crearDetalleTrabajo(
     "Sin otro particular, saludos a usted atentamente.",
     {
       x: PAGE_WIDTH - MARGIN - 255,
-      y: 90,
+      y: Math.max(
+        68,
+        firmaY - 42
+      ),
       font: regular,
       size: 9.5,
       color: COLOR_TEXT,
@@ -629,9 +636,18 @@ function crearInformeMensual(
 
   const firma = firmaTecnico(datos);
 
+  const limiteInferiorFirma = 72;
+
+  const firmaY = Math.max(
+    limiteInferiorFirma + 24,
+    limiteInferiorFirma +
+      (y - limiteInferiorFirma) /
+        2
+  );
+
   page.drawText(firma.nombre, {
     x: PAGE_WIDTH - MARGIN - 120,
-    y: 82,
+    y: firmaY,
     font: bold,
     size: 8.7,
     color: COLOR_TEXT,
@@ -640,7 +656,7 @@ function crearInformeMensual(
   if (firma.matricula) {
     page.drawText(firma.matricula, {
       x: PAGE_WIDTH - MARGIN - 120,
-      y: 69,
+      y: firmaY - 13,
       font: regular,
       size: 8,
       color: COLOR_MUTED,
