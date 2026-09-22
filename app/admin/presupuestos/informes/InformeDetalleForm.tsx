@@ -33,6 +33,105 @@ const meses = [
   "Diciembre",
 ];
 
+const detalleCursoComun = [
+  "- Planificación pedagógica del curso REPARACIÓN DE EQUIPOS DE AIRE ACONDICIONADO.",
+  "- Dictado de clases en las dos sedes de formación profesional que dependen de esta Coordinación según el siguiente detalle:",
+  "  Lunes de 16 a 21 hs: La Agraria, sita en México 646.",
+  "  Jueves de 16 a 21 hs: Escuela de Formación Técnica Laboral, sita en Merlo 2091.",
+  "- Desarrollo general de las clases: recepción de los cursantes; explicación de los contenidos; supervisión de las prácticas.",
+  "- Contenidos trabajados:",
+];
+
+const contenidosCursoPorMes: Record<
+  number,
+  string[]
+> = {
+  3: [
+    "Identificación de herramientas específicas para refrigeración. Uso correcto y mantenimiento de las mismas.",
+    "Proceso de limpieza de circuitos frigoríficos. Importancia del filtrado y la deshidratación.",
+    "Métodos de carga de refrigerante por peso y por presión. Comparación de técnicas.",
+    "Interpretación de manómetros y tablas de presión-temperatura aplicadas a distintos refrigerantes.",
+  ],
+  4: [
+    "Normas de seguridad e higiene en el trabajo de refrigeración. Uso de elementos de protección personal.",
+    "Prácticas de soldadura en cañerías de cobre y técnicas de abocardado y ensanchado.",
+    "Procedimiento de recuperación de refrigerante y manejo responsable de gases.",
+    "Introducción al uso de bombas de vacío y analizadores digitales de presión.",
+  ],
+  5: [
+    "Identificación de herramientas específicas para refrigeración. Uso correcto y mantenimiento de las mismas.",
+    "Proceso de limpieza de circuitos frigoríficos. Importancia del filtrado y la deshidratación.",
+    "Métodos de carga de refrigerante por peso y por presión. Comparación de técnicas.",
+    "Interpretación de manómetros y tablas de presión-temperatura aplicadas a distintos refrigerantes.",
+  ],
+  6: [
+    "Identificación de herramientas específicas para refrigeración. Uso correcto y mantenimiento de las mismas.",
+    "Proceso de limpieza de circuitos frigoríficos. Importancia del filtrado y la deshidratación.",
+    "Métodos de carga de refrigerante por peso y por presión. Comparación de técnicas.",
+    "Interpretación de manómetros y tablas de presión-temperatura aplicadas a distintos refrigerantes.",
+  ],
+  7: [
+    "Medición de consumo eléctrico y eficiencia energética en equipos.",
+    "Revisión de los diferentes tipos de compresores y su funcionamiento.",
+    "Diagnóstico de fallas comunes en sistemas de refrigeración y aire acondicionado.",
+    "Análisis de nuevas tecnologías: compresores inverter y refrigerantes ecológicos.",
+  ],
+  8: [
+    "Procedimientos de desarme y armado de equipos split. Normas de cuidado en el manejo de componentes.",
+    "Limpieza y desinfección de evaporadores y condensadores. Uso de productos químicos adecuados.",
+    "Revisión y reemplazo de filtros deshidratadores y válvulas de expansión.",
+    "Calibración de carga de gas en condiciones de sobrecalentamiento y subenfriamiento.",
+  ],
+  9: [
+    "Procedimientos de desarme y armado de equipos split. Normas de cuidado en el manejo de componentes.",
+    "Limpieza y desinfección de evaporadores y condensadores. Uso de productos químicos adecuados.",
+    "Revisión y reemplazo de filtros deshidratadores y válvulas de expansión.",
+    "Calibración de carga de gas en condiciones de sobrecalentamiento y subenfriamiento.",
+  ],
+  10: [
+    "Principios de electricidad básica aplicada a la refrigeración. Identificación de componentes eléctricos.",
+    "Verificación de continuidad y resistencia en motores y compresores.",
+    "Conexión y calibración de termostatos y presostatos.",
+    "Prácticas de lectura de planos eléctricos y diagramas de conexión de equipos de aire acondicionado.",
+  ],
+  11: [
+    "Medición de consumo eléctrico y eficiencia energética en equipos.",
+    "Revisión de los diferentes tipos de compresores y su funcionamiento.",
+    "Diagnóstico de fallas comunes en sistemas de refrigeración y aire acondicionado.",
+    "Análisis de nuevas tecnologías: compresores inverter y refrigerantes ecológicos.",
+  ],
+  12: [
+    "Medición de consumo eléctrico y eficiencia energética en equipos.",
+    "Revisión de los diferentes tipos de compresores y su funcionamiento.",
+    "Diagnóstico de fallas comunes en sistemas de refrigeración y aire acondicionado.",
+    "Análisis de nuevas tecnologías: compresores inverter y refrigerantes ecológicos.",
+  ],
+};
+
+function detalleCursoPrecargado(
+  mes: number
+) {
+  const contenidos =
+    contenidosCursoPorMes[
+      mes
+    ];
+
+  if (!contenidos) {
+    return [
+      ...detalleCursoComun,
+      "Contenido pendiente de carga para este mes.",
+    ].join("\n");
+  }
+
+  return [
+    ...detalleCursoComun,
+    ...contenidos.map(
+      (item) =>
+        "  - " + item
+    ),
+  ].join("\n");
+}
+
 function fechaHoyLocal() {
   const ahora =
     new Date();
@@ -448,6 +547,12 @@ export default function InformeDetalleForm() {
           anioInformado
         )
       );
+
+      setDetalle(
+        detalleCursoPrecargado(
+          mesInformado
+        )
+      );
     }
   }
 
@@ -466,6 +571,12 @@ export default function InformeDetalleForm() {
         fechaEmisionParaMes(
           mes,
           anioInformado
+        )
+      );
+
+      setDetalle(
+        detalleCursoPrecargado(
+          mes
         )
       );
     }
@@ -1170,7 +1281,10 @@ export default function InformeDetalleForm() {
         </div>
 
         <label style={labelStyle}>
-          Detalle
+          {tipoDocumento ===
+          "informe_mensual"
+            ? "Detalle precargado del curso"
+            : "Detalle"}
           <textarea
             rows={12}
             value={detalle}
@@ -1182,6 +1296,10 @@ export default function InformeDetalleForm() {
                   .value
               )
             }
+            readOnly={
+              tipoDocumento ===
+              "informe_mensual"
+            }
             placeholder="Detalle del trabajo realizado o contenidos del período."
             style={{
               ...inputStyle,
@@ -1189,6 +1307,16 @@ export default function InformeDetalleForm() {
                 "250px",
               resize:
                 "vertical",
+              background:
+                tipoDocumento ===
+                "informe_mensual"
+                  ? "#f4f7f9"
+                  : inputStyle.background,
+              cursor:
+                tipoDocumento ===
+                "informe_mensual"
+                  ? "default"
+                  : "text",
             }}
           />
         </label>
