@@ -19,6 +19,16 @@ export type PresupuestoPdfItem = {
   cantidad?: number | string | null;
   precio_unitario?: number | string | null;
   subtotal?: number | string | null;
+
+  equipo_orden?: number | string | null;
+  equipo_tipo?: string | null;
+  equipo_marca?: string | null;
+  equipo_modelo?: string | null;
+  equipo_capacidad?: string | null;
+  equipo_ubicacion?: string | null;
+  equipo_refrigerante?: string | null;
+  equipo_serie?: string | null;
+  equipo_observaciones?: string | null;
 };
 
 export type PresupuestoPdfCliente = {
@@ -1675,6 +1685,153 @@ export async function generarPresupuestoPdf(
    * =====================================================
    */
 
+  let ultimoEquipoOrden:
+    number | null = null;
+
+  function dibujarCabeceraEquipo(
+    item: PresupuestoPdfItem
+  ) {
+    const ordenEquipo =
+      numero(item.equipo_orden);
+
+    if (
+      ordenEquipo <= 0 ||
+      ordenEquipo ===
+        ultimoEquipoOrden
+    ) {
+      return;
+    }
+
+    ultimoEquipoOrden =
+      ordenEquipo;
+
+    const tituloEquipo = [
+      `Equipo ${ordenEquipo}`,
+      texto(item.equipo_tipo),
+      texto(item.equipo_marca),
+      texto(item.equipo_modelo),
+      texto(item.equipo_capacidad),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const datosEquipo = [
+      texto(item.equipo_ubicacion)
+        ? `Ubicacion: ${texto(
+            item.equipo_ubicacion
+          )}`
+        : "",
+      texto(item.equipo_refrigerante)
+        ? `Refrigerante: ${texto(
+            item.equipo_refrigerante
+          )}`
+        : "",
+      texto(item.equipo_serie)
+        ? `Serie: ${texto(
+            item.equipo_serie
+          )}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const observacion =
+      texto(
+        item.equipo_observaciones
+      );
+
+    const lineasDatos =
+      datosEquipo
+        ? envolverTexto(
+            datosEquipo,
+            regular,
+            6.8,
+            CONTENT_WIDTH - 16
+          )
+        : [];
+
+    const lineasObservacion =
+      observacion
+        ? envolverTexto(
+            `Observaciones: ${observacion}`,
+            regular,
+            6.8,
+            CONTENT_WIDTH - 16
+          )
+        : [];
+
+    const lineasTotales =
+      1 +
+      lineasDatos.length +
+      lineasObservacion.length;
+
+    const altura =
+      Math.max(
+        28,
+        12 +
+          lineasTotales *
+            9
+      );
+
+    page.drawRectangle({
+      x: MARGIN,
+      y: y - altura,
+      width: CONTENT_WIDTH,
+      height: altura,
+      color: COLOR_LIGHT,
+      borderColor: COLOR_BLUE,
+      borderWidth: 0.7,
+    });
+
+    page.drawText(
+      tituloEquipo ||
+        `Equipo ${ordenEquipo}`,
+      {
+        x: MARGIN + 8,
+        y: y - 14,
+        size: 7.7,
+        font: bold,
+        color: COLOR_DARK,
+      }
+    );
+
+    let equipoY =
+      y - 25;
+
+    for (
+      const linea
+      of lineasDatos
+    ) {
+      page.drawText(linea, {
+        x: MARGIN + 8,
+        y: equipoY,
+        size: 6.8,
+        font: regular,
+        color: COLOR_MUTED,
+      });
+
+      equipoY -= 9;
+    }
+
+    for (
+      const linea
+      of lineasObservacion
+    ) {
+      page.drawText(linea, {
+        x: MARGIN + 8,
+        y: equipoY,
+        size: 6.8,
+        font: regular,
+        color: COLOR_MUTED,
+      });
+
+      equipoY -= 9;
+    }
+
+    y -=
+      altura + 5;
+  }
+
   for (
     let itemIndex = 0;
     itemIndex <
@@ -1687,6 +1844,42 @@ export async function generarPresupuestoPdf(
     const esUltimoItem =
       itemIndex ===
       items.length - 1;
+
+    const equipoOrdenActual =
+      numero(item.equipo_orden);
+
+    if (
+      equipoOrdenActual > 0 &&
+      equipoOrdenActual !==
+        ultimoEquipoOrden
+    ) {
+      const limiteEquipo =
+        esUltimoItem
+          ? SUMMARY_TOP + 8
+          : SERVICE_BOTTOM_NORMAL;
+
+      if (
+        y - 58 <
+        limiteEquipo
+      ) {
+        paginasConContinuacion.add(
+          pdf.getPageCount() - 1
+        );
+
+        actual =
+          crearPaginaContinuacion();
+
+        page =
+          actual.page;
+
+        y =
+          actual.y;
+      }
+
+      dibujarCabeceraEquipo(
+        item
+      );
+    }
 
     const nombreServicio =
       texto(
