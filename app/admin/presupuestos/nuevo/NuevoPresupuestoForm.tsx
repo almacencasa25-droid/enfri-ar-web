@@ -60,8 +60,8 @@ type Item = {
   nombre_corto: string;
   detalle: string;
   tipo: string;
-  cantidad: number;
-  precio_unitario: number;
+  cantidad: number | string;
+  precio_unitario: number | string;
 };
 
 function fechaLocalHoy() {
@@ -743,9 +743,11 @@ export default function NuevoPresupuestoForm() {
                   item.detalle,
                 tipo: item.tipo,
                 cantidad:
-                  item.cantidad,
+                  Number(item.cantidad),
                 precio_unitario:
-                  item.precio_unitario,
+                  Number(
+                    item.precio_unitario
+                  ),
 
                 equipo_orden:
                   equipoOrden > 0
@@ -1622,8 +1624,8 @@ export default function NuevoPresupuestoForm() {
                             Cant.
                             <input
                               type="number"
-                              min="0.01"
-                              step="0.01"
+                              min="1"
+                              step="1"
                               value={
                                 item.cantidad
                               }
@@ -1634,11 +1636,8 @@ export default function NuevoPresupuestoForm() {
                                   item.key,
                                   {
                                     cantidad:
-                                      Number(
-                                        event
-                                          .target
-                                          .value
-                                      ),
+                                      event.target
+                                        .value,
                                   }
                                 )
                               }
@@ -1668,11 +1667,8 @@ export default function NuevoPresupuestoForm() {
                                   item.key,
                                   {
                                     precio_unitario:
-                                      Number(
-                                        event
-                                          .target
-                                          .value
-                                      ),
+                                      event.target
+                                        .value,
                                   }
                                 )
                               }
