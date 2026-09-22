@@ -596,7 +596,7 @@ function nombreSeguro(
       "-"
     )
     .replace(
-      /^-|-$|/g,
+      /^-+|-+$/g,
       ""
     );
 }
