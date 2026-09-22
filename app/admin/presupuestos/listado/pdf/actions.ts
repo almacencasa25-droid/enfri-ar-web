@@ -116,7 +116,8 @@ function snapshotValido(
 }
 
 export async function emitirPresupuestoPdfAction(
-  presupuestoId: string
+  presupuestoId: string,
+  numeroFichaRevision?: string | null
 ) {
   try {
     await requireAdminUser();
@@ -273,16 +274,33 @@ export async function emitirPresupuestoPdfAction(
     const snapshot =
       documento.snapshot;
 
+    const fichaRevision =
+      typeof numeroFichaRevision ===
+        "string"
+        ? numeroFichaRevision
+            .trim()
+            .slice(0, 60)
+        : "";
+
     /*
      * El PDF se genera exclusivamente
      * con el snapshot histórico.
+     *
+     * El numero de ficha de revision
+     * es un dato temporal: se imprime,
+     * pero no se incorpora al snapshot
+     * ni se guarda en la base.
      */
     const pdfBytes =
       await generarPresupuestoPdf(
         snapshot,
         Number(
           documento.version
-        )
+        ),
+        {
+          numeroFichaRevision:
+            fichaRevision || null,
+        }
       );
 
     const nro =
