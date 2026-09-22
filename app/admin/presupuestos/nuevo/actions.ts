@@ -46,6 +46,16 @@ type ItemPresupuesto = {
   tipo?: string | null;
   cantidad: number;
   precio_unitario: number;
+
+  equipo_orden?: number | null;
+  equipo_tipo?: string | null;
+  equipo_marca?: string | null;
+  equipo_modelo?: string | null;
+  equipo_capacidad?: string | null;
+  equipo_ubicacion?: string | null;
+  equipo_refrigerante?: string | null;
+  equipo_serie?: string | null;
+  equipo_observaciones?: string | null;
 };
 
 type CrearPresupuestoInput = {
@@ -305,6 +315,29 @@ export async function crearPresupuestoAction(
       cantidad: item.cantidad,
       precio_unitario:
         item.precio_unitario,
+
+      equipo_orden:
+        item.equipo_orden ?? null,
+      equipo_tipo:
+        limpiarTexto(item.equipo_tipo),
+      equipo_marca:
+        limpiarTexto(item.equipo_marca),
+      equipo_modelo:
+        limpiarTexto(item.equipo_modelo),
+      equipo_capacidad:
+        limpiarTexto(item.equipo_capacidad),
+      equipo_ubicacion:
+        limpiarTexto(item.equipo_ubicacion),
+      equipo_refrigerante:
+        limpiarTexto(
+          item.equipo_refrigerante
+        ),
+      equipo_serie:
+        limpiarTexto(item.equipo_serie),
+      equipo_observaciones:
+        limpiarTexto(
+          item.equipo_observaciones
+        ),
     })
   );
 
