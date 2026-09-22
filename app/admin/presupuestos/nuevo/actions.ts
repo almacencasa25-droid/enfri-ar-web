@@ -49,7 +49,6 @@ type ItemPresupuesto = {
 };
 
 type CrearPresupuestoInput = {
-  numeroManual?: number | null;
   fecha: string;
 
   clienteId?: string | null;
@@ -311,9 +310,6 @@ export async function crearPresupuestoAction(
   const { data, error } = await supabase.rpc(
     "crear_presupuesto_enfriar",
     {
-      p_numero_manual:
-        input.numeroManual || null,
-
       p_fecha: input.fecha,
 
       p_cliente_id:
