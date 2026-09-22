@@ -87,6 +87,10 @@ type LineaServicio = {
   negrita: boolean;
 };
 
+export type PresupuestoPdfOpciones = {
+  numeroFichaRevision?: string | null;
+};
+
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
@@ -627,7 +631,9 @@ function dibujarTextoAjustado({
 export async function generarPresupuestoPdf(
   snapshot:
     PresupuestoPdfSnapshot,
-  version: number
+  version: number,
+  opciones:
+    PresupuestoPdfOpciones = {}
 ): Promise<Uint8Array> {
   const pdf =
     await PDFDocument.create();
@@ -674,6 +680,11 @@ export async function generarPresupuestoPdf(
     ).padStart(
       6,
       "0"
+    );
+
+  const numeroFichaRevision =
+    texto(
+      opciones.numeroFichaRevision
     );
 
   const empresaNombre =
@@ -1046,6 +1057,22 @@ export async function generarPresupuestoPdf(
       8,
       COLOR_MUTED
     );
+
+    if (numeroFichaRevision) {
+      y -= 14;
+
+      page.drawText(
+        `Nro. ficha de revision: ${numeroFichaRevision}`,
+        {
+          x: MARGIN,
+          y,
+          size: 8,
+          font: bold,
+          color:
+            COLOR_ORANGE,
+        }
+      );
+    }
 
     /*
      * CLIENTE
