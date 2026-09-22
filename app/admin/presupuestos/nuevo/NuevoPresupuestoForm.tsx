@@ -94,9 +94,6 @@ export default function NuevoPresupuestoForm() {
   const [error, setError] =
     useState("");
 
-  const [numeroManual, setNumeroManual] =
-    useState("");
-
   const [fecha, setFecha] =
     useState(fechaLocalHoy());
 
@@ -487,7 +484,6 @@ export default function NuevoPresupuestoForm() {
   }
 
   function limpiarFormulario() {
-    setNumeroManual("");
     setFecha(fechaLocalHoy());
 
     setClienteId(null);
@@ -536,11 +532,6 @@ export default function NuevoPresupuestoForm() {
     startTransition(async () => {
       const resultado =
         await crearPresupuestoAction({
-          numeroManual:
-            numeroManual.trim()
-              ? Number(numeroManual)
-              : null,
-
           fecha,
 
           clienteId,
@@ -641,22 +632,6 @@ export default function NuevoPresupuestoForm() {
                   event.target.value
                 )
               }
-              style={inputStyle}
-            />
-          </label>
-
-          <label style={labelStyle}>
-            Número manual
-            <input
-              type="number"
-              min="1"
-              value={numeroManual}
-              onChange={(event) =>
-                setNumeroManual(
-                  event.target.value
-                )
-              }
-              placeholder="Vacío = automático"
               style={inputStyle}
             />
           </label>
