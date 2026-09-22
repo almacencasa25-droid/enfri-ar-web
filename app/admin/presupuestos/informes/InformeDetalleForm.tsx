@@ -9,6 +9,7 @@ import {
 import {
   buscarPresupuestoParaInformeAction,
   crearInformeDetalleAction,
+  generarInformeDetallePdfAction,
   type PresupuestoInformeEncontrado,
 } from "./actions";
 
@@ -195,6 +196,11 @@ export default function InformeDetalleForm() {
   const [
     buscando,
     startBuscarTransition,
+  ] = useTransition();
+
+  const [
+    generando,
+    startGenerarTransition,
   ] = useTransition();
 
   const [
@@ -485,6 +491,134 @@ export default function InformeDetalleForm() {
     }
   }
 
+  function datosParaGuardar() {
+    return {
+      tipoDocumento,
+      presupuestoId:
+        presupuesto?.id ||
+        null,
+      numeroPresupuesto:
+        presupuesto?.numero ||
+        null,
+      ordenCompra:
+        ordenCompra ||
+        null,
+      numeroFactura:
+        numeroFactura ||
+        null,
+      estadoCobro,
+      fechaEmision,
+      mesInformado:
+        tipoDocumento ===
+        "informe_mensual"
+          ? mesInformado
+          : null,
+      anioInformado:
+        tipoDocumento ===
+        "detalle_trabajo"
+          ? null
+          : anioInformado,
+      cuatrimestre:
+        tipoDocumento ===
+        "informe_cuatrimestral"
+          ? cuatrimestre
+          : null,
+      clienteRazonSocial:
+        clienteRazonSocial ||
+        null,
+      clienteDireccion:
+        clienteDireccion ||
+        null,
+      clienteLocalidad:
+        clienteLocalidad ||
+        null,
+      destino:
+        destino ||
+        null,
+      inventario:
+        inventario ||
+        null,
+      detalle,
+      observaciones:
+        observaciones ||
+        null,
+    };
+  }
+
+  function guardarYGenerarPdf() {
+    setError("");
+    setMensaje("");
+
+    if (
+      tipoDocumento ===
+      "informe_cuatrimestral"
+    ) {
+      setError(
+        "El cuatrimestral todavía no tiene plantilla PDF definida."
+      );
+      return;
+    }
+
+    if (!ordenCompra.trim()) {
+      setError(
+        "Ingresá el número de Orden de Compra antes de generar el PDF."
+      );
+      return;
+    }
+
+    if (!numeroFactura.trim()) {
+      setError(
+        "Ingresá el número de factura antes de generar el PDF."
+      );
+      return;
+    }
+
+    if (!detalle.trim()) {
+      setError(
+        "Ingresá el detalle del trabajo o del informe."
+      );
+      return;
+    }
+
+    startGenerarTransition(
+      async () => {
+        const guardado =
+          await crearInformeDetalleAction(
+            datosParaGuardar()
+          );
+
+        if (!guardado.ok) {
+          setError(
+            guardado.error
+          );
+          return;
+        }
+
+        const generado =
+          await generarInformeDetallePdfAction(
+            guardado.data.id
+          );
+
+        if (!generado.ok) {
+          setError(
+            generado.error
+          );
+          return;
+        }
+
+        setMensaje(
+          "Registro guardado y PDF generado correctamente."
+        );
+
+        window.open(
+          generado.url,
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }
+    );
+  }
+
   function guardar() {
     setError("");
     setMensaje("");
@@ -500,57 +634,7 @@ export default function InformeDetalleForm() {
       async () => {
         const resultado =
           await crearInformeDetalleAction(
-            {
-              tipoDocumento,
-              presupuestoId:
-                presupuesto?.id ||
-                null,
-              numeroPresupuesto:
-                presupuesto?.numero ||
-                null,
-              ordenCompra:
-                ordenCompra ||
-                null,
-              numeroFactura:
-                numeroFactura ||
-                null,
-              estadoCobro,
-              fechaEmision,
-              mesInformado:
-                tipoDocumento ===
-                "informe_mensual"
-                  ? mesInformado
-                  : null,
-              anioInformado:
-                tipoDocumento ===
-                "detalle_trabajo"
-                  ? null
-                  : anioInformado,
-              cuatrimestre:
-                tipoDocumento ===
-                "informe_cuatrimestral"
-                  ? cuatrimestre
-                  : null,
-              clienteRazonSocial:
-                clienteRazonSocial ||
-                null,
-              clienteDireccion:
-                clienteDireccion ||
-                null,
-              clienteLocalidad:
-                clienteLocalidad ||
-                null,
-              destino:
-                destino ||
-                null,
-              inventario:
-                inventario ||
-                null,
-              detalle,
-              observaciones:
-                observaciones ||
-                null,
-            }
+            datosParaGuardar()
           );
 
         if (!resultado.ok) {
@@ -1149,22 +1233,67 @@ export default function InformeDetalleForm() {
         </div>
       ) : null}
 
-      <button
-        type="button"
-        onClick={guardar}
-        disabled={guardando}
+      <div
         style={{
-          ...guardarButtonStyle,
-          opacity:
-            guardando
-              ? 0.65
-              : 1,
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "12px",
         }}
       >
-        {guardando
-          ? "Guardando..."
-          : "Guardar registro"}
-      </button>
+        <button
+          type="button"
+          onClick={guardar}
+          disabled={
+            guardando ||
+            generando
+          }
+          style={{
+            ...guardarButtonStyle,
+            opacity:
+              guardando ||
+              generando
+                ? 0.65
+                : 1,
+          }}
+        >
+          {guardando
+            ? "Guardando..."
+            : "Guardar registro"}
+        </button>
+
+        <button
+          type="button"
+          onClick={
+            guardarYGenerarPdf
+          }
+          disabled={
+            generando ||
+            guardando ||
+            tipoDocumento ===
+              "informe_cuatrimestral"
+          }
+          style={{
+            ...guardarButtonStyle,
+            background:
+              "#285887",
+            opacity:
+              generando ||
+              guardando ||
+              tipoDocumento ===
+                "informe_cuatrimestral"
+                ? 0.55
+                : 1,
+          }}
+        >
+          {generando
+            ? "Generando PDF..."
+            : tipoDocumento ===
+                "informe_cuatrimestral"
+              ? "PDF pendiente de modelo"
+              : "Guardar y generar PDF"}
+        </button>
+      </div>
     </div>
   );
 }
