@@ -235,13 +235,13 @@ export default function NuevoPresupuestoForm() {
   const [
     descuentoValor,
     setDescuentoValor,
-  ] = useState(0);
+  ] = useState("");
 
   const [recargoTipo, setRecargoTipo] =
     useState("");
 
   const [recargoValor, setRecargoValor] =
-    useState(0);
+    useState("");
 
   const [formaPago, setFormaPago] =
     useState("");
@@ -647,10 +647,10 @@ export default function NuevoPresupuestoForm() {
     setDetalleCorto("");
 
     setDescuentoTipo("");
-    setDescuentoValor(0);
+    setDescuentoValor("");
 
     setRecargoTipo("");
-    setRecargoValor(0);
+    setRecargoValor("");
 
     setFormaPago("");
     setCondicionesPago("");
@@ -694,12 +694,18 @@ export default function NuevoPresupuestoForm() {
           descuentoTipo:
             descuentoTipo || null,
 
-          descuentoValor,
+          descuentoValor:
+            Number(
+              descuentoValor || 0
+            ),
 
           recargoTipo:
             recargoTipo || null,
 
-          recargoValor,
+          recargoValor:
+            Number(
+              recargoValor || 0
+            ),
 
           formaPago,
           condicionesPago,
@@ -1742,9 +1748,7 @@ export default function NuevoPresupuestoForm() {
               value={descuentoValor}
               onChange={(event) =>
                 setDescuentoValor(
-                  Number(
-                    event.target.value
-                  )
+                  event.target.value
                 )
               }
               style={inputStyle}
@@ -1786,9 +1790,7 @@ export default function NuevoPresupuestoForm() {
               value={recargoValor}
               onChange={(event) =>
                 setRecargoValor(
-                  Number(
-                    event.target.value
-                  )
+                  event.target.value
                 )
               }
               style={inputStyle}
