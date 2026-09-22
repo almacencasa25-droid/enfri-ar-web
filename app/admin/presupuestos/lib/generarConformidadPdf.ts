@@ -62,7 +62,7 @@ const FOOTER_TEXT_Y = 37;
 
 const CONTENT_BOTTOM = 78;
 
-const MANUAL_HEIGHT = 216;
+const MANUAL_HEIGHT = 326;
 const MANUAL_TOP_GAP = 12;
 
 const COLOR_DARK = rgb(
@@ -1680,7 +1680,7 @@ export async function generarConformidadPdf(
   });
 
   page.drawText(
-    "DATOS A COMPLETAR EN EL ESTABLECIMIENTO",
+    "CONFORMIDAD DEL SERVICIO",
     {
       x:
         MARGIN +
@@ -1697,9 +1697,66 @@ export async function generarConformidadPdf(
     }
   );
 
-  let manualY =
+  const leyendaConformidad =
+    "El responsable del establecimiento deja constancia de la recepción y conformidad respecto de los trabajos detallados en este documento y de los controles realizados al finalizar la intervención. Esta conformidad se limita al alcance del servicio efectivamente realizado y no comprende fallas preexistentes, componentes no intervenidos, desperfectos ajenos a la intervención ni trabajos o reparaciones informados como pendientes. Las observaciones técnicas comunicadas forman parte de esta constancia. La firma acredita la recepción del servicio y de dichas observaciones, sin perjuicio de los derechos que legalmente correspondan.";
+
+  const lineasConformidad =
+    envolverTexto(
+      leyendaConformidad,
+      regular,
+      7,
+      CONTENT_WIDTH - 20
+    );
+
+  let conformidadY =
     y -
-    37;
+    32;
+
+  for (
+    const linea
+    of lineasConformidad
+  ) {
+    page.drawText(
+      linea,
+      {
+        x:
+          MARGIN +
+          10,
+        y:
+          conformidadY,
+        size:
+          7,
+        font:
+          regular,
+        color:
+          COLOR_TEXT,
+      }
+    );
+
+    conformidadY -= 9;
+  }
+
+  page.drawText(
+    "DATOS A COMPLETAR EN EL ESTABLECIMIENTO",
+    {
+      x:
+        MARGIN +
+        10,
+      y:
+        conformidadY -
+        8,
+      size:
+        7,
+      font:
+        bold,
+      color:
+        COLOR_BLUE,
+    }
+  );
+
+  let manualY =
+    conformidadY -
+    29;
 
   dibujarCampoManual({
     page,
