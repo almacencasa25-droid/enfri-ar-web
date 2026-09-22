@@ -94,6 +94,11 @@ export default function NuevoPresupuestoForm() {
   const [error, setError] =
     useState("");
 
+  const [
+    numeroFichaRevision,
+    setNumeroFichaRevision,
+  ] = useState("");
+
   const [fecha, setFecha] =
     useState(fechaLocalHoy());
 
@@ -484,6 +489,7 @@ export default function NuevoPresupuestoForm() {
   }
 
   function limpiarFormulario() {
+    setNumeroFichaRevision("");
     setFecha(fechaLocalHoy());
 
     setClienteId(null);
@@ -532,6 +538,10 @@ export default function NuevoPresupuestoForm() {
     startTransition(async () => {
       const resultado =
         await crearPresupuestoAction({
+          numeroFichaRevision:
+            numeroFichaRevision.trim() ||
+            null,
+
           fecha,
 
           clienteId,
@@ -632,6 +642,21 @@ export default function NuevoPresupuestoForm() {
                   event.target.value
                 )
               }
+              style={inputStyle}
+            />
+          </label>
+
+          <label style={labelStyle}>
+            N.º de ficha de revisión
+            <input
+              value={numeroFichaRevision}
+              onChange={(event) =>
+                setNumeroFichaRevision(
+                  event.target.value
+                )
+              }
+              maxLength={60}
+              placeholder="Opcional · solo se imprime en este PDF"
               style={inputStyle}
             />
           </label>
