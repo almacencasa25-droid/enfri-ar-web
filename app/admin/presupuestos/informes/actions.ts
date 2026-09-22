@@ -1,9 +1,16 @@
 "use server";
 
+import { Buffer } from "node:buffer";
+
 import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+import {
+  generarInformeDetallePdf,
+  type InformeDetallePdfDatos,
+} from "../lib/generarInformeDetallePdf";
 
 export type PresupuestoInformeEncontrado = {
   id: string;
@@ -568,5 +575,417 @@ export async function crearInformeDetalleAction(
       id:
         data.id,
     },
+  };
+}
+
+
+const BUCKET_INFORMES =
+  "trabajos-enfri-ar";
+
+function nombreSeguro(
+  valor: string
+) {
+  return valor
+    .trim()
+    .replace(
+      /[^a-zA-Z0-9_-]/g,
+      "-"
+    )
+    .replace(
+      /-+/g,
+      "-"
+    )
+    .replace(
+      /^-|-$|/g,
+      ""
+    );
+}
+
+export async function generarInformeDetallePdfAction(
+  informeId: string
+) {
+  await requireAdminUser();
+
+  if (
+    !informeId ||
+    typeof informeId !==
+      "string"
+  ) {
+    return {
+      ok: false as const,
+      error:
+        "El registro no es válido.",
+    };
+  }
+
+  const supabase =
+    await createSupabaseServerClient();
+
+  const {
+    data: informe,
+    error: informeError,
+  } = await supabase
+    .from(
+      "informes_detalles_trabajo"
+    )
+    .select(`
+      id,
+      tipo_documento,
+      fecha_emision,
+      orden_compra,
+      numero_factura,
+      mes_informado,
+      anio_informado,
+      cliente_razon_social,
+      cliente_direccion,
+      cliente_localidad,
+      destino,
+      inventario,
+      detalle,
+      observaciones,
+      numero_presupuesto_snapshot,
+      storage_path
+    `)
+    .eq(
+      "id",
+      informeId
+    )
+    .single();
+
+  if (
+    informeError ||
+    !informe
+  ) {
+    return {
+      ok: false as const,
+      error:
+        informeError?.message ||
+        "No se encontró el registro.",
+    };
+  }
+
+  if (
+    informe.tipo_documento ===
+    "informe_cuatrimestral"
+  ) {
+    return {
+      ok: false as const,
+      error:
+        "El informe cuatrimestral todavía no tiene plantilla PDF definida.",
+    };
+  }
+
+  if (
+    !texto(
+      informe.orden_compra,
+      120
+    )
+  ) {
+    return {
+      ok: false as const,
+      error:
+        "Antes de generar el PDF ingresá el número de Orden de Compra.",
+    };
+  }
+
+  if (
+    !texto(
+      informe.numero_factura,
+      120
+    )
+  ) {
+    return {
+      ok: false as const,
+      error:
+        "Antes de generar el PDF ingresá el número de factura.",
+    };
+  }
+
+  const [
+    empresaResultado,
+    tecnicoResultado,
+  ] =
+    await Promise.all([
+      supabase
+        .from(
+          "site_settings"
+        )
+        .select(
+          "company_name, short_name"
+        )
+        .eq(
+          "id",
+          1
+        )
+        .maybeSingle(),
+
+      supabase
+        .from(
+          "tecnicos"
+        )
+        .select(
+          "nombre, apellido, numero_matricula"
+        )
+        .neq(
+          "estado",
+          "inactivo"
+        )
+        .order(
+          "created_at",
+          {
+            ascending:
+              true,
+          }
+        )
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  if (
+    empresaResultado.error
+  ) {
+    return {
+      ok: false as const,
+      error:
+        empresaResultado.error
+          .message,
+    };
+  }
+
+  if (
+    tecnicoResultado.error
+  ) {
+    return {
+      ok: false as const,
+      error:
+        tecnicoResultado.error
+          .message,
+    };
+  }
+
+  const empresa =
+    empresaResultado.data;
+
+  const tecnico =
+    tecnicoResultado.data;
+
+  const datosPdf:
+    InformeDetallePdfDatos = {
+      tipo_documento:
+        informe.tipo_documento as
+          | "detalle_trabajo"
+          | "informe_mensual",
+
+      fecha_emision:
+        informe.fecha_emision,
+
+      orden_compra:
+        informe.orden_compra,
+
+      numero_factura:
+        informe.numero_factura,
+
+      mes_informado:
+        informe.mes_informado,
+
+      anio_informado:
+        informe.anio_informado,
+
+      cliente_razon_social:
+        informe.cliente_razon_social,
+
+      cliente_direccion:
+        informe.cliente_direccion,
+
+      cliente_localidad:
+        informe.cliente_localidad,
+
+      destino:
+        informe.destino,
+
+      inventario:
+        informe.inventario,
+
+      detalle:
+        informe.detalle,
+
+      observaciones:
+        informe.observaciones,
+
+      numero_presupuesto_snapshot:
+        informe.numero_presupuesto_snapshot,
+
+      tecnico_nombre:
+        tecnico?.nombre ||
+        null,
+
+      tecnico_apellido:
+        tecnico?.apellido ||
+        null,
+
+      tecnico_matricula:
+        tecnico?.numero_matricula ||
+        null,
+
+      empresa_nombre:
+        empresa?.company_name ||
+        empresa?.short_name ||
+        "Enfri.Ar Refrigeración",
+    };
+
+  let pdfBytes:
+    Uint8Array;
+
+  try {
+    pdfBytes =
+      await generarInformeDetallePdf(
+        datosPdf
+      );
+  } catch (error) {
+    return {
+      ok: false as const,
+      error:
+        error instanceof Error
+          ? error.message
+          : "No se pudo generar el PDF.",
+    };
+  }
+
+  const tipoBase =
+    informe.tipo_documento ===
+    "informe_mensual"
+      ? "informe-mensual"
+      : "detalle-trabajo";
+
+  const referencia =
+    informe.tipo_documento ===
+    "informe_mensual"
+      ? [
+          String(
+            informe.anio_informado ||
+              ""
+          ),
+          String(
+            informe.mes_informado ||
+              ""
+          ).padStart(
+            2,
+            "0"
+          ),
+        ]
+          .filter(Boolean)
+          .join("-")
+      : String(
+          informe.numero_presupuesto_snapshot ||
+            informe.orden_compra ||
+            informe.id.slice(
+              0,
+              8
+            )
+        );
+
+  const nombreArchivo =
+    nombreSeguro(
+      tipoBase +
+        "-" +
+        referencia
+    ) +
+    ".pdf";
+
+  const storagePath =
+    "informes/" +
+    informe.id +
+    "/" +
+    nombreArchivo;
+
+  const {
+    error: uploadError,
+  } = await supabase.storage
+    .from(
+      BUCKET_INFORMES
+    )
+    .upload(
+      storagePath,
+      Buffer.from(
+        pdfBytes
+      ),
+      {
+        contentType:
+          "application/pdf",
+        cacheControl:
+          "3600",
+        upsert: true,
+      }
+    );
+
+  if (uploadError) {
+    return {
+      ok: false as const,
+      error:
+        uploadError.message,
+    };
+  }
+
+  const {
+    data: signed,
+    error: signedError,
+  } = await supabase.storage
+    .from(
+      BUCKET_INFORMES
+    )
+    .createSignedUrl(
+      storagePath,
+      300
+    );
+
+  if (
+    signedError ||
+    !signed?.signedUrl
+  ) {
+    return {
+      ok: false as const,
+      error:
+        signedError?.message ||
+        "El PDF fue creado, pero no se pudo abrir.",
+    };
+  }
+
+  const {
+    error: guardarError,
+  } = await supabase
+    .from(
+      "informes_detalles_trabajo"
+    )
+    .update({
+      storage_bucket:
+        BUCKET_INFORMES,
+      storage_path:
+        storagePath,
+      generado_at:
+        new Date().toISOString(),
+    })
+    .eq(
+      "id",
+      informe.id
+    );
+
+  if (guardarError) {
+    return {
+      ok: false as const,
+      error:
+        guardarError.message,
+    };
+  }
+
+  revalidatePath(
+    "/admin/presupuestos/informes"
+  );
+
+  return {
+    ok: true as const,
+    url:
+      signed.signedUrl,
+    nombreArchivo,
+    storagePath,
   };
 }
