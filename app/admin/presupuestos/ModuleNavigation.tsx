@@ -36,6 +36,10 @@ const menuItems = [
     label: "Documentos",
     href: "/admin/presupuestos/documentos",
   },
+  {
+    label: "Informes / detalles",
+    href: "/admin/presupuestos/informes",
+  },
 ];
 
 function isActivePath(
