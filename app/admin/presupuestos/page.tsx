@@ -83,6 +83,13 @@ export default function PresupuestosPage() {
       href: "/admin/presupuestos/documentos",
       icono: FileText,
     },
+    {
+      titulo: "Informes y detalles",
+      descripcion:
+        "Registrar detalles de trabajo, notas mensuales e informes cuatrimestrales, con vínculo opcional a un presupuesto.",
+      href: "/admin/presupuestos/informes",
+      icono: FileText,
+    },
   ];
 
   return (
