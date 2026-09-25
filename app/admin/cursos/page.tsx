@@ -7,10 +7,13 @@ import {
   CircleDot,
   ClipboardCheck,
   GraduationCap,
+  LogOut,
   Users,
 } from "lucide-react";
 
-import { requireAdminUser } from "@/lib/auth/admin";
+import { logoutCursos } from "@/app/admin/cursos/login/actions";
+import { requireCursosAdminUser } from "@/lib/auth/cursos";
+import { createCursosSupabaseServerClient } from "@/lib/supabase/cursos-server";
 
 import styles from "./cursos.module.css";
 
@@ -60,7 +63,24 @@ const estados = [
 ];
 
 export default async function CursosPage() {
-  await requireAdminUser();
+  const adminUser = await requireCursosAdminUser();
+  const supabase = await createCursosSupabaseServerClient();
+
+  const [sedes, cursos, alumnos, evaluaciones, pendientes] = await Promise.all([
+    supabase.from("formacion_sedes").select("id", { count: "exact", head: true }),
+    supabase.from("formacion_cursos").select("id", { count: "exact", head: true }),
+    supabase.from("formacion_alumnos").select("id", { count: "exact", head: true }),
+    supabase.from("formacion_evaluaciones").select("id", { count: "exact", head: true }),
+    supabase.from("formacion_intentos").select("id", { count: "exact", head: true }).eq("estado", "pendiente"),
+  ]);
+
+  const resumen = [
+    { etiqueta: "Sedes", valor: sedes.count ?? 0 },
+    { etiqueta: "Cursos", valor: cursos.count ?? 0 },
+    { etiqueta: "Alumnos", valor: alumnos.count ?? 0 },
+    { etiqueta: "Evaluaciones", valor: evaluaciones.count ?? 0 },
+    { etiqueta: "Por revisar", valor: pendientes.count ?? 0 },
+  ];
 
   return (
     <main className={styles.main}>
@@ -77,16 +97,33 @@ export default async function CursosPage() {
               trabajos prácticos y resultados por sede y cuatrimestre.
             </p>
           </div>
+          <div className={styles.sesion}>
+            <small>{adminUser.email}</small>
+            <form action={logoutCursos}>
+              <button type="submit">
+                <LogOut size={16} aria-hidden="true" />
+                Salir
+              </button>
+            </form>
+          </div>
         </header>
+
+        <section className={styles.resumen} aria-label="Resumen del módulo">
+          {resumen.map((item) => (
+            <div key={item.etiqueta}>
+              <strong>{item.valor}</strong>
+              <span>{item.etiqueta}</span>
+            </div>
+          ))}
+        </section>
 
         <section className={styles.aviso} aria-label="Estado de preparación">
           <CircleDot size={19} aria-hidden="true" />
           <div>
-            <strong>Primera etapa en preparación</strong>
+            <strong>Base independiente conectada</strong>
             <p>
-              La estructura del módulo está separada de presupuestos y clientes.
-              La carga de alumnos y evaluaciones se habilitará después de aplicar
-              la base de datos protegida.
+              Cursos y Evaluaciones funciona separado de Renacli, presupuestos
+              y clientes. La próxima etapa habilitará la carga y edición.
             </p>
           </div>
         </section>

@@ -3,6 +3,42 @@
 
 create extension if not exists pgcrypto;
 
+-- Administradores exclusivos de Enfri.Ar Cursos.
+create table if not exists public.admin_users (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text not null unique,
+  activo boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admin_users enable row level security;
+
+create or replace function public.is_enfri_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.admin_users
+    where user_id = auth.uid()
+      and activo = true
+  );
+$$;
+
+revoke all on function public.is_enfri_admin() from public;
+revoke all on function public.is_enfri_admin() from anon;
+grant execute on function public.is_enfri_admin() to authenticated;
+
+drop policy if exists admin_users_lectura_propia on public.admin_users;
+create policy admin_users_lectura_propia
+on public.admin_users
+for select
+to authenticated
+using (user_id = auth.uid());
+
 create table if not exists public.formacion_sedes (
   id uuid primary key default gen_random_uuid(),
   nombre text not null unique,

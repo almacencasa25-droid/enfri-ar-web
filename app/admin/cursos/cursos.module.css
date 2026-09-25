@@ -21,9 +21,63 @@
 
 .encabezado {
   display: flex;
+  align-items: flex-start;
   gap: 17px;
   padding: 24px;
   border-radius: 18px;
+}
+
+.sesion {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.sesion button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--foreground);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.resumen div {
+  padding: 15px;
+  border: 1px solid rgba(38, 40, 42, 0.12);
+  border-radius: 13px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: 0 8px 22px rgba(38, 40, 42, 0.07);
+}
+
+.resumen strong,
+.resumen span {
+  display: block;
+}
+
+.resumen strong {
+  font-size: 1.55rem;
+}
+
+.resumen span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .tituloIcono,
@@ -191,6 +245,11 @@
 @media (max-width: 560px) {
   .encabezado {
     flex-direction: column;
+  }
+
+  .sesion {
+    justify-items: start;
+    margin-left: 0;
   }
 
   .tarjetaTitulo {
