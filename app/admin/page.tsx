@@ -5,6 +5,7 @@ import {
   ExternalLink,
   FileText,
   Images,
+  GraduationCap,
   LogOut,
   Settings,
   ShieldCheck,
@@ -217,6 +218,57 @@ export default async function AdminPage() {
               gap: "16px",
             }}
           >
+            <article
+              style={{
+                ...cardStyle,
+                padding: "22px",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  display: "grid",
+                  placeItems: "center",
+                  marginBottom: "16px",
+                  borderRadius: "12px",
+                  background: "rgba(47, 143, 134, 0.11)",
+                  color: "var(--brand-blue-light)",
+                }}
+              >
+                <GraduationCap size={22} aria-hidden="true" />
+              </div>
+
+              <h3
+                style={{
+                  margin: "0 0 8px",
+                  color: "var(--foreground)",
+                  fontSize: "1.12rem",
+                }}
+              >
+                Cursos y evaluaciones
+              </h3>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--muted)",
+                  lineHeight: 1.6,
+                }}
+              >
+                Organizá sedes, cuatrimestres, alumnos, evaluaciones
+                automáticas, ejercicios prácticos y resultados.
+              </p>
+
+              <Link
+                href="/admin/cursos"
+                style={actionLinkStyle}
+              >
+                Abrir cursos
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </article>
+
             <article
               style={{
                 ...cardStyle,
