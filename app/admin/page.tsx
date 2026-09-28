@@ -414,15 +414,13 @@ export default async function AdminPage() {
                 sedes, alumnos, evaluaciones intermedias y finales.
               </p>
 
-              <a
-                href="https://enfri-ar-cursos.vercel.app/admin"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/admin/evaluaciones"
                 style={actionLinkStyle}
               >
                 Abrir evaluaciones
-                <ExternalLink size={16} aria-hidden="true" />
-              </a>
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
             </article>
 
             <article
