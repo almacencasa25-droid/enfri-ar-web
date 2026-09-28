@@ -4,6 +4,7 @@ import {
   ClipboardList,
   ExternalLink,
   FileText,
+  GraduationCap,
   Images,
   LogOut,
   Settings,
@@ -369,6 +370,59 @@ export default async function AdminPage() {
                 Abrir presupuestos
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
+            </article>
+
+            <article
+              style={{
+                ...cardStyle,
+                padding: "22px",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  display: "grid",
+                  placeItems: "center",
+                  marginBottom: "16px",
+                  borderRadius: "12px",
+                  background: "rgba(11, 127, 139, 0.12)",
+                  color: "#0b7f8b",
+                }}
+              >
+                <GraduationCap size={22} aria-hidden="true" />
+              </div>
+
+              <h3
+                style={{
+                  margin: "0 0 8px",
+                  color: "var(--foreground)",
+                  fontSize: "1.12rem",
+                }}
+              >
+                Evaluaciones
+              </h3>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--muted)",
+                  lineHeight: 1.6,
+                }}
+              >
+                Ingresá al panel de Enfri.Ar Cursos para administrar
+                sedes, alumnos, evaluaciones intermedias y finales.
+              </p>
+
+              <a
+                href="https://enfri-ar-cursos.vercel.app/admin"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={actionLinkStyle}
+              >
+                Abrir evaluaciones
+                <ExternalLink size={16} aria-hidden="true" />
+              </a>
             </article>
 
             <article
