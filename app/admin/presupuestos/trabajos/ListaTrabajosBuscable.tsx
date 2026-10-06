@@ -10,10 +10,28 @@ export default function ListaTrabajosBuscable({ trabajos }: { trabajos: Trabajo[
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLocaleLowerCase("es-AR");
     if (!q) return trabajos;
-    return trabajos.filter((t) =>
-      [t.nombre_corto,t.detalle,t.categoria || "",t.tipo === "mano_obra" ? "mano de obra" : t.tipo === "material" ? "material" : "otro"]
-        .join(" ").toLocaleLowerCase("es-AR").includes(q)
-    );
+    return trabajos
+      .map((t) => {
+        const nombre = t.nombre_corto.toLocaleLowerCase("es-AR");
+        const categoria = (t.categoria || "").toLocaleLowerCase("es-AR");
+        const detalle = t.detalle.toLocaleLowerCase("es-AR");
+
+        let prioridad = 0;
+        if (nombre === q) prioridad = 100;
+        else if (nombre.startsWith(q)) prioridad = 80;
+        else if (nombre.split(/\\s+/).some((palabra) => palabra.startsWith(q))) prioridad = 60;
+        else if (nombre.includes(q)) prioridad = 40;
+        else if (categoria.split(/\\s+/).some((palabra) => palabra.startsWith(q))) prioridad = 20;
+        else if (detalle.split(/\\s+/).some((palabra) => palabra.startsWith(q))) prioridad = 10;
+
+        return { t, prioridad };
+      })
+      .filter(({ prioridad }) => prioridad > 0)
+      .sort((a, b) =>
+        b.prioridad - a.prioridad ||
+        a.t.nombre_corto.localeCompare(b.t.nombre_corto, "es-AR")
+      )
+      .map(({ t }) => t);
   }, [busqueda, trabajos]);
 
   return <>
@@ -21,7 +39,7 @@ export default function ListaTrabajosBuscable({ trabajos }: { trabajos: Trabajo[
       <label style={{display:"grid",gap:"6px",color:"var(--foreground)",fontSize:"0.88rem",fontWeight:800}}>
         Buscar trabajo
         <input type="search" value={busqueda} onChange={(e)=>setBusqueda(e.target.value)}
-          placeholder="Buscar por nombre, detalle, categoría o tipo..." autoComplete="off"
+          placeholder="Ej.: preinstalación, limpieza, split..." autoComplete="off"
           style={{width:"100%",minHeight:"44px",boxSizing:"border-box",padding:"10px 12px",border:"1px solid rgba(38, 40, 42, 0.18)",borderRadius:"10px",background:"#ffffff",color:"var(--foreground)",font:"inherit"}} />
       </label>
       {busqueda ? <div style={{marginTop:"7px",color:"var(--muted)",fontSize:"0.82rem",fontWeight:700}}>{filtrados.length} resultado{filtrados.length===1?"":"s"}</div> : null}
