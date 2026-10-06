@@ -189,7 +189,6 @@ export default async function TrabajosPreciosPage() {
           ) : (
             <ListaTrabajosBuscable trabajos={trabajos} />
           )}
-}
         </section>
 
         <div
