@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import TrabajoEditor from "./TrabajoEditor";
 import ListaTrabajosBuscable from "./ListaTrabajosBuscable";
 
 export const metadata = {
