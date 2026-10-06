@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-import TrabajoEditor from "./TrabajoEditor";
+import ListaTrabajosBuscable from "./ListaTrabajosBuscable";
 
 export const metadata = {
   title: "Trabajos y precios",
@@ -187,114 +187,9 @@ export default async function TrabajosPreciosPage() {
               Todavía no hay trabajos cargados.
             </p>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gap: "12px",
-              }}
-            >
-              {trabajos.map((trabajo) => (
-                <article
-                  key={trabajo.id}
-                  style={{
-                    padding: "16px",
-                    border: "1px solid rgba(38, 40, 42, 0.1)",
-                    borderRadius: "13px",
-                    background: trabajo.activo
-                      ? "rgba(255, 255, 255, 0.7)"
-                      : "rgba(38, 40, 42, 0.035)",
-                    opacity: trabajo.activo ? 1 : 0.72,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      justifyContent: "space-between",
-                      gap: "10px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        minWidth: 0,
-                        flex: "1 1 300px",
-                      }}
-                    >
-                      <h3
-                        style={{
-                          margin: "0 0 6px",
-                          color: "var(--foreground)",
-                          fontSize: "1rem",
-                        }}
-                      >
-                        {trabajo.nombre_corto}
-                      </h3>
-
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          lineHeight: 1.5,
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {trabajo.detalle}
-                      </p>
-                    </div>
-
-                    <strong
-                      style={{
-                        color: "var(--foreground)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      $
-                      {Number(trabajo.precio_unitario).toLocaleString(
-                        "es-AR"
-                      )}
-                    </strong>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "8px",
-                      marginTop: "12px",
-                      color: "var(--muted)",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    <span>{trabajo.categoria || "Sin categoría"}</span>
-
-                    <span>·</span>
-
-                    <span>
-                      {trabajo.tipo === "mano_obra"
-                        ? "Mano de obra"
-                        : trabajo.tipo === "material"
-                          ? "Material"
-                          : "Otro"}
-                    </span>
-
-                    <span>·</span>
-
-                    <strong
-                      style={{
-                        color: trabajo.activo
-                          ? "#236b43"
-                          : "#8a4f1d",
-                      }}
-                    >
-                      {trabajo.activo ? "Activo" : "Inactivo"}
-                    </strong>
-                  </div>
-
-                  <TrabajoEditor trabajo={trabajo} />
-                </article>
-              ))}
-            </div>
+            <ListaTrabajosBuscable trabajos={trabajos} />
           )}
+}
         </section>
 
         <div
