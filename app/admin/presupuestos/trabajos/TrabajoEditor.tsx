@@ -67,9 +67,8 @@ export default function TrabajoEditor({
 
     limpiarMensajes();
 
-    const formData = new FormData(
-      event.currentTarget
-    );
+    const formulario = event.currentTarget;
+    const formData = new FormData(formulario);
 
     startTransition(async () => {
       const resultado = esNuevo
@@ -87,9 +86,7 @@ export default function TrabajoEditor({
       }
 
       if (esNuevo) {
-        (
-          event.currentTarget as HTMLFormElement
-        ).reset();
+        formulario.reset();
 
         setMensaje("Trabajo guardado correctamente.");
       } else {
