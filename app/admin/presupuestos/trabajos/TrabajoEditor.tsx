@@ -91,13 +91,15 @@ export default function TrabajoEditor({
           event.currentTarget as HTMLFormElement
         ).reset();
 
-        setMensaje("Trabajo guardado.");
+        setMensaje("Trabajo guardado correctamente.");
       } else {
         setMensaje("Cambios guardados.");
         setEditando(false);
       }
 
-      router.refresh();
+      // No refrescamos automáticamente al crear/editar: en algunos navegadores
+      // el refresh inmediato después de una Server Action provoca una pantalla
+      // de error aunque el registro ya se haya guardado correctamente.
     });
   }
 
