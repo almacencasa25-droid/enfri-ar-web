@@ -674,6 +674,25 @@ export async function generarPresupuestoPdf(
       ? snapshot.items
       : [];
 
+  const ordenesEquipo =
+    Array.from(
+      new Set(
+        items
+          .map((item) =>
+            numero(
+              item.equipo_orden
+            )
+          )
+          .filter(
+            (orden) =>
+              orden > 0
+          )
+      )
+    );
+
+  const cantidadGruposEquipo =
+    ordenesEquipo.length;
+
   const moneda =
     texto(
       snapshot.moneda
@@ -1705,8 +1724,32 @@ export async function generarPresupuestoPdf(
     ultimoEquipoOrden =
       ordenEquipo;
 
+    const cantidadEquiposAgrupados =
+      cantidadGruposEquipo === 1
+        ? Math.max(
+            1,
+            ...items
+              .filter(
+                (actual) =>
+                  numero(
+                    actual.equipo_orden
+                  ) === ordenEquipo
+              )
+              .map((actual) =>
+                numero(
+                  actual.cantidad
+                )
+              )
+          )
+        : 1;
+
+    const etiquetaEquipo =
+      cantidadEquiposAgrupados > 1
+        ? `${cantidadEquiposAgrupados} Equipos`
+        : `Equipo ${ordenEquipo}`;
+
     const tituloEquipo = [
-      `Equipo ${ordenEquipo}`,
+      etiquetaEquipo,
       texto(item.equipo_tipo),
       texto(item.equipo_marca),
       texto(item.equipo_modelo),
