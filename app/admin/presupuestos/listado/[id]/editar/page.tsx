@@ -79,7 +79,16 @@ export default async function EditarPresupuestoPage({
       detalle,
       tipo,
       cantidad,
-      precio_unitario
+      precio_unitario,
+      equipo_orden,
+      equipo_tipo,
+      equipo_marca,
+      equipo_modelo,
+      equipo_capacidad,
+      equipo_ubicacion,
+      equipo_refrigerante,
+      equipo_serie,
+      equipo_observaciones
     `)
     .eq("presupuesto_id", id)
     .order("orden", {
@@ -230,6 +239,33 @@ export default async function EditarPresupuestoPage({
         precio_unitario: Number(
           item.precio_unitario || 0
         ),
+
+        equipo_orden:
+          item.equipo_orden,
+
+        equipo_tipo:
+          item.equipo_tipo,
+
+        equipo_marca:
+          item.equipo_marca,
+
+        equipo_modelo:
+          item.equipo_modelo,
+
+        equipo_capacidad:
+          item.equipo_capacidad,
+
+        equipo_ubicacion:
+          item.equipo_ubicacion,
+
+        equipo_refrigerante:
+          item.equipo_refrigerante,
+
+        equipo_serie:
+          item.equipo_serie,
+
+        equipo_observaciones:
+          item.equipo_observaciones,
       })
     ),
   };
