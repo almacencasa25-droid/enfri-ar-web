@@ -668,6 +668,45 @@ export default function NuevoPresupuestoForm() {
     setMensaje("");
     setError("");
 
+    if (equipos.length > 1) {
+      const equiposSinTrabajo =
+        equipos
+          .map(
+            (equipo, indice) => ({
+              equipo,
+              numero:
+                indice + 1,
+            })
+          )
+          .filter(
+            ({ equipo }) =>
+              !items.some(
+                (item) =>
+                  item.equipoKey ===
+                  equipo.key
+              )
+          );
+
+      if (
+        equiposSinTrabajo.length >
+        0
+      ) {
+        const numeros =
+          equiposSinTrabajo
+            .map(
+              ({ numero }) =>
+                numero
+            )
+            .join(", ");
+
+        setError(
+          `Los equipos ${numeros} no tienen trabajos asociados. Agregá al menos un trabajo a cada equipo antes de guardar para que ninguno se pierda del presupuesto.`
+        );
+
+        return;
+      }
+    }
+
     startTransition(async () => {
       const resultado =
         await crearPresupuestoAction({
