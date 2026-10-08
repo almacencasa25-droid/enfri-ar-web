@@ -49,6 +49,16 @@ type ItemInicial = {
   tipo: string | null;
   cantidad: number;
   precio_unitario: number;
+
+  equipo_orden?: number | null;
+  equipo_tipo?: string | null;
+  equipo_marca?: string | null;
+  equipo_modelo?: string | null;
+  equipo_capacidad?: string | null;
+  equipo_ubicacion?: string | null;
+  equipo_refrigerante?: string | null;
+  equipo_serie?: string | null;
+  equipo_observaciones?: string | null;
 };
 
 type PresupuestoInicial = {
@@ -97,6 +107,16 @@ type Item = {
   tipo: string;
   cantidad: number;
   precio_unitario: number;
+
+  equipo_orden?: number | null;
+  equipo_tipo?: string | null;
+  equipo_marca?: string | null;
+  equipo_modelo?: string | null;
+  equipo_capacidad?: string | null;
+  equipo_ubicacion?: string | null;
+  equipo_refrigerante?: string | null;
+  equipo_serie?: string | null;
+  equipo_observaciones?: string | null;
 };
 
 type Props = {
@@ -262,6 +282,25 @@ export default function EditarPresupuestoForm({
             Number(
               item.precio_unitario || 0
             ),
+
+          equipo_orden:
+            item.equipo_orden ?? null,
+          equipo_tipo:
+            item.equipo_tipo ?? null,
+          equipo_marca:
+            item.equipo_marca ?? null,
+          equipo_modelo:
+            item.equipo_modelo ?? null,
+          equipo_capacidad:
+            item.equipo_capacidad ?? null,
+          equipo_ubicacion:
+            item.equipo_ubicacion ?? null,
+          equipo_refrigerante:
+            item.equipo_refrigerante ?? null,
+          equipo_serie:
+            item.equipo_serie ?? null,
+          equipo_observaciones:
+            item.equipo_observaciones ?? null,
         })
       )
     );
