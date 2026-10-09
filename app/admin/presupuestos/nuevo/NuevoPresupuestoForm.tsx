@@ -758,7 +758,7 @@ export default function NuevoPresupuestoForm() {
           horaProgramada:
             horaProgramada || null,
 
-          items: items.flatMap((item) => (equipoKeys || [equipoKey]).map((equipoKey, posicion) => {
+          items: items.flatMap((item) => (item.equipoKeys || [item.equipoKey]).map((equipoKey, posicion) => {
               const equipo =
                 equipos.find(
                   (actual) =>
