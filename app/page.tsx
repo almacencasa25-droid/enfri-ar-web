@@ -68,6 +68,14 @@ export default async function HomePage() {
             <p style={{ fontSize: ".9rem", color: "#526b7a", marginTop: 14 }}>Acceso gratuito desde el navegador. Instalación disponible en dispositivos compatibles.</p>
           </div>
         </section>
+        <section id="tarifario-tecnicos" style={{ padding: "42px 20px", background: "#f4fbff", textAlign: "center" }}>
+          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+            <p style={{ color: "#087eaf", fontWeight: 800, marginBottom: 8 }}>RECURSO GRATUITO PARA TÉCNICOS</p>
+            <h2 style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)", color: "#103c54", marginBottom: 12 }}>Tarifario orientativo 2026</h2>
+            <p style={{ color: "#29475b", lineHeight: 1.6, marginBottom: 22 }}>Descargá la lista de valores de referencia de mano de obra para instalaciones, mantenimiento y reparaciones. Sin materiales ni repuestos.</p>
+            <a href="/api/tarifario" download style={{ display: "inline-block", padding: "15px 24px", borderRadius: 12, background: "#087eaf", color: "white", fontWeight: 800, textDecoration: "none" }}>↓ DESCARGAR TARIFARIO PDF</a>
+          </div>
+        </section>
         <RenacliSection />
       </main>
 
