@@ -94,6 +94,11 @@ export default async function TrabajosPreciosPage() {
           </p>
         </header>
 
+        <section style={{ ...cardStyle, marginTop: "20px", padding: "18px 22px" }}>
+          <strong style={{ color: "var(--brand-blue)" }}>Tarifario interno Enfri.Ar</strong>
+          <p style={{ color: "var(--muted)", margin: "8px 0" }}>Descargá la lista interna de mano de obra. Acceso exclusivo del administrador.</p>
+          <a href="/api/tarifario?tipo=interno" style={{ color: "var(--brand-blue)", fontWeight: 800 }}>↓ Descargar tarifario interno PDF</a>
+        </section>
         <section
           style={{
             ...cardStyle,
