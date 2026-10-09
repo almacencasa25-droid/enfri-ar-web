@@ -37,6 +37,10 @@ const menuItems = [
     href: "/admin/presupuestos/documentos",
   },
   {
+    label: "Tarifario Enfri.Ar",
+    href: "/api/tarifario?tipo=interno",
+  },
+  {
     label: "Informes / detalles",
     href: "/admin/presupuestos/informes",
   },
@@ -106,6 +110,7 @@ export default function ModuleNavigation() {
                 href={
                   item.href
                 }
+                download={item.href.startsWith("/api/tarifario") ? "EnfriAr_Tarifario_Interno_2026.pdf" : undefined}
                 aria-current={
                   active
                     ? "page"
