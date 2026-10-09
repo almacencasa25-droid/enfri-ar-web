@@ -11,6 +11,8 @@ type FichaRevisionFormProps = {
 export default function FichaRevisionForm({
   proximoNumero,
 }: FichaRevisionFormProps) {
+  const [tipo, setTipo] = useState<"revision" | "preinstalacion">("revision");
+
   const [cantidad, setCantidad] =
     useState(1);
 
@@ -58,7 +60,8 @@ export default function FichaRevisionForm({
     try {
       const resultado =
         await generarFichasRevisionAction(
-          cantidadSegura
+          cantidadSegura,
+          tipo
         );
 
       if (!resultado.ok) {
@@ -196,7 +199,7 @@ export default function FichaRevisionForm({
           lineHeight: 1.6,
         }}
       >
-        Elegí cuántas fichas
+        Seleccioná el tipo de visita y elegí cuántas fichas
         necesitás imprimir.
         Cada ficha ocupa una
         hoja A4 y recibe un
@@ -210,6 +213,13 @@ export default function FichaRevisionForm({
           maxWidth: "520px",
         }}
       >
+        <label style={{ display: "grid", gap: "8px", fontWeight: 800, color: "var(--foreground)" }}>
+          Tipo de ficha
+          <select value={tipo} onChange={(event) => setTipo(event.target.value as "revision" | "preinstalacion")} style={{ minHeight: "46px", padding: "10px", borderRadius: "10px", border: "1px solid #b7c3ce", background: "#fff", color: "#222" }}>
+            <option value="revision">Revisión técnica (actual)</option>
+            <option value="preinstalacion">Visita para preinstalación (con croquis)</option>
+          </select>
+        </label>
         <div
           style={{
             display: "grid",
