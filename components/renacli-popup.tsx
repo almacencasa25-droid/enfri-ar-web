@@ -7,6 +7,14 @@ export function RenacliPopup() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
+    try {
+      if (window.localStorage.getItem("enfriar-renacli-popup-dismissed") === "1") {
+        setDismissed(true);
+        return;
+      }
+    } catch {
+      // Si el navegador bloquea el almacenamiento, el anuncio sigue funcionando.
+    }
     const timer = window.setTimeout(() => setVisible(true), 5000);
     return () => window.clearTimeout(timer);
   }, []);
@@ -22,7 +30,10 @@ export function RenacliPopup() {
       animation: "renacli-popup-enter .65s ease-out both"
     }}>
       <style>{`@keyframes renacli-popup-enter {from {transform:translateX(115%);opacity:0}to{transform:translateX(0);opacity:1}}@media (prefers-reduced-motion:reduce){aside[aria-label="Invitación a matricularse en RENACLI"]{animation:none!important}}`}</style>
-      <button type="button" onClick={() => setDismissed(true)} aria-label="Cerrar anuncio" style={{
+      <button type="button" onClick={() => {
+        setDismissed(true);
+        try { window.localStorage.setItem("enfriar-renacli-popup-dismissed", "1"); } catch {}
+      }} aria-label="Cerrar anuncio" style={{
         position: "absolute", top: 10, right: 12, border: "1px solid #ffffff70", background: "#ffffff18",
         borderRadius: 8, color: "white", fontSize: 20, width: 31, height: 31, cursor: "pointer"
       }}>×</button>
