@@ -53,7 +53,9 @@ type Equipo = {
   observaciones: string;
 };
 
-$1
+type Item = {
+  key: string;
+  equipoKey: string;
   equipoKeys: string[];
   trabajo_id: string | null;
   nombre_corto: string;
@@ -501,7 +503,7 @@ export default function NuevoPresupuestoForm() {
       ...actuales,
       {
         key: nuevaKey(),
-        $1
+        equipoKey: equipoActivo.key,
         equipoKeys: [equipoActivo.key],
         trabajo_id:
           trabajoSeleccionado.id,
@@ -1620,19 +1622,19 @@ export default function NuevoPresupuestoForm() {
                           >
                             Eliminar
                           </button>
-                        </div>$1<div style={{ display: "flex", flexWrap: "wrap", gap: "12px", padding: "8px 0" }}>
-$1  {equipos.map((equipo, indice) => (
-$1    <label key={equipo.key} style={{ display: "flex", alignItems: "center", gap: "5px", cursor: "pointer" }}>
-$1      <input type="checkbox" checked={(item.equipoKeys || [item.equipoKey]).includes(equipo.key)} onChange={(event) => {
-$1        const actuales = item.equipoKeys || [item.equipoKey];
-$1        const nuevos = event.target.checked ? [...actuales, equipo.key] : actuales.filter((id) => id !== equipo.key);
-$1        if (nuevos.length) modificarItem(item.key, { equipoKeys: nuevos, equipoKey: nuevos[0] });
-$1      }} />
-$1      Equipo {indice + 1}
-$1    </label>
-$1  ))}
-$1</div>
-$1<textarea rows={2} value={item.detalle}
+                        </div><div style={{ display: "flex", flexWrap: "wrap", gap: "12px", padding: "8px 0" }}>
+  {equipos.map((equipo, indice) => (
+    <label key={equipo.key} style={{ display: "flex", alignItems: "center", gap: "5px", cursor: "pointer" }}>
+      <input type="checkbox" checked={(item.equipoKeys || [item.equipoKey]).includes(equipo.key)} onChange={(event) => {
+        const actuales = item.equipoKeys || [item.equipoKey];
+        const nuevos = event.target.checked ? [...actuales, equipo.key] : actuales.filter((id) => id !== equipo.key);
+        if (nuevos.length) modificarItem(item.key, { equipoKeys: nuevos, equipoKey: nuevos[0] });
+      }} />
+      Equipo {indice + 1}
+    </label>
+  ))}
+</div>
+<textarea rows={2} value={item.detalle}
                           onChange={(event) =>
                             modificarItem(
                               item.key,
