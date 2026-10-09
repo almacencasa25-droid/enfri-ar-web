@@ -92,7 +92,7 @@ export async function generarFichaRevisionPdf(input:GenerarFichaRevisionPdfInput
  try{const bytes=await readFile(/* turbopackIgnore: true */path.join(process.cwd(),"public","logo-enfri-ar.png"));logo=await pdf.embedPng(bytes);}catch{}
  for(let i=0;i<count;i++){
   const p1=pdf.addPage([W,H]);pageOne({p:p1,f,b},empresa,logo,start+i);
-  const p2=pdf.addPage([W,H]);pageTwo({p:p2,f,b},start+i,empresa);
+  const p2=pdf.addPage([W,H]);pageTwo({p:p2,f,b},logo,start+i,empresa);
  }
  return pdf.save();
 }
