@@ -1,0 +1,33 @@
+export const categoriasTarifario = [
+  { titulo: "Instalaciones - mano de obra", trabajos: [
+    ["Split hasta 3.200 frigorías",260000,210000],
+    ["Split hasta 4.500 frigorías",290000,230000],
+    ["Split hasta 6.000 frigorías",330000,265000],
+    ["Split 7.000 a 8.000 frigorías",370000,295000],
+    ["Piso-techo 9.000 frigorías",420000,335000],
+    ["Piso-techo 15.000 a 18.000 frigorías",550000,440000],
+  ] },
+  { titulo: "Limpieza, mantenimiento y retiro", trabajos: [
+    ["Limpieza Split hasta 3.000 frigorías",145000,115000],
+    ["Limpieza Split hasta 4.500 frigorías",165000,130000],
+    ["Limpieza Split hasta 6.000 frigorías",190000,150000],
+    ["Limpieza piso-techo",260000,210000],
+    ["Limpieza profunda con desinstalación y reinstalación",363000,290000],
+    ["Desinstalación Split hasta 4.500 frigorías",150000,120000],
+    ["Desinstalación Split 4.500 a 7.000 frigorías",195000,155000],
+  ] },
+  { titulo: "Reparaciones y trabajos especiales", trabajos: [
+    ["Cambio de capacitor",141000,115000],
+    ["Cambio de placa universal On/Off",220000,175000],
+    ["Cambio de válvula inversora",340000,270000],
+    ["Detección de fuga y carga completa (mano de obra)",230000,185000],
+    ["Prueba de estanqueidad con nitrógeno",145000,115000],
+    ["Preinstalación estándar sin tapar",170000,135000],
+    ["Montaje sobre preinstalación existente",230000,185000],
+    ["Visita técnica y diagnóstico inicial",109000,85000],
+    ["Extensión de cañería: mano de obra por metro",45000,35000],
+    ["Reparación de fuga con soldadura",224000,180000],
+    ["Cambio de forzador de condensador",194000,155000],
+    ["Cambio de forzador de evaporador",206000,165000],
+  ] },
+] as const;
