@@ -14,7 +14,7 @@ export async function generarFichaPreinstalacionPdf(input: {
   const azul = rgb(0.12, 0.31, 0.47);
   const gris = rgb(0.42, 0.46, 0.49);
   const linea = rgb(0.72, 0.76, 0.79);
-  const tenue = rgb(0.88, 0.9, 0.92);
+  const tenue = rgb(0.67, 0.71, 0.74);
   const empresa = input.empresa || {};
   let logo: Awaited<ReturnType<typeof pdf.embedPng>> | null = null;
   try {
@@ -69,9 +69,9 @@ export async function generarFichaPreinstalacionPdf(input: {
     field("Alimentación eléctrica / toma:", left, 460, right);
     heading("CROQUIS DEL AMBIENTE Y RECORRIDO", 434);
     text("Dibujar a lápiz: ubicación interior (UI), exterior (UE), inicio, recorrido y fin de cañerías, desagüe y medidas.", left + 4, 411, 6.8);
-    const gx = left + 1, gy = 114, gw = width - 2, gh = 285, step = 12;
+    const gx = left + 1, gy = 114, gw = width - 2, gh = 285, step = 18;
     page.drawRectangle({ x: gx, y: gy, width: gw, height: gh, borderColor: azul, borderWidth: 1 });
-    for (let x = gx + step; x < gx + gw; x += step) rule(x, gy, x, gy + gh, tenue, 0.3);
+    for (let x = gx + step; x < gx + gw; x += step) rule(x, gy, x, gy + gh, tenue, 0.65);
     for (let y = gy + step; y < gy + gh; y += step) rule(gx, y, gx + gw, y, tenue, 0.3);
     heading("OBSERVACIONES / MATERIALES / MEDIDAS", 92);
     rule(left, 60, right, 60);
