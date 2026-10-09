@@ -41,18 +41,18 @@ export async function GET(request: NextRequest) {
   page.drawLine({ start: { x: 35, y: 729 }, end: { x: 560, y: 729 }, thickness: 1.5, color: teal });
   let y = 712;
   for (const cat of categoriasTarifario) {
-    page.drawRectangle({ x: 35, y: y - 21, width: 525, height: 23, color: blue });
-    page.drawText(clean(cat.titulo), { x: 44, y: y - 14, size: 11.5, font: bold, color: rgb(1,1,1) });
-    y -= 27;
+    page.drawRectangle({ x: 35, y: y - 19, width: 525, height: 21, color: blue });
+    page.drawText(clean(cat.titulo), { x: 44, y: y - 12, size: 11.5, font: bold, color: rgb(1,1,1) });
+    y -= 23;
     for (const [index, [name, internalPrice, studentPrice]] of cat.trabajos.entries()) {
       const price = interno ? internalPrice : studentPrice;
-      page.drawRectangle({ x: 35, y: y - 20, width: 525, height: 23, color: (index % 2) ? rgb(1,1,1) : pale });
-      page.drawText(clean(name), { x: 43, y: y - 13, size: fit(name, 390, 10.6), font, color: ink });
+      page.drawRectangle({ x: 35, y: y - 18, width: 525, height: 21, color: (index % 2) ? rgb(1,1,1) : pale });
+      page.drawText(clean(name), { x: 43, y: y - 12, size: fit(name, 390, 10.6), font, color: ink });
       const priceText = money(price);
-      page.drawText(priceText, { x: 552 - bold.widthOfTextAtSize(priceText, 11), y: y - 13, size: 11, font: bold, color: blue });
-      y -= 23;
+      page.drawText(priceText, { x: 552 - bold.widthOfTextAtSize(priceText, 11), y: y - 12, size: 11, font: bold, color: blue });
+      y -= 21;
     }
-    y -= 9;
+    y -= 6;
   }
   page.drawText(interno ? "Valores internos propuestos para Enfri.Ar." : "Valores orientativos; no son los precios comerciales de Enfri.Ar.", { x: 37, y: 51, size: 9, font: bold, color: blue });
   page.drawText("Trabajos especiales, altura, traslados y materiales se presupuestan aparte.", { x: 37, y: 37, size: 8.5, font, color: ink });
