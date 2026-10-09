@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   generarFichaRevisionPdf,
 } from "../lib/generarFichaRevisionPdf";
+import { generarFichaPreinstalacionPdf } from "../lib/generarFichaPreinstalacionPdf";
 
 export type GenerarFichasRevisionResultado =
   | {
@@ -32,7 +33,8 @@ type EmpresaSnapshot = {
 };
 
 export async function generarFichasRevisionAction(
-  cantidad: number
+  cantidad: number,
+  tipo: "revision" | "preinstalacion" = "revision"
 ): Promise<GenerarFichasRevisionResultado> {
   await requireAdminUser();
 
@@ -171,7 +173,7 @@ export async function generarFichasRevisionAction(
 
   try {
     const pdfBytes =
-      await generarFichaRevisionPdf(
+      await (tipo === "preinstalacion" ? generarFichaPreinstalacionPdf : generarFichaRevisionPdf)(
         {
           numeroInicial,
           cantidad:
@@ -232,8 +234,8 @@ export async function generarFichasRevisionAction(
 
     const archivo =
       cantidadNormalizada === 1
-        ? `ficha-revision-${numeroInicialVisible}.pdf`
-        : `fichas-revision-${numeroInicialVisible}-${numeroFinalVisible}.pdf`;
+        ? `ficha-${tipo}-${numeroInicialVisible}.pdf`
+        : `fichas-${tipo}-${numeroInicialVisible}-${numeroFinalVisible}.pdf`;
 
     return {
       ok: true,
