@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const scale = Math.min(120 / logo.width, 59 / logo.height);
     page.drawImage(logo, { x: 37, y: 742, width: logo.width * scale, height: logo.height * scale });
   } catch { /* PDF sigue disponible aunque falte el logo */ }
-  page.drawText("TARIFARIO ENFRI.AR", { x: 166, y: 791, font: bold, size: 19, color: blue });
+  page.drawText(interno ? "TARIFARIO ENFRI.AR" : "TARIFARIO ENFRI.AR - TÉCNICOS", { x: 166, y: 791, font: bold, size: interno ? 19 : 15, color: blue });
   page.drawText(interno ? "Uso interno - mano de obra" : "Referencia para técnicos - mano de obra", { x: 166, y: 770, font: bold, size: 10.5, color: teal });
   page.drawText("Octubre 2026  |  Sin materiales ni repuestos", { x: 166, y: 752, font, size: 9.5, color: ink });
   page.drawLine({ start: { x: 35, y: 729 }, end: { x: 560, y: 729 }, thickness: 1.5, color: teal });
