@@ -72,7 +72,7 @@ export async function generarFichaPreinstalacionPdf(input: {
     const gx = left + 1, gy = 114, gw = width - 2, gh = 285, step = 18;
     page.drawRectangle({ x: gx, y: gy, width: gw, height: gh, borderColor: azul, borderWidth: 1 });
     for (let x = gx + step; x < gx + gw; x += step) rule(x, gy, x, gy + gh, tenue, 0.65);
-    for (let y = gy + step; y < gy + gh; y += step) rule(gx, y, gx + gw, y, tenue, 0.3);
+    for (let y = gy + step; y < gy + gh; y += step) rule(gx, y, gx + gw, y, tenue, 0.65);
     heading("OBSERVACIONES / MATERIALES / MEDIDAS", 92);
     rule(left, 60, right, 60);
     rule(left, 44, right, 44);
