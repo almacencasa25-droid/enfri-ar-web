@@ -53,9 +53,8 @@ type Equipo = {
   observaciones: string;
 };
 
-type Item = {
-  key: string;
-  equipoKey: string;
+$1
+  equipoKeys: string[];
   trabajo_id: string | null;
   nombre_corto: string;
   detalle: string;
@@ -220,8 +219,7 @@ export default function NuevoPresupuestoForm() {
   const itemsEquipoActivo =
     items.filter(
       (item) =>
-        item.equipoKey ===
-        equipoActivo?.key
+        (item.equipoKeys || [item.equipoKey]).includes(equipoActivo?.key)
     );
 
   const [detalleCorto, setDetalleCorto] =
@@ -503,8 +501,8 @@ export default function NuevoPresupuestoForm() {
       ...actuales,
       {
         key: nuevaKey(),
-        equipoKey:
-          equipoActivo.key,
+        $1
+        equipoKeys: [equipoActivo.key],
         trabajo_id:
           trabajoSeleccionado.id,
         nombre_corto:
@@ -573,12 +571,10 @@ export default function NuevoPresupuestoForm() {
 
     setEquipos(restantes);
 
-    setItems((actuales) =>
-      actuales.filter(
-        (item) =>
-          item.equipoKey !== key
-      )
-    );
+    setItems((actuales) => actuales.map((item) => {
+      const keys = (item.equipoKeys || [item.equipoKey]).filter((id) => id !== key);
+      return { ...item, equipoKeys: keys, equipoKey: keys[0] || "" };
+    }).filter((item) => item.equipoKeys.length > 0));
 
     if (equipoActivoKey === key) {
       setEquipoActivoKey(
@@ -682,8 +678,7 @@ export default function NuevoPresupuestoForm() {
             ({ equipo }) =>
               !items.some(
                 (item) =>
-                  item.equipoKey ===
-                  equipo.key
+                  (item.equipoKeys || [item.equipoKey]).includes(equipo.key)
               )
           );
 
@@ -763,20 +758,19 @@ export default function NuevoPresupuestoForm() {
           horaProgramada:
             horaProgramada || null,
 
-          items: items.map(
-            (item) => {
+          items: items.flatMap((item) => (equipoKeys || [equipoKey]).map((equipoKey, posicion) => {
               const equipo =
                 equipos.find(
                   (actual) =>
                     actual.key ===
-                    item.equipoKey
+                    equipoKey
                 );
 
               const equipoOrden =
                 equipos.findIndex(
                   (actual) =>
                     actual.key ===
-                    item.equipoKey
+                    equipoKey
                 ) + 1;
 
               return {
@@ -789,10 +783,7 @@ export default function NuevoPresupuestoForm() {
                 tipo: item.tipo,
                 cantidad:
                   Number(item.cantidad),
-                precio_unitario:
-                  Number(
-                    item.precio_unitario
-                  ),
+                precio_unitario: posicion === 0 ? Number(item.precio_unitario) : 0,
 
                 equipo_orden:
                   equipoOrden > 0
@@ -817,8 +808,7 @@ export default function NuevoPresupuestoForm() {
                   equipo?.observaciones ||
                   null,
               };
-            }
-          ),
+            })) .sort((a, b) => (a.equipo_orden || 0) - (b.equipo_orden || 0)),
         });
 
       if (!resultado.ok) {
@@ -1630,11 +1620,19 @@ export default function NuevoPresupuestoForm() {
                           >
                             Eliminar
                           </button>
-                        </div>
-
-                        <textarea
-                          rows={2}
-                          value={item.detalle}
+                        </div>$1<div style={{ display: "flex", flexWrap: "wrap", gap: "12px", padding: "8px 0" }}>
+$1  {equipos.map((equipo, indice) => (
+$1    <label key={equipo.key} style={{ display: "flex", alignItems: "center", gap: "5px", cursor: "pointer" }}>
+$1      <input type="checkbox" checked={(item.equipoKeys || [item.equipoKey]).includes(equipo.key)} onChange={(event) => {
+$1        const actuales = item.equipoKeys || [item.equipoKey];
+$1        const nuevos = event.target.checked ? [...actuales, equipo.key] : actuales.filter((id) => id !== equipo.key);
+$1        if (nuevos.length) modificarItem(item.key, { equipoKeys: nuevos, equipoKey: nuevos[0] });
+$1      }} />
+$1      Equipo {indice + 1}
+$1    </label>
+$1  ))}
+$1</div>
+$1<textarea rows={2} value={item.detalle}
                           onChange={(event) =>
                             modificarItem(
                               item.key,
