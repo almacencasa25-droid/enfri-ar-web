@@ -49,9 +49,9 @@ export default function PresupuestosPage() {
       icono: ClipboardList,
     },
     {
-      titulo: "Ficha de revisión técnica",
+      titulo: "Fichas de visita: revisión o preinstalación",
       descripcion:
-        "Generar fichas numeradas para realizar una revisión técnica previa al presupuesto.",
+        "Elegí el formulario antes de generar el PDF: revisión técnica o visita para preinstalación con croquis. Ambas comparten la numeración.",
       href: "/admin/presupuestos/ficha-revision",
       icono: ClipboardCheck,
     },
