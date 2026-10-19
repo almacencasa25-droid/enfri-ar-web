@@ -162,6 +162,7 @@ export default function CredencialTecnico({
 }: Props) {
   const [generando, setGenerando] =
     useState(false);
+  const [mostrarMatricula, setMostrarMatricula] = useState(Boolean(tecnico.numero_matricula?.trim()));
 
   const [error, setError] =
     useState("");
@@ -170,6 +171,35 @@ export default function CredencialTecnico({
     eligiendoFormato,
     setEligiendoFormato,
   ] = useState(false);
+
+  function decorarFondo(ctx: CanvasRenderingContext2D, ancho: number, alto: number) {
+    ctx.save();
+    const ola = ctx.createLinearGradient(0, 0, ancho, alto);
+    ola.addColorStop(0, "rgba(23,109,162,0.19)");
+    ola.addColorStop(1, "rgba(86,194,224,0.04)");
+    ctx.fillStyle = ola;
+    ctx.beginPath();
+    ctx.moveTo(0, alto * 0.30);
+    ctx.bezierCurveTo(ancho * 0.28, alto * 0.08, ancho * 0.62, alto * 0.48, ancho, alto * 0.14);
+    ctx.lineTo(ancho, 0);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(23,109,162,0.15)";
+    ctx.lineWidth = Math.max(3, ancho * 0.006);
+    for (let n = 0; n < 3; n++) {
+      ctx.beginPath();
+      ctx.moveTo(0, alto * (0.69 + n * 0.045));
+      ctx.bezierCurveTo(ancho * 0.3, alto * (0.59 + n * 0.045), ancho * 0.63, alto * (0.85 + n * 0.03), ancho, alto * (0.67 + n * 0.045));
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "rgba(239,140,47,0.24)";
+    ctx.lineWidth = Math.max(2, ancho * 0.003);
+    ctx.beginPath();
+    ctx.arc(ancho * 0.92, alto * 0.10, ancho * 0.17, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
 
   async function dibujarLogo(
     ctx: CanvasRenderingContext2D,
@@ -309,7 +339,7 @@ export default function CredencialTecnico({
       formato,
       tecnico.apellido,
       tecnico.nombre,
-      tecnico.numero_matricula,
+      mostrarMatricula ? tecnico.numero_matricula : "sin-matricula",
     ]
       .join("-")
       .replace(
@@ -423,6 +453,8 @@ export default function CredencialTecnico({
     );
     ctx.fill();
 
+    decorarFondo(ctx, ANCHO, ALTO);
+
     await dibujarLogo(
       ctx,
       54,
@@ -493,7 +525,7 @@ export default function CredencialTecnico({
     ctx.font =
       "500 20px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       "Matrícula",
       contenidoX,
       320
@@ -503,7 +535,7 @@ export default function CredencialTecnico({
     ctx.font =
       "700 30px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       tecnico.numero_matricula,
       contenidoX,
       356
@@ -534,7 +566,7 @@ export default function CredencialTecnico({
     ctx.font =
       "500 20px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       "Vencimiento",
       contenidoX,
       493
@@ -544,7 +576,7 @@ export default function CredencialTecnico({
     ctx.font =
       "700 24px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       formatearFecha(
         tecnico.vencimiento_matricula
       ),
@@ -721,6 +753,8 @@ export default function CredencialTecnico({
     );
     ctx.fill();
 
+    decorarFondo(ctx, ancho, alto);
+
     await dibujarLogo(
       ctx,
       38,
@@ -795,7 +829,7 @@ export default function CredencialTecnico({
     ctx.font =
       "500 19px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       "Matrícula",
       contenidoX,
       640
@@ -805,7 +839,7 @@ export default function CredencialTecnico({
     ctx.font =
       "700 29px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       tecnico.numero_matricula,
       contenidoX,
       676
@@ -836,7 +870,7 @@ export default function CredencialTecnico({
     ctx.font =
       "500 19px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       "Vencimiento",
       contenidoX,
       823
@@ -846,7 +880,7 @@ export default function CredencialTecnico({
     ctx.font =
       "700 23px Arial, sans-serif";
 
-    ctx.fillText(
+    if (mostrarMatricula) ctx.fillText(
       formatearFecha(
         tecnico.vencimiento_matricula
       ),
@@ -1013,6 +1047,11 @@ export default function CredencialTecnico({
           >
             Elegí el formato de la credencial
           </strong>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem", fontWeight: 700, color: "#173d59" }}>
+            <input type="checkbox" checked={mostrarMatricula} disabled={!tecnico.numero_matricula?.trim() || generando} onChange={(event) => setMostrarMatricula(event.target.checked)} />
+            Mostrar matrícula y vencimiento en la credencial
+          </label>
+          <span style={{fontSize:"0.76rem",color:"#64748b"}}>Desmarcá esta opción si el técnico trabaja bajo la responsabilidad de ENFRI.AR y no tiene matrícula propia.</span>
 
           <div
             style={{
