@@ -454,9 +454,9 @@ export default function CredencialTecnico({
     ctx.textAlign = "left";
 
     const fotoX = 55;
-    const fotoY = 180;
-    const fotoAncho = 260;
-    const fotoAlto = 330;
+    const fotoY = 154;
+    const fotoAncho = 290;
+    const fotoAlto = 365;
 
     await dibujarFoto(
       ctx,
@@ -467,7 +467,7 @@ export default function CredencialTecnico({
       28
     );
 
-    const contenidoX = 365;
+    const contenidoX = 390;
 
     ctx.fillStyle = "#173d59";
     ctx.font =
@@ -582,6 +582,13 @@ export default function CredencialTecnico({
 
     ctx.textAlign = "left";
 
+    ctx.fillStyle = "#65717a";
+    ctx.font = "500 19px Arial, sans-serif";
+    ctx.fillText("Documento (DNI)", contenidoX, 557);
+    ctx.fillStyle = "#173d59";
+    ctx.font = "700 25px Arial, sans-serif";
+    ctx.fillText(tecnico.dni?.trim() || "No registrado", contenidoX, 591);
+
     ctx.strokeStyle =
       "rgba(23, 61, 89, 0.12)";
     ctx.lineWidth = 2;
@@ -589,12 +596,12 @@ export default function CredencialTecnico({
     ctx.beginPath();
     ctx.moveTo(
       55,
-      570
+      615
     );
 
     ctx.lineTo(
       ANCHO - 55,
-      570
+      615
     );
 
     ctx.stroke();
@@ -606,7 +613,7 @@ export default function CredencialTecnico({
     ctx.fillText(
       "Credencial interna de técnico",
       55,
-      612
+      650
     );
 
     ctx.textAlign = "right";
@@ -614,7 +621,7 @@ export default function CredencialTecnico({
     ctx.fillText(
       "www.enfriar.com.ar",
       ANCHO - 55,
-      612
+      650
     );
 
     ctx.textAlign = "left";
@@ -744,11 +751,11 @@ export default function CredencialTecnico({
 
     ctx.textAlign = "left";
 
-    const fotoAncho = 250;
-    const fotoAlto = 315;
+    const fotoAncho = 290;
+    const fotoAlto = 350;
     const fotoX =
       (ancho - fotoAncho) / 2;
-    const fotoY = 155;
+    const fotoY = 140;
 
     await dibujarFoto(
       ctx,
@@ -767,7 +774,7 @@ export default function CredencialTecnico({
     ctx.fillText(
       `${tecnico.nombre} ${tecnico.apellido}`,
       ancho / 2,
-      535
+      548
     );
 
     ctx.fillStyle = "#176da2";
@@ -777,7 +784,7 @@ export default function CredencialTecnico({
     ctx.fillText(
       "TÉCNICO",
       ancho / 2,
-      575
+      585
     );
 
     ctx.textAlign = "left";
@@ -875,6 +882,14 @@ export default function CredencialTecnico({
       842
     );
 
+    ctx.fillStyle = "#65717a";
+    ctx.font = "500 19px Arial, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Documento (DNI)", contenidoX, 900);
+    ctx.fillStyle = "#173d59";
+    ctx.font = "700 25px Arial, sans-serif";
+    ctx.fillText(tecnico.dni?.trim() || "No registrado", contenidoX, 934);
+
     ctx.strokeStyle =
       "rgba(23, 61, 89, 0.12)";
     ctx.lineWidth = 2;
@@ -882,12 +897,12 @@ export default function CredencialTecnico({
     ctx.beginPath();
     ctx.moveTo(
       55,
-      925
+      960
     );
 
     ctx.lineTo(
       ancho - 55,
-      925
+      960
     );
 
     ctx.stroke();
@@ -900,13 +915,13 @@ export default function CredencialTecnico({
     ctx.fillText(
       "Credencial interna de técnico",
       ancho / 2,
-      972
+      1000
     );
 
     ctx.fillText(
       "www.enfriar.com.ar",
       ancho / 2,
-      1008
+      1035
     );
 
     ctx.textAlign = "left";
