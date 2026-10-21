@@ -53,7 +53,7 @@ export default function PlanosPage(){
  useEffect(()=>{if(ready.current)localStorage.setItem("enfri-planos-v1",JSON.stringify({plans,project,client,width,height,depth,showGrid}));},[plans,project,client,width,height,depth,showGrid]);
  const plan=plans[view], picked=plan.items.find(i=>i.id===selected);
  function update(fn:(p:Plan)=>Plan){setPlans(old=>({...old,[view]:fn(old[view])}));}
- function click(e:React.MouseEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect();const p={x:clamp(Math.round((e.clientX-r.left)/r.width*1000/(showGrid?25:1))*(showGrid?25:1),0,1000),y:clamp(Math.round((e.clientY-r.top)/r.height*600/(showGrid?25:1))*(showGrid?25:1),0,600)};
+ function click(e:React.MouseEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect();const step=tool==="seleccionar"?1:(showGrid?25:1);const p={x:clamp(Math.round((e.clientX-r.left)/r.width*1000/step)*step,0,1000),y:clamp(Math.round((e.clientY-r.top)/r.height*600/step)*step,0,600)};
  if(tool==="trazar"){setDraft(d=>[...d,p]);return;}
  if(tool==="seleccionar"){const item=[...plan.items].reverse().find(i=>p.x>=i.x&&p.x<=i.x+i.w&&p.y>=i.y&&p.y<=i.y+i.h);setSelected(item?.id||null);return;}
  const [w,h]=sizes[tool];const item:Item={id:uid(),kind:tool,x:clamp(p.x-w/2,10,990-w),y:clamp(p.y-h/2,10,550-h),w,h,label:labels[tool]};update(z=>({...z,items:[...z.items,item]}));setSelected(item.id);
@@ -107,6 +107,6 @@ export default function PlanosPage(){
  </section>
  </div>
  </div>
- <div id="enfri-print">{(["frente","superior"] as View[]).map((v,i)=><section className="enfri-sheet" key={v}><h2 style={{color:"#12394c",margin:"0 0 8px"}}>ENFRI.AR · {project}</h2><div style={{fontSize:13,marginBottom:8}}>Cliente: {client||"—"} · Medidas: {width} m × {height} m · Profundidad: {depth} m · Hoja {i+1}/2</div><h3 style={{margin:"0 0 8px"}}>{v==="frente"?"VISTA FRONTAL":"VISTA SUPERIOR"}</h3><Diagram plan={plans[v]} view={v} showGrid={showGrid}/><div style={{fontSize:12,marginTop:8}}>Referencias: naranja = líquido · azul = succión · verde = desagüe · violeta = eléctrica. Croquis orientativo, verificar medidas en obra.</div></section>)}</div>
+ <div id="enfri-print">{(["frente","superior"] as View[]).map((v,i)=><section className="enfri-sheet" key={v}><h2 style={{color:"#12394c",margin:"0 0 8px"}}>ENFRI.AR · {project}</h2><div style={{fontSize:13,marginBottom:8}}>Cliente: {client||"—"} · Medidas: {width} m × {height} m · Profundidad: {depth} m · Hoja {i+1}/2</div><h3 style={{margin:"0 0 8px"}}>{v==="frente"?"VISTA FRONTAL":"VISTA SUPERIOR"}</h3><Diagram plan={plans[v]} view={v} showGrid={false}/><div style={{fontSize:12,marginTop:8}}>Referencias: naranja = líquido · azul = succión · verde = desagüe · violeta = eléctrica. Croquis orientativo, verificar medidas en obra.</div></section>)}</div>
  </main>;
 }
