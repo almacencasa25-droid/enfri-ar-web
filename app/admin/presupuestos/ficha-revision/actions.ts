@@ -258,3 +258,12 @@ export async function generarFichasRevisionAction(
     };
   }
 }
+
+export async function generarDorsosPreinstalacionAction(cantidad: number): Promise<{ok:true;pdfBase64:string}|{ok:false;error:string}> {
+  await requireAdminUser();
+  if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return {ok:false,error:"Cantidad inválida."};
+  try {
+    const bytes = await generarFichaPreinstalacionPdf({numeroInicial:0,cantidad,cara:"dorso"});
+    return {ok:true,pdfBase64:Buffer.from(bytes).toString("base64")};
+  } catch { return {ok:false,error:"No se pudo generar el dorso."}; }
+}
