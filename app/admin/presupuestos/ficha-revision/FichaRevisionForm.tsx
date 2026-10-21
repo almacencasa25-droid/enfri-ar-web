@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { generarFichasRevisionAction } from "./actions";
+import { generarFichasRevisionAction, generarDorsosPreinstalacionAction } from "./actions";
 
 type FichaRevisionFormProps = {
   proximoNumero: number;
@@ -15,6 +15,9 @@ export default function FichaRevisionForm({
 
   const [cantidad, setCantidad] =
     useState(1);
+
+  const [loteDorso, setLoteDorso] = useState<number | null>(null);
+  const [imprimiendoDorso, setImprimiendoDorso] = useState(false);
 
   const [generando, setGenerando] =
     useState(false);
@@ -52,6 +55,33 @@ export default function FichaRevisionForm({
     );
   }
 
+  function descargar(base64: string, archivo: string) {
+    const binario = atob(base64);
+    const bytes = Uint8Array.from(binario, (caracter) => caracter.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], {type:"application/pdf"}));
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = archivo;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  async function imprimirDorsos() {
+    if (!loteDorso) return;
+    setImprimiendoDorso(true);
+    setError(null);
+    try {
+      const resultado = await generarDorsosPreinstalacionAction(loteDorso);
+      if (!resultado.ok) { setError(resultado.error); return; }
+      descargar(resultado.pdfBase64, `preinstalacion-dorsos-${loteDorso}.pdf`);
+      setMensaje("Dorsos descargados. Imprimí todas las páginas al 100%, sin impresión automática a doble cara. Verificá el sentido y orden del lote en tu impresora.");
+      setLoteDorso(null);
+    } catch { setError("No se pudieron preparar los dorsos."); }
+    finally { setImprimiendoDorso(false); }
+  }
+
   async function generarPdf() {
     setGenerando(true);
     setMensaje(null);
@@ -72,67 +102,8 @@ export default function FichaRevisionForm({
         return;
       }
 
-      const binario =
-        atob(
-          resultado.pdfBase64
-        );
-
-      const bytes =
-        new Uint8Array(
-          binario.length
-        );
-
-      for (
-        let indice = 0;
-        indice <
-        binario.length;
-        indice += 1
-      ) {
-        bytes[indice] =
-          binario.charCodeAt(
-            indice
-          );
-      }
-
-      const blob =
-        new Blob(
-          [bytes],
-          {
-            type:
-              "application/pdf",
-          }
-        );
-
-      const url =
-        URL.createObjectURL(
-          blob
-        );
-
-      const enlace =
-        document.createElement(
-          "a"
-        );
-
-      enlace.href = url;
-      enlace.download =
-        resultado.archivo;
-
-      document.body.appendChild(
-        enlace
-      );
-
-      enlace.click();
-
-      enlace.remove();
-
-      window.setTimeout(
-        () => {
-          URL.revokeObjectURL(
-            url
-          );
-        },
-        1000
-      );
+      descargar(resultado.pdfBase64, resultado.archivo);
+      if (tipo === "preinstalacion") setLoteDorso(cantidadSegura);
 
       setMensaje(
         `Fichas ${numeroVisible(
@@ -144,12 +115,7 @@ export default function FichaRevisionForm({
         )}.`
       );
 
-      window.setTimeout(
-        () => {
-          window.location.reload();
-        },
-        900
-      );
+      if (tipo !== "preinstalacion") window.setTimeout(() => window.location.reload(), 900);
     } catch (errorGeneracion) {
       console.error(
         "Error al generar fichas de revisión:",
@@ -463,6 +429,14 @@ export default function FichaRevisionForm({
             ? "Generando..."
             : "Generar PDF"}
         </button>
+
+        {loteDorso !== null ? (
+          <div style={{padding:16,border:"2px solid #3369a7",borderRadius:12,background:"#edf5ff",color:"#17324d"}}>
+            <strong>Paso 2: imprimir las {loteDorso} caras traseras</strong>
+            <p>Primero imprimí todas las caras 1 del PDF descargado, a tamaño real y a una sola cara. Después colocá nuevamente las {loteDorso} hojas juntas en la bandeja. Según la impresora, puede ser necesario invertir el orden o la orientación; probá primero con una hoja.</p>
+            <button type="button" disabled={imprimiendoDorso} onClick={imprimirDorsos} style={{padding:"12px 18px",background:"#176b50",color:"white",border:0,borderRadius:10,fontWeight:800,cursor:"pointer"}}>{imprimiendoDorso ? "Preparando..." : `Descargar e imprimir cara 2 (${loteDorso} hojas)`}</button>
+          </div>
+        ) : null}
 
         {mensaje ? (
           <div
