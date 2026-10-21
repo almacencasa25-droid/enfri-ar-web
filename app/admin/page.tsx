@@ -218,6 +218,13 @@ export default async function AdminPage() {
               gap: "16px",
             }}
           >
+            <article style={{...cardStyle,padding:"22px",border:"2px solid #0c9298",background:"linear-gradient(145deg,#ddf8f6,#ffffff)"}}>
+              <div style={{fontSize:30,marginBottom:12}}>📐</div>
+              <h3 style={{margin:"0 0 8px",color:"#0e4655",fontSize:"1.15rem"}}>Planos de instalación</h3>
+              <p style={{margin:0,color:"#345b65",lineHeight:1.6}}>Editor de paredes y cañerías, vista frontal y superior, impresión PDF A4.</p>
+              <Link href="/admin/planos" style={{...actionLinkStyle,background:"#087d86",color:"#fff"}}>Abrir planos <ArrowRight size={16} aria-hidden="true" /></Link>
+            </article>
+
             <article
               style={{
                 ...cardStyle,
