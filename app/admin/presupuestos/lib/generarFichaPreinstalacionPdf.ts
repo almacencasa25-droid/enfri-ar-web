@@ -7,6 +7,7 @@ export async function generarFichaPreinstalacionPdf(input: {
   numeroInicial: number;
   cantidad: number;
   empresa?: Partial<Empresa>;
+  cara?: "frente" | "dorso";
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   const normal = await pdf.embedFont(StandardFonts.Helvetica);
@@ -24,6 +25,13 @@ export async function generarFichaPreinstalacionPdf(input: {
   for (let i = 0; i < input.cantidad; i++) {
     const page = pdf.addPage([595.28, 841.89]);
     const left = 30, right = 565, width = right - left;
+    if (input.cara === "dorso") {
+      const gx = left + 1, gy = 30, gw = width - 2, gh = 782, step = 18;
+      page.drawRectangle({ x: gx, y: gy, width: gw, height: gh, borderColor: azul, borderWidth: 1 });
+      for (let x = gx + step; x < gx + gw; x += step) page.drawLine({ start: { x, y: gy }, end: { x, y: gy + gh }, color: tenue, thickness: 0.65 });
+      for (let y = gy + step; y < gy + gh; y += step) page.drawLine({ start: { x: gx, y }, end: { x: gx + gw, y }, color: tenue, thickness: 0.65 });
+      continue;
+    }
     const text = (value: string, x: number, y: number, size = 8, strong = false) =>
       page.drawText(value, { x, y, size, font: strong ? bold : normal, color: strong ? azul : gris });
     const rule = (x1: number, y1: number, x2: number, y2: number, color = linea, thickness = 0.6) =>
