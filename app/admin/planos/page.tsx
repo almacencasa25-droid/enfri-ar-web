@@ -15,10 +15,10 @@ const sizes: Record<Kind,[number,number]> = {ventana:[160,110],puerta:[110,235],
 const colors: Record<Pipe,string> = { liquido:"#e58e24",succion:"#2563eb",desague:"#059669",electrica:"#9333ea" };
 const uid = () => Math.random().toString(36).slice(2,11);
 const clamp=(v:number,a:number,b:number)=>Math.min(b,Math.max(a,v));
-function Diagram({plan, draft=[], selected=null, view, action, onClick}:{plan:Plan;draft?:Point[];selected?:string|null;view:View;action?: (e:React.MouseEvent<SVGSVGElement>)=>void;onClick?: never}) {
+function Diagram({plan, draft=[], selected=null, view, showGrid=true, action, onClick}:{plan:Plan;draft?:Point[];selected?:string|null;view:View;showGrid?:boolean;action?: (e:React.MouseEvent<SVGSVGElement>)=>void;onClick?: never}) {
  return <svg viewBox="0 0 1000 600" onClick={action} style={{width:"100%",display:"block",touchAction:"manipulation",background:"#fff",cursor:action?"crosshair":"default",border:"1px solid #a9c7d0",borderRadius:8}}>
   <defs><pattern id="plano-grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0H0V25" fill="none" stroke="#d5e7eb" strokeWidth="1"/></pattern></defs>
-  <rect width="1000" height="600" fill="url(#plano-grid)"/>
+  <rect width="1000" height="600" fill={showGrid?"url(#plano-grid)":"#ffffff"}/>
   <rect x="8" y="8" width="984" height="584" stroke="#17394b" strokeWidth="5" fill="none"/>
   {view==="superior"&&<rect x="25" y="25" width="950" height="550" stroke="#64748b" strokeWidth="8" fill="none"/>}
   {plan.lines.map(l=><polyline key={l.id} points={l.points.map(p=>p.x+","+p.y).join(" ")} fill="none" stroke={colors[l.kind]} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round"/>)}
@@ -36,6 +36,7 @@ function Diagram({plan, draft=[], selected=null, view, action, onClick}:{plan:Pl
 }
 export default function PlanosPage(){
  const [view,setView]=useState<View>("frente");
+ const [showGrid,setShowGrid]=useState(true);
  const [plans,setPlans]=useState<Record<View,Plan>>({frente:blank(),superior:blank()});
  const [tool,setTool]=useState<Kind|"trazar"|"seleccionar">("ventana");
  const [pipe,setPipe]=useState<Pipe>("liquido");
@@ -48,11 +49,11 @@ export default function PlanosPage(){
  const [depth,setDepth]=useState(3);
  const svgArea=useRef<HTMLDivElement>(null);
  const ready=useRef(false);
- useEffect(()=>{try{const value=localStorage.getItem("enfri-planos-v1");if(value){const a=JSON.parse(value);if(a.plans)setPlans(a.plans);if(a.project)setProject(a.project);if(a.client)setClient(a.client);if(a.width)setWidth(a.width);if(a.height)setHeight(a.height);if(a.depth)setDepth(a.depth);}}catch{} ready.current=true;},[]);
- useEffect(()=>{if(ready.current)localStorage.setItem("enfri-planos-v1",JSON.stringify({plans,project,client,width,height,depth}));},[plans,project,client,width,height,depth]);
+ useEffect(()=>{try{const value=localStorage.getItem("enfri-planos-v1");if(value){const a=JSON.parse(value);if(a.plans)setPlans(a.plans);if(a.project)setProject(a.project);if(a.client)setClient(a.client);if(a.width)setWidth(a.width);if(a.height)setHeight(a.height);if(a.depth)setDepth(a.depth);if(typeof a.showGrid==="boolean")setShowGrid(a.showGrid);}}catch{} ready.current=true;},[]);
+ useEffect(()=>{if(ready.current)localStorage.setItem("enfri-planos-v1",JSON.stringify({plans,project,client,width,height,depth,showGrid}));},[plans,project,client,width,height,depth,showGrid]);
  const plan=plans[view], picked=plan.items.find(i=>i.id===selected);
  function update(fn:(p:Plan)=>Plan){setPlans(old=>({...old,[view]:fn(old[view])}));}
- function click(e:React.MouseEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect();const p={x:clamp(Math.round((e.clientX-r.left)/r.width*1000/10)*10,0,1000),y:clamp(Math.round((e.clientY-r.top)/r.height*600/10)*10,0,600)};
+ function click(e:React.MouseEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect();const p={x:clamp(Math.round((e.clientX-r.left)/r.width*1000/(showGrid?25:1))*(showGrid?25:1),0,1000),y:clamp(Math.round((e.clientY-r.top)/r.height*600/(showGrid?25:1))*(showGrid?25:1),0,600)};
  if(tool==="trazar"){setDraft(d=>[...d,p]);return;}
  if(tool==="seleccionar"){const item=[...plan.items].reverse().find(i=>p.x>=i.x&&p.x<=i.x+i.w&&p.y>=i.y&&p.y<=i.y+i.h);setSelected(item?.id||null);return;}
  const [w,h]=sizes[tool];const item:Item={id:uid(),kind:tool,x:clamp(p.x-w/2,10,990-w),y:clamp(p.y-h/2,10,550-h),w,h,label:labels[tool]};update(z=>({...z,items:[...z.items,item]}));setSelected(item.id);
@@ -61,8 +62,8 @@ export default function PlanosPage(){
  function move(dx:number,dy:number){if(selected)update(p=>({...p,items:p.items.map(i=>i.id===selected?{...i,x:clamp(i.x+dx,10,990-i.w),y:clamp(i.y+dy,10,550-i.h)}:i)}));}
  function remove(){update(p=>({...p,items:p.items.filter(i=>i.id!==selected)}));setSelected(null);}
  function reset(){if(confirm("¿Limpiar la vista actual?")){update(()=>blank());setDraft([]);setSelected(null);}}
- function save(){const blob=new Blob([JSON.stringify({project,client,width,height,depth,plans},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="enfriar-plano.json";a.click();URL.revokeObjectURL(url);}
- async function load(e:React.ChangeEvent<HTMLInputElement>){const file=e.target.files?.[0];if(!file)return;try{const x=JSON.parse(await file.text());if(!x.plans?.frente||!x.plans?.superior)throw Error();setPlans(x.plans);setProject(x.project||"Plano de instalación");setClient(x.client||"");setWidth(x.width||4);setHeight(x.height||2.8);setDepth(x.depth||3);}catch{alert("El archivo no es un plano válido.");}e.target.value="";}
+ function save(){const blob=new Blob([JSON.stringify({project,client,width,height,depth,plans,showGrid},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="enfriar-plano.json";a.click();URL.revokeObjectURL(url);}
+ async function load(e:React.ChangeEvent<HTMLInputElement>){const file=e.target.files?.[0];if(!file)return;try{const x=JSON.parse(await file.text());if(!x.plans?.frente||!x.plans?.superior)throw Error();setPlans(x.plans);setProject(x.project||"Plano de instalación");setClient(x.client||"");setWidth(x.width||4);setHeight(x.height||2.8);setDepth(x.depth||3);if(typeof x.showGrid==="boolean")setShowGrid(x.showGrid);}catch{alert("El archivo no es un plano válido.");}e.target.value="";}
  const btn:React.CSSProperties={padding:"11px 15px",borderRadius:9,border:"1px solid #2f6474",background:"#16485a",color:"white",fontWeight:700,cursor:"pointer"};
  const field:React.CSSProperties={padding:"10px",border:"1px solid #b7d5dc",borderRadius:8,width:"100%",background:"white",color:"#17394b"};
  return <main style={{minHeight:"100vh",background:"#e9f7f7",color:"#17394b",padding:"22px 14px",fontFamily:"Arial,sans-serif"}}>
@@ -80,6 +81,7 @@ export default function PlanosPage(){
  </section>
  <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
  {(["frente","superior"] as View[]).map(v=><button key={v} style={{...btn,background:view===v?"#e88b1e":"#16485a",border:view===v?"2px solid #a65c07":"1px solid #16485a"}} onClick={()=>{setView(v);setDraft([]);setSelected(null);}}>{v==="frente"?"▣ Vista frontal":"▤ Vista desde arriba"}</button>)}
+ <button style={{...btn,background:showGrid?"#0b857d":"#4b6470",borderColor:showGrid?"#0b857d":"#4b6470"}} onClick={()=>setShowGrid(v=>!v)} aria-pressed={showGrid}>{showGrid?"▦ Ocultar cuadrícula":"▦ Mostrar cuadrícula"}</button>
  <button style={btn} onClick={()=>window.print()}>Imprimir / Guardar PDF A4</button><button style={btn} onClick={save}>Guardar proyecto</button><label style={{...btn,display:"inline-block"}}>Abrir proyecto<input type="file" accept=".json,application/json" onChange={load} style={{display:"none"}}/></label>
  </div>
  <div style={{display:"grid",gridTemplateColumns:"minmax(210px,260px) minmax(0,1fr)",gap:14,alignItems:"start"}}>
@@ -92,8 +94,8 @@ export default function PlanosPage(){
  </aside>
  <section style={{background:"white",padding:14,borderRadius:14,minWidth:0}}>
  <h2 style={{margin:"0 0 10px"}}>{view==="frente"?"Elevación de pared":"Planta · vista superior"}</h2>
- <div ref={svgArea}><Diagram plan={plan} draft={draft} selected={selected} view={view} action={click}/></div>
- <p style={{fontSize:13,color:"#476779"}}>Cuadrícula orientativa · las dimensiones del croquis no representan escala de obra certificada.</p>
+ <div ref={svgArea}><Diagram plan={plan} draft={draft} selected={selected} view={view} showGrid={showGrid} action={click}/></div>
+ <p style={{fontSize:13,color:"#476779"}}>{showGrid?"Cuadrícula visible: los puntos se ajustan a ella.":"Cuadrícula oculta: podés ubicar los puntos libremente."} · las dimensiones del croquis no representan escala de obra certificada.</p>
  {picked&&<section style={{padding:14,border:"1px solid #b5d3dd",background:"#e9f8fb",borderRadius:10}}>
  <h3 style={{marginTop:0}}>Editar elemento seleccionado</h3>
  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:8}}>
@@ -105,6 +107,6 @@ export default function PlanosPage(){
  </section>
  </div>
  </div>
- <div id="enfri-print">{(["frente","superior"] as View[]).map((v,i)=><section className="enfri-sheet" key={v}><h2 style={{color:"#12394c",margin:"0 0 8px"}}>ENFRI.AR · {project}</h2><div style={{fontSize:13,marginBottom:8}}>Cliente: {client||"—"} · Medidas: {width} m × {height} m · Profundidad: {depth} m · Hoja {i+1}/2</div><h3 style={{margin:"0 0 8px"}}>{v==="frente"?"VISTA FRONTAL":"VISTA SUPERIOR"}</h3><Diagram plan={plans[v]} view={v}/><div style={{fontSize:12,marginTop:8}}>Referencias: naranja = líquido · azul = succión · verde = desagüe · violeta = eléctrica. Croquis orientativo, verificar medidas en obra.</div></section>)}</div>
+ <div id="enfri-print">{(["frente","superior"] as View[]).map((v,i)=><section className="enfri-sheet" key={v}><h2 style={{color:"#12394c",margin:"0 0 8px"}}>ENFRI.AR · {project}</h2><div style={{fontSize:13,marginBottom:8}}>Cliente: {client||"—"} · Medidas: {width} m × {height} m · Profundidad: {depth} m · Hoja {i+1}/2</div><h3 style={{margin:"0 0 8px"}}>{v==="frente"?"VISTA FRONTAL":"VISTA SUPERIOR"}</h3><Diagram plan={plans[v]} view={v} showGrid={showGrid}/><div style={{fontSize:12,marginTop:8}}>Referencias: naranja = líquido · azul = succión · verde = desagüe · violeta = eléctrica. Croquis orientativo, verificar medidas en obra.</div></section>)}</div>
  </main>;
 }
