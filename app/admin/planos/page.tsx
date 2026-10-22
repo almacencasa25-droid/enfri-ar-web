@@ -6,12 +6,12 @@ type View = "frente" | "superior";
 type Kind = "ventana" | "puerta" | "aire" | "artefacto" | "toma" | "caja";
 type Pipe = "liquido" | "succion" | "desague" | "electrica";
 type Point = { x: number; y: number };
-type Item = { id: string; kind: Kind; x: number; y: number; w: number; h: number; label: string };
+type Item = { id: string; kind: Kind; x: number; y: number; w: number; h: number; label: string; rotation?:number };
 type Line = { id: string; kind: Pipe; points: Point[]; label?: string };
 type Plan = { items: Item[]; lines: Line[] };
 type Material = { id:string; name:string; detail:string; quantity:number; unit:string };
 const blank = (): Plan => ({items:[],lines:[]});
-const labels: Record<Kind,string> = { ventana:"Ventana",puerta:"Puerta",aire:"Equipo de aire",artefacto:"Artefacto",toma:"Tomacorriente",caja:"Caja de paso" };
+const labels: Record<Kind,string> = { ventana:"Ventana",puerta:"Puerta",aire:"Equipo de aire",artefacto:"Artefacto",toma:"Tomacorriente",caja:"Caja de preinstalación" };
 const sizes: Record<Kind,[number,number]> = {ventana:[160,110],puerta:[110,235],aire:[175,78],artefacto:[100,90],toma:[48,48],caja:[55,55]};
 const colors: Record<Pipe,string> = { liquido:"#e58e24",succion:"#2563eb",desague:"#059669",electrica:"#9333ea" };
 const uid = () => Math.random().toString(36).slice(2,11);
@@ -25,7 +25,7 @@ function Diagram({plan, draft=[], selected=null, view, showGrid=true, action, on
   {view==="superior"&&<rect x="25" y="25" width="950" height="550" stroke="#64748b" strokeWidth="8" fill="none"/>}
   {plan.lines.map(l=><g key={l.id}><polyline points={l.points.map(p=>p.x+","+p.y).join(" ")} fill="none" stroke={colors[l.kind]} strokeWidth={selected===l.id?10:6} strokeLinecap="round" strokeLinejoin="round"/>{l.points.length>0&&<text x={l.points[Math.floor(l.points.length/2)].x+9} y={l.points[Math.floor(l.points.length/2)].y-12} fill="#163848" stroke="#fff" strokeWidth="4" paintOrder="stroke" fontSize="17" fontWeight="bold">{l.label||l.kind}</text>}</g>)}
   {draft.length>0&&<polyline points={draft.map(p=>p.x+","+p.y).join(" ")} fill="none" stroke="#f97316" strokeWidth={5} strokeDasharray="12 8"/>}
-  {plan.items.map(o=><g key={o.id} transform={`translate(${o.x},${o.y})`}>
+  {plan.items.map(o=><g key={o.id} transform={`translate(${o.x+o.w/2},${o.y+o.h/2}) rotate(${o.rotation||0}) translate(${-o.w/2},${-o.h/2})`}>
    <rect width={o.w} height={o.h} rx={o.kind==="aire"?12:2} fill={o.kind==="aire"?"#def5f9":"#fff"} stroke={selected===o.id?"#f97316":"#475569"} strokeWidth={selected===o.id?5:2}/>
    {o.kind==="ventana"&&<><rect x="6" y="6" width={Math.max(1,o.w-12)} height={Math.max(1,o.h-12)} fill="none" stroke="#64748b" strokeWidth="2"/><line x1={o.w/2} y1="6" x2={o.w/2} y2={o.h-6} stroke="#64748b" strokeWidth="2"/><line x1="6" y1={o.h/2} x2={o.w-6} y2={o.h/2} stroke="#64748b" strokeWidth="2"/></>}
    {o.kind==="aire"&&<><rect x="14" y={o.h-23} width={o.w-28} height="11" rx="4" fill="#67e8f9"/><circle cx={o.w-20} cy="17" r="5" fill="#16a34a"/></>}
@@ -57,6 +57,7 @@ export default function PlanosPage(){
  const ready=useRef(false);
  useEffect(()=>{try{const value=localStorage.getItem("enfri-planos-v1");if(value){const a=JSON.parse(value);if(a.plans)setPlans(a.plans);if(a.project)setProject(a.project);if(a.client)setClient(a.client);if(a.width)setWidth(a.width);if(a.height)setHeight(a.height);if(a.depth)setDepth(a.depth);if(typeof a.showGrid==="boolean")setShowGrid(a.showGrid);if(Array.isArray(a.materials))setMaterials(a.materials);}}catch{} ready.current=true;},[]);
  useEffect(()=>{if(ready.current)localStorage.setItem("enfri-planos-v1",JSON.stringify({plans,project,client,width,height,depth,showGrid,materials}));},[plans,project,client,width,height,depth,showGrid,materials]);
+ useEffect(()=>{function keyDown(e:KeyboardEvent){if(!selected||!(e.key==="Delete"||e.key==="Backspace"))return;const target=e.target as HTMLElement|null;if(target?.closest("input, textarea, select, [contenteditable='true']"))return;e.preventDefault();setPlans(old=>({...old,[view]:{items:old[view].items.filter(i=>i.id!==selected),lines:old[view].lines.filter(l=>l.id!==selected)}}));setSelected(null);}window.addEventListener("keydown",keyDown);return()=>window.removeEventListener("keydown",keyDown);},[selected,view]);
  const plan=plans[view], picked=plan.items.find(i=>i.id===selected), pickedLine=plan.lines.find(l=>l.id===selected);
  function pos(e:React.PointerEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect();return {x:(e.clientX-r.left)*1000/r.width,y:(e.clientY-r.top)*600/r.height};}
  function pointerDown(e:React.PointerEvent<SVGSVGElement>){if(tool!=="seleccionar")return;const p=pos(e);const item=[...plan.items].reverse().find(i=>p.x>=i.x&&p.x<=i.x+i.w&&p.y>=i.y&&p.y<=i.y+i.h);if(item){setSelected(item.id);const resize=Math.abs(p.x-item.x-item.w)<24&&Math.abs(p.y-item.y-item.h)<24;drag.current={id:item.id,mode:resize?"resize":"move",from:p,original:{...item}};e.currentTarget.setPointerCapture(e.pointerId);e.preventDefault();return;}const line=[...plan.lines].reverse().find(l=>l.points.some((q,i)=>i>0&&distanceSegment(p,l.points[i-1],q)<20));setSelected(line?.id||null);}
@@ -110,11 +111,11 @@ export default function PlanosPage(){
  <p style={{fontSize:13,color:"#476779"}}>{showGrid?"Cuadrícula visible: los puntos se ajustan a ella.":"Cuadrícula oculta: podés ubicar los puntos libremente."} · las dimensiones del croquis no representan escala de obra certificada.</p>
  {pickedLine&&<section style={{padding:14,border:"1px solid #b5d3dd",background:"#e9f8fb",borderRadius:10,marginBottom:12}}><h3 style={{marginTop:0}}>Editar identificación de cañería</h3><label>Texto / medida (ejemplo: 1/4, 1/2, desagüe)<input style={field} value={pickedLine.label||""} onChange={e=>update(p=>({...p,lines:p.lines.map(l=>l.id===pickedLine.id?{...l,label:e.target.value}:l)}))}/></label><button style={{...btn,background:"#a22b35",marginTop:10}} onClick={remove}>Eliminar recorrido</button></section>}
  {picked&&<section style={{padding:14,border:"1px solid #b5d3dd",background:"#e9f8fb",borderRadius:10}}>
- <h3 style={{marginTop:0}}>Editar elemento seleccionado</h3>
+ <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap",marginBottom:10}}><h3 style={{margin:0}}>Editar elemento seleccionado</h3><div style={{display:"flex",gap:8}}><button style={{...btn,background:"#246d79"}} onClick={()=>update(p=>({...p,items:p.items.map(i=>i.id===picked.id?{...i,rotation:((i.rotation||0)+90)%360}:i)}))}>↻ Girar 90°</button><button style={{...btn,background:"#a22b35"}} onClick={remove}>🗑 Eliminar</button></div></div>
  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:8}}>
  <label>Nombre<input style={field} value={picked.label} onChange={e=>update(p=>({...p,items:p.items.map(i=>i.id===picked.id?{...i,label:e.target.value}:i)}))}/></label>
  {(["x","y","w","h"] as const).map(k=><label key={k}>{({x:"X",y:"Y",w:"Ancho",h:"Alto"})[k]}<input style={field} type="number" min="0" value={Math.round(picked[k])} onChange={e=>update(p=>({...p,items:p.items.map(i=>i.id===picked.id?{...i,[k]:Number(e.target.value)}:i)}))}/></label>)}
- </div><div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}><button style={btn} onClick={()=>move(-10,0)}>←</button><button style={btn} onClick={()=>move(0,-10)}>↑</button><button style={btn} onClick={()=>move(0,10)}>↓</button><button style={btn} onClick={()=>move(10,0)}>→</button><button style={{...btn,background:"#a22b35"}} onClick={remove}>Eliminar</button></div>
+ </div><div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}><button style={btn} onClick={()=>move(-10,0)}>←</button><button style={btn} onClick={()=>move(0,-10)}>↑</button><button style={btn} onClick={()=>move(0,10)}>↓</button><button style={btn} onClick={()=>move(10,0)}>→</button><button style={{...btn,background:"#a22b35"}} onClick={remove}>🗑 Eliminar (Supr)</button></div>
  </section>}
  <div style={{marginTop:12,display:"flex",flexWrap:"wrap",gap:12,fontSize:13}}>{(Object.keys(colors) as Pipe[]).map(c=><span key={c}><span style={{display:"inline-block",width:20,height:5,background:colors[c],verticalAlign:"middle",marginRight:6}}/>{c}</span>)}</div>
  </section>
