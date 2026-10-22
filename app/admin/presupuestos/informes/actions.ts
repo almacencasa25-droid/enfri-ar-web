@@ -989,3 +989,33 @@ export async function generarInformeDetallePdfAction(
     storagePath,
   };
 }
+
+
+export type ClienteInformeGuardado = {
+  nombre: string;
+  direccion: string;
+  localidad: string;
+  destino: string;
+  inventario: string;
+};
+
+export async function buscarClientesInformesAction() {
+  await requireAdminUser();
+  const supabase = await createSupabaseServerClient();
+  const {data,error} = await supabase.from("informes_detalles_trabajo")
+    .select("cliente_razon_social,cliente_direccion,cliente_localidad,destino,inventario,created_at")
+    .not("cliente_razon_social","is",null)
+    .order("created_at",{ascending:false}).limit(500);
+  if(error) return {ok:false as const,data:[] as ClienteInformeGuardado[]};
+  const unicos = new Map<string,ClienteInformeGuardado>();
+  for(const fila of data??[]) {
+    const nombre = String(fila.cliente_razon_social??"").trim();
+    if(!nombre) continue;
+    const clave = nombre.toLocaleLowerCase("es");
+    if(!unicos.has(clave)) unicos.set(clave,{
+      nombre,direccion:String(fila.cliente_direccion??""),localidad:String(fila.cliente_localidad??""),
+      destino:String(fila.destino??""),inventario:String(fila.inventario??"")
+    });
+  }
+  return {ok:true as const,data:[...unicos.values()]};
+}

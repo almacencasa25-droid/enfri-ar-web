@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
   useTransition,
@@ -8,6 +9,8 @@ import {
 
 import {
   buscarPresupuestoParaInformeAction,
+  buscarClientesInformesAction,
+  type ClienteInformeGuardado,
   crearInformeDetalleAction,
   generarInformeDetallePdfAction,
   type PresupuestoInformeEncontrado,
@@ -379,6 +382,24 @@ export default function InformeDetalleForm() {
     clienteRazonSocial,
     setClienteRazonSocial,
   ] = useState("");
+
+  const [clientesGuardados, setClientesGuardados] = useState<ClienteInformeGuardado[]>([]);
+  const [mostrarClientes, setMostrarClientes] = useState(false);
+  useEffect(() => {
+    let activo = true;
+    buscarClientesInformesAction().then(resultado => {
+      if (activo && resultado.ok) setClientesGuardados(resultado.data);
+    }).catch(() => {});
+    return () => { activo = false; };
+  }, []);
+  const elegirCliente = (cliente: ClienteInformeGuardado) => {
+    setClienteRazonSocial(cliente.nombre);
+    setClienteDireccion(cliente.direccion);
+    setClienteLocalidad(cliente.localidad);
+    setDestino(cliente.destino);
+    setInventario(cliente.inventario);
+    setMostrarClientes(false);
+  };
 
   const [
     clienteDireccion,
@@ -1188,20 +1209,25 @@ export default function InformeDetalleForm() {
             <label style={labelStyle}>
               Cliente / organismo
               <input
-                value={
-                  clienteRazonSocial
-                }
-                onChange={(
-                  event
-                ) =>
-                  setClienteRazonSocial(
-                    event.target
-                      .value
-                  )
-                }
+                value={clienteRazonSocial}
+                onChange={event => {setClienteRazonSocial(event.target.value);setMostrarClientes(true);}}
+                onFocus={() => setMostrarClientes(true)}
+                onBlur={() => setTimeout(() => setMostrarClientes(false), 180)}
                 placeholder="Ej.: IMDEL"
+                autoComplete="off"
                 style={inputStyle}
               />
+              {mostrarClientes && clienteRazonSocial.trim().length > 0 && (
+                <div style={{position:"relative"}}>
+                  <div style={{position:"absolute",zIndex:20,top:2,left:0,right:0,maxHeight:220,overflowY:"auto",background:"#fff",border:"1px solid #b4c6db",borderRadius:8,boxShadow:"0 6px 16px #0002"}}>
+                    {clientesGuardados.filter(cliente => cliente.nombre.toLocaleLowerCase("es").includes(clienteRazonSocial.trim().toLocaleLowerCase("es"))).slice(0,8).map((cliente,indice) => (
+                      <button key={indice} type="button" onMouseDown={event => event.preventDefault()} onClick={() => elegirCliente(cliente)} style={{display:"block",width:"100%",textAlign:"left",padding:"10px 12px",background:"white",border:0,borderBottom:"1px solid #e4eaf1",cursor:"pointer",color:"#213547"}}>
+                        <strong>{cliente.nombre}</strong><span style={{display:"block",fontSize:12}}>{[cliente.direccion,cliente.localidad].filter(Boolean).join(" · ")}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </label>
 
             <label style={labelStyle}>
