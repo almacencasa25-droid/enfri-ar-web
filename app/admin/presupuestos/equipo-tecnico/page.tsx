@@ -481,6 +481,12 @@ export default async function EquipoTecnicoPage() {
                           tecnico={tecnico}
                           tieneDocumentosPublicados={(documentos||[]).some(d=>d.tecnico_id===tecnico.id&&d.publicado)}
                         />
+                        {(documentos||[]).some(d=>d.tecnico_id===tecnico.id&&d.publicado)&&(
+                          <a href={`/verificar-documentos/${tecnico.id}`} target="_blank" rel="noopener noreferrer"
+                            style={{display:"inline-flex",alignItems:"center",justifyContent:"center",minHeight:42,padding:"9px 15px",borderRadius:9,background:"#087585",color:"#fff",fontWeight:800,textDecoration:"none",border:"2px solid #075969"}}>
+                            📄 Ver documentación
+                          </a>
+                        )}
                         <DocumentosTecnico id={tecnico.id} documentos={(documentos||[]).filter(d=>d.tecnico_id===tecnico.id)} />
                       </div>
                     </article>
