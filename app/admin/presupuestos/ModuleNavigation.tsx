@@ -78,11 +78,11 @@ export default function ModuleNavigation() {
         marginTop: "14px",
         padding: "10px",
         border:
-          "1px solid #d9dee7",
+          "1px solid #b6c6d0",
         borderRadius:
           "14px",
         background:
-          "#ffffff",
+          "#f0f5f8",
         boxShadow:
           "0 4px 14px rgba(0, 0, 0, 0.05)",
       }}
@@ -131,16 +131,16 @@ export default function ModuleNavigation() {
                     "9px",
                   border:
                     active
-                      ? "1px solid #1d4ed8"
-                      : "1px solid #d9dee7",
+                      ? "2px solid #1947bb"
+                      : "2px solid #758e9e",
                   background:
                     active
                       ? "#1d4ed8"
-                      : "#f8fafc",
+                      : "#e2edf4",
                   color:
                     active
                       ? "#ffffff"
-                      : "#1f2937",
+                      : "#17384b",
                   fontSize:
                     "14px",
                   fontWeight:
