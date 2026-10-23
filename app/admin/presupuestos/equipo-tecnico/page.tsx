@@ -84,12 +84,12 @@ export default async function EquipoTecnicoPage() {
 
   const cardStyle = {
     border:
-      "1px solid rgba(38, 40, 42, 0.12)",
+      "2px solid #91aebb",
     borderRadius: "18px",
     background:
-      "rgba(255, 253, 248, 0.92)",
+      "#e9f3f7",
     boxShadow:
-      "0 14px 35px rgba(38, 40, 42, 0.08)",
+      "0 10px 25px rgba(22, 56, 72, 0.15)",
   };
 
   return (
@@ -252,13 +252,13 @@ export default async function EquipoTecnicoPage() {
                       style={{
                         padding: "16px",
                         border:
-                          "1px solid rgba(38, 40, 42, 0.1)",
+                          "2px solid #8eacba",
                         borderRadius: "13px",
                         background:
                           tecnico.estado ===
                           "inactivo"
-                            ? "rgba(38, 40, 42, 0.035)"
-                            : "rgba(255, 255, 255, 0.7)",
+                            ? "#e1e7eb"
+                            : "#dcebf2",
                         opacity:
                           tecnico.estado ===
                           "inactivo"
