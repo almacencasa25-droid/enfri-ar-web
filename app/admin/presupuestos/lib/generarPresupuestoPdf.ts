@@ -1,3 +1,4 @@
+import { agregarIdentificacionMatriculado } from "./identificacionMatriculado";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -2726,5 +2727,6 @@ export async function generarPresupuestoPdf(
     }
   );
 
-  return await pdf.save();
+  await agregarIdentificacionMatriculado(pdf);
+    return await pdf.save();
 }
