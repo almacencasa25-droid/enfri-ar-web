@@ -1,3 +1,4 @@
+import { agregarIdentificacionMatriculado } from "./identificacionMatriculado";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -89,5 +90,7 @@ export async function generarFichaPreinstalacionPdf(input: {
     text("Firma contacto:", 325, 27, 7, true);
     rule(410, 25, right, 25);
   }
+  await agregarIdentificacionMatriculado(pdf, { excluirPaginas: input.cara === "dorso" ? pdf.getPages().map((_, index) => index) : [] });
+
   return pdf.save();
 }
