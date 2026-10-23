@@ -6,6 +6,7 @@ export const categoriasTarifario = [
     ["Split 7.000 a 8.000 frigorías",370000,295000],
     ["Piso-techo 9.000 frigorías",420000,335000],
     ["Piso-techo 15.000 a 18.000 frigorías",550000,440000],
+    ["Preinstalación Split estándar sin tapar (solo mano de obra)",170000,135000],
   ] },
   { titulo: "Limpieza, mantenimiento y retiro", trabajos: [
     ["Limpieza Split hasta 3.000 frigorías",145000,115000],
@@ -22,7 +23,6 @@ export const categoriasTarifario = [
     ["Cambio de válvula inversora",340000,270000],
     ["Detección de fuga y carga completa (mano de obra)",230000,185000],
     ["Prueba de estanqueidad con nitrógeno",145000,115000],
-    ["Preinstalación estándar sin tapar",170000,135000],
     ["Montaje sobre preinstalación existente",230000,185000],
     ["Visita técnica y diagnóstico inicial",109000,85000],
     ["Extensión de cañería: mano de obra por metro",45000,35000],
