@@ -1104,6 +1104,12 @@ export async function generarPresupuestoPdf(
       );
     }
 
+    // Identificación del técnico bajo la fecha, sin ocupar la franja superior.
+    y -= 14;
+    page.drawText("Tecnico matriculado: Claudio GONZALEZ  |  RNC-447052", {
+      x: MARGIN, y, font: bold, size: 8, color: COLOR_DARK,
+    });
+
     /*
      * CLIENTE
      */
