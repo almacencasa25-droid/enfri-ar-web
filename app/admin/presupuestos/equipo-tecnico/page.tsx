@@ -9,6 +9,13 @@ export const metadata = {
   title: "Técnicos",
 };
 
+function fechaArgentina(fecha: string | null | undefined) {
+  if (!fecha) return "";
+  const partes = fecha.slice(0, 10).split("-");
+  if (partes.length !== 3) return fecha;
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
 function matriculaVencida(
   vencimiento: string | null
 ) {
