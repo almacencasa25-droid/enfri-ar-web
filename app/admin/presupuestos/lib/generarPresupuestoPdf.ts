@@ -2702,6 +2702,18 @@ export async function generarPresupuestoPdf(
         FOOTER_LINE_Y
       );
 
+      // Leyenda institucional de cobertura laboral, sin invadir el recuadro RENACLI.
+      pagina.drawText(
+        "Nuestro personal tecnico realiza sus tareas con cobertura de seguro de trabajo.",
+        {
+          x: MARGIN,
+          y: 69,
+          font: bold,
+          size: 7.1,
+          color: COLOR_DARK,
+        }
+      );
+
       pagina.drawText(
         "Este documento no es valido como factura.",
         {
