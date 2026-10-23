@@ -36,6 +36,7 @@ export async function guardarDocumentoTecnico(form:FormData):Promise<Result>{
   const {error:saveError}=await db.from("tecnico_documentos").upsert({
     tecnico_id:id,tipo,archivo_path:path,nombre_archivo:archivo.name,
     updated_at:new Date().toISOString(),
+    publicado:false,
   },{onConflict:"tecnico_id,tipo"});
   if(saveError){
     await db.storage.from(BUCKET).remove([path]);
@@ -63,4 +64,15 @@ export async function verDocumentoTecnico(tecnicoId:string,tipo:Tipo):Promise<Re
   const {data:signed,error}=await db.storage.from(BUCKET).createSignedUrl(data.archivo_path,120);
   if(error||!signed?.signedUrl)return {ok:false,error:"No se pudo abrir el PDF."};
   return {ok:true,url:signed.signedUrl};
+}
+
+/** Publicar requiere acción expresa; antecedentes no se comparten por defecto. */
+export async function publicarDocumentoTecnico(tecnicoId:string,tipo:Tipo,publicar:boolean,consentimiento:boolean):Promise<Result>{
+  const db=await adminContext();
+  if(!/^[0-9a-f-]{36}$/i.test(tecnicoId)||!["seguro","antecedentes"].includes(tipo))return {ok:false,error:"Datos inválidos."};
+  if(publicar&&!consentimiento)return {ok:false,error:"Se requiere autorización expresa del técnico para compartir el PDF mediante QR."};
+  const {data,error}=await db.from("tecnico_documentos").update({publicado:publicar}).eq("tecnico_id",tecnicoId).eq("tipo",tipo).select("id").maybeSingle();
+  if(error||!data)return {ok:false,error:"No se pudo actualizar la visibilidad del documento."};
+  revalidatePath(basePath);
+  return {ok:true};
 }
