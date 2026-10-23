@@ -16,6 +16,7 @@ type TecnicoCredencial = {
 
 type Props = {
   tecnico: TecnicoCredencial;
+  tieneDocumentosPublicados?: boolean;
 };
 
 const ANCHO = 1080;
@@ -159,6 +160,7 @@ function dibujarImagenCubierta(
 
 export default function CredencialTecnico({
   tecnico,
+  tieneDocumentosPublicados = false,
 }: Props) {
   const [generando, setGenerando] =
     useState(false);
@@ -370,6 +372,19 @@ export default function CredencialTecnico({
     enlace.click();
 
     enlace.remove();
+  }
+
+  async function dibujarQrDocumentos(ctx:CanvasRenderingContext2D,x:number,y:number,size:number) {
+    if (!tieneDocumentosPublicados) return;
+    const imagen=await cargarImagen("/api/tecnico-qr?id="+encodeURIComponent(tecnico.id));
+    ctx.fillStyle="#ffffff";
+    ctx.fillRect(x-5,y-5,size+10,size+10);
+    ctx.drawImage(imagen,x,y,size,size);
+    ctx.fillStyle="#173d59";
+    ctx.textAlign="center";
+    ctx.font="700 15px Arial, sans-serif";
+    ctx.fillText("DOCUMENTACIÓN",x+size/2,y+size+21);
+    ctx.textAlign="left";
   }
 
   async function generarCarnet() {
@@ -657,6 +672,7 @@ export default function CredencialTecnico({
     );
 
     ctx.textAlign = "left";
+    await dibujarQrDocumentos(ctx,866,255,125);
 
     descargarCanvas(
       canvas,
@@ -959,6 +975,7 @@ export default function CredencialTecnico({
     );
 
     ctx.textAlign = "left";
+    await dibujarQrDocumentos(ctx,500,872,96);
 
     descargarCanvas(
       canvas,
