@@ -2,6 +2,7 @@
 
 import {
   FormEvent,
+  useEffect,
   useState,
   useTransition,
 } from "react";
@@ -47,10 +48,19 @@ export default function TecnicoEditor({
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!mensaje) return;
+    const timeout = window.setTimeout(() => setMensaje(""), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [mensaje]);
+
   const [isPending, startTransition] =
     useTransition();
 
   const esNuevo = !tecnico;
+  const aviso = mensaje ? (
+    <span role="status" aria-live="polite" style={successStyle}>{mensaje}</span>
+  ) : null;
 
   function limpiarMensajes() {
     setMensaje("");
@@ -190,6 +200,7 @@ export default function TecnicoEditor({
           alignItems: "center",
         }}
       >
+        {aviso ? <div style={{flexBasis:"100%",height:0,position:"relative",pointerEvents:"none"}}><div style={{position:"absolute",bottom:"100%",right:0,zIndex:5,padding:"6px 12px",borderRadius:8,background:"#dcfce7",border:"1px solid #86b79a",boxShadow:"0 4px 10px #173d591a",whiteSpace:"nowrap"}}>{aviso}</div></div> : null}
         <button
           type="button"
           disabled={isPending}
@@ -261,11 +272,7 @@ export default function TecnicoEditor({
           Eliminar
         </button>
 
-        {mensaje ? (
-          <span style={successStyle}>
-            {mensaje}
-          </span>
-        ) : null}
+        
 
         {error ? (
           <span style={errorStyle}>
@@ -492,6 +499,7 @@ export default function TecnicoEditor({
           alignItems: "center",
         }}
       >
+        {aviso ? <div style={{flexBasis:"100%",height:0,position:"relative",pointerEvents:"none"}}><div style={{position:"absolute",bottom:"100%",right:0,zIndex:5,padding:"6px 12px",borderRadius:8,background:"#dcfce7",border:"1px solid #86b79a"}}>{aviso}</div></div> : null}
         <button
           type="submit"
           disabled={isPending}
@@ -523,11 +531,7 @@ export default function TecnicoEditor({
           </button>
         ) : null}
 
-        {mensaje ? (
-          <span style={successStyle}>
-            {mensaje}
-          </span>
-        ) : null}
+        
 
         {error ? (
           <span style={errorStyle}>
