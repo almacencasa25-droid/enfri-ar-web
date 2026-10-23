@@ -1208,10 +1208,10 @@ const boxStyle = {
   gap: "14px",
   padding: "20px",
   border:
-    "1px solid rgba(38, 40, 42, 0.12)",
+    "2px solid #9ab5c2",
   borderRadius: "16px",
   background:
-    "rgba(255, 253, 248, 0.92)",
+    "#eef6f9",
 };
 
 const labelStyle = {
@@ -1230,7 +1230,7 @@ const inputStyle = {
     "border-box" as const,
   padding: "9px 11px",
   border:
-    "1px solid rgba(38, 40, 42, 0.18)",
+    "2px solid #7799ab",
   borderRadius: "9px",
   background: "#ffffff",
   color:
@@ -1247,10 +1247,10 @@ const ayudaStyle = {
 
 const presupuestoStyle = {
   border:
-    "1px solid rgba(38, 40, 42, 0.10)",
+    "2px solid #8faebb",
   borderRadius: "12px",
   background:
-    "rgba(255,255,255,0.76)",
+    "#f3f8fb",
   overflow: "visible",
 };
 
@@ -1310,7 +1310,7 @@ const detalleStyle = {
   padding:
     "15px 14px 16px",
   borderTop:
-    "1px solid rgba(38, 40, 42, 0.08)",
+    "1px solid #b5cbd5",
 };
 
 const dataGridStyle = {
@@ -1335,7 +1335,7 @@ const detalleTrabajoStyle = {
   padding: "10px 12px",
   borderRadius: "9px",
   background:
-    "rgba(38, 111, 164, 0.05)",
+    "#e0edf4",
   color:
     "var(--foreground)",
   fontSize: "0.84rem",
@@ -1350,7 +1350,7 @@ function estadoSelectStyle(
       "border-box" as const,
     padding: "5px 10px",
     border:
-      "1px solid rgba(38, 40, 42, 0.16)",
+      "2px solid #8da9b8",
     borderRadius: "999px",
     font: "inherit",
     fontSize: "0.78rem",
@@ -1369,7 +1369,7 @@ function estadoSelectStyle(
     case "enviado":
       return {
         ...base,
-        background: "#e8ece9",
+        background: "#daf0e2",
         color: "#1f5b3a",
       };
 
@@ -1435,7 +1435,7 @@ const primaryButtonStyle = {
     "border-box" as const,
   padding: "7px 14px",
   border:
-    "1px solid rgba(38, 40, 42, 0.16)",
+    "2px solid #8da9b8",
   borderRadius: "9px",
   background:
     "var(--foreground)",
@@ -1448,16 +1448,16 @@ const primaryButtonStyle = {
 const pdfButtonStyle = {
   ...primaryButtonStyle,
   background:
-    "rgba(20, 110, 160, 0.08)",
+    "#d9ebf7",
   border:
-    "1px solid rgba(20, 110, 160, 0.28)",
+    "2px solid #5b99be",
   color: "#146e9f",
 };
 
 const orderButtonStyle = {
   ...primaryButtonStyle,
   background:
-    "rgba(224, 130, 35, 0.11)",
+    "#fff0da",
   border:
     "1px solid rgba(224, 130, 35, 0.32)",
   color: "#a55a18",
@@ -1466,7 +1466,7 @@ const orderButtonStyle = {
 const conformityButtonStyle = {
   ...primaryButtonStyle,
   background:
-    "rgba(35, 107, 67, 0.09)",
+    "#ddf2e5",
   border:
     "1px solid rgba(35, 107, 67, 0.30)",
   color: "#236b43",
@@ -1488,7 +1488,7 @@ const moreSummaryStyle = {
     "border-box" as const,
   padding: "7px 12px",
   border:
-    "1px solid rgba(38, 40, 42, 0.16)",
+    "2px solid #8da9b8",
   borderRadius: "9px",
   background: "#ffffff",
   color:
