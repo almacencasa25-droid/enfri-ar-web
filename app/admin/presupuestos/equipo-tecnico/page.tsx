@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import CredencialTecnico from "./credencial/CredencialTecnico";
 import TecnicoEditor from "./TecnicoEditor";
+import DocumentosTecnico from "./DocumentosTecnico";
 
 export const metadata = {
   title: "Técnicos",
@@ -88,6 +89,8 @@ export default async function EquipoTecnicoPage() {
       }
     )
   );
+
+  const {data:documentos}=await supabase.from("tecnico_documentos").select("tecnico_id,tipo,nombre_archivo,updated_at");
 
   const cardStyle = {
     border:
@@ -477,6 +480,7 @@ export default async function EquipoTecnicoPage() {
                         <CredencialTecnico
                           tecnico={tecnico}
                         />
+                        <DocumentosTecnico id={tecnico.id} documentos={(documentos||[]).filter(d=>d.tecnico_id===tecnico.id)} />
                       </div>
                     </article>
                   );
