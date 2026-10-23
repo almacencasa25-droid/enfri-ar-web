@@ -90,7 +90,7 @@ export default async function EquipoTecnicoPage() {
     )
   );
 
-  const {data:documentos}=await supabase.from("tecnico_documentos").select("tecnico_id,tipo,nombre_archivo,updated_at");
+  const {data:documentos}=await supabase.from("tecnico_documentos").select("tecnico_id,tipo,nombre_archivo,updated_at,publicado");
 
   const cardStyle = {
     border:
@@ -479,6 +479,7 @@ export default async function EquipoTecnicoPage() {
 
                         <CredencialTecnico
                           tecnico={tecnico}
+                          tieneDocumentosPublicados={(documentos||[]).some(d=>d.tecnico_id===tecnico.id&&d.publicado)}
                         />
                         <DocumentosTecnico id={tecnico.id} documentos={(documentos||[]).filter(d=>d.tecnico_id===tecnico.id)} />
                       </div>
