@@ -21,16 +21,7 @@ export async function agregarIdentificacionMatriculado(
 
   pdf.getPages().forEach((page, index) => {
     if (options.excluirPaginas?.includes(index)) return;
-    const width = page.getWidth(), height = page.getHeight();
-    const topText = "TECNICO MATRICULADO: " + tecnico + "  |  " + matricula;
-    const topSize = 7.4;
-    page.drawText(topText, {
-      x: Math.max(24, (width - bold.widthOfTextAtSize(topText, topSize)) / 2),
-      y: height - 20,
-      size: topSize,
-      font: bold,
-      color: rgb(.11,.32,.42),
-    });
+    const width = page.getWidth();
 
     // Recuadro en el borde inferior, por debajo del pie comercial del presupuesto.
     const x = 34, y = 6, boxWidth = width - 68, boxHeight = 24;
@@ -49,13 +40,11 @@ export async function agregarIdentificacionMatriculado(
       x: x + 13, y: y + 9, size: 9,
       font: bold, color: rgb(1,1,1),
     });
-    const lineOne = "Tecnico matriculado: " + tecnico + "  |  Matricula " + matricula;
-    const lineTwo = "Consulte la matricula en: www.renacli.com.ar";
-    page.drawText(lineOne, {
-      x: x + 86, y: y + 14, size: 7.2,
+    page.drawText("Verifique la matricula profesional en:", {
+      x: x + 86, y: y + 14, size: 7.3,
       font: bold, color: rgb(.09,.25,.35),
     });
-    page.drawText(lineTwo, {
+    page.drawText("www.renacli.com.ar", {
       x: x + 86, y: y + 5, size: 7,
       font, color: rgb(.14,.34,.45),
     });
