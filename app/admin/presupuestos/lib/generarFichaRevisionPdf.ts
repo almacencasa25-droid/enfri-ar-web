@@ -1,3 +1,4 @@
+import { agregarIdentificacionMatriculado } from "./identificacionMatriculado";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFPage, type PDFFont, type PDFImage } from "pdf-lib";
@@ -94,5 +95,7 @@ export async function generarFichaRevisionPdf(input:GenerarFichaRevisionPdfInput
   const p1=pdf.addPage([W,H]);pageOne({p:p1,f,b},empresa,logo,start+i);
   const p2=pdf.addPage([W,H]);pageTwo({p:p2,f,b},logo,start+i,empresa);
  }
+ await agregarIdentificacionMatriculado(pdf);
+
  return pdf.save();
 }
