@@ -599,19 +599,19 @@ export default function CredencialTecnico({
       528
     );
 
-    const estado =
-      textoEstado(tecnico.estado);
-
-    ctx.fillStyle =
-      colorEstado(tecnico.estado);
+    const vigente = Boolean(tecnico.numero_matricula?.trim()) &&
+      Boolean(tecnico.vencimiento_matricula) &&
+      tecnico.vencimiento_matricula!.slice(0, 10) >= new Date().toISOString().slice(0, 10);
+    const estado = vigente ? "VIGENTE" : "VENCIDA";
+    ctx.fillStyle = vigente ? "#187448" : "#a32626";
 
     redondearRectangulo(
       ctx,
       765,
-      365,
-      250,
-      58,
-      29
+      303,
+      215,
+      52,
+      26
     );
 
     ctx.fill();
@@ -623,8 +623,8 @@ export default function CredencialTecnico({
 
     ctx.fillText(
       estado,
-      890,
-      402
+      872.5,
+      336
     );
 
     ctx.textAlign = "left";
@@ -672,7 +672,7 @@ export default function CredencialTecnico({
     );
 
     ctx.textAlign = "left";
-    await dibujarQrDocumentos(ctx,842,474,156);
+    await dibujarQrDocumentos(ctx,822,463,174);
 
     descargarCanvas(
       canvas,
@@ -904,19 +904,19 @@ export default function CredencialTecnico({
       858
     );
 
-    const estado =
-      textoEstado(tecnico.estado);
-
-    ctx.fillStyle =
-      colorEstado(tecnico.estado);
+    const vigente = Boolean(tecnico.numero_matricula?.trim()) &&
+      Boolean(tecnico.vencimiento_matricula) &&
+      tecnico.vencimiento_matricula!.slice(0, 10) >= new Date().toISOString().slice(0, 10);
+    const estado = vigente ? "VIGENTE" : "VENCIDA";
+    ctx.fillStyle = vigente ? "#187448" : "#a32626";
 
     redondearRectangulo(
       ctx,
-      ancho - 285,
-      805,
-      215,
-      58,
-      29
+      ancho - 235,
+      630,
+      180,
+      52,
+      26
     );
 
     ctx.fill();
@@ -928,8 +928,8 @@ export default function CredencialTecnico({
 
     ctx.fillText(
       estado,
-      ancho - 177.5,
-      842
+      ancho - 145,
+      664
     );
 
     ctx.fillStyle = "#65717a";
@@ -975,7 +975,7 @@ export default function CredencialTecnico({
     );
 
     ctx.textAlign = "left";
-    await dibujarQrDocumentos(ctx,484,870,136);
+    await dibujarQrDocumentos(ctx,470,870,158);
 
     descargarCanvas(
       canvas,
