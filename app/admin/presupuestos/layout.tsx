@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { requireAdminUser } from "@/lib/auth/admin";
 
+import "./contrast.css";
 import BackButton from "./BackButton";
 import ModuleNavigation from "./ModuleNavigation";
 
@@ -26,7 +27,7 @@ export default async function PresupuestosLayout({
   await requireAdminUser();
 
   return (
-    <>
+    <div className="enfri-presupuestos-contrast">
       <div
         style={{
           width: "100%",
@@ -42,6 +43,6 @@ export default async function PresupuestosLayout({
       </div>
 
       {children}
-    </>
+    </div>
   );
 }
