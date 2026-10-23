@@ -608,7 +608,7 @@ export default function CredencialTecnico({
     redondearRectangulo(
       ctx,
       765,
-      482,
+      365,
       250,
       58,
       29
@@ -624,7 +624,7 @@ export default function CredencialTecnico({
     ctx.fillText(
       estado,
       890,
-      519
+      402
     );
 
     ctx.textAlign = "left";
@@ -672,7 +672,7 @@ export default function CredencialTecnico({
     );
 
     ctx.textAlign = "left";
-    await dibujarQrDocumentos(ctx,866,255,125);
+    await dibujarQrDocumentos(ctx,842,474,156);
 
     descargarCanvas(
       canvas,
@@ -975,7 +975,7 @@ export default function CredencialTecnico({
     );
 
     ctx.textAlign = "left";
-    await dibujarQrDocumentos(ctx,500,872,96);
+    await dibujarQrDocumentos(ctx,484,870,136);
 
     descargarCanvas(
       canvas,
