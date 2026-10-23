@@ -26,10 +26,10 @@ export default async function AdminPage() {
   const adminUser = await requireAdminUser();
 
   const cardStyle = {
-    border: "1px solid rgba(38, 40, 42, 0.12)",
+    border: "2px solid #9bb2bd",
     borderRadius: "18px",
-    background: "rgba(255, 253, 248, 0.9)",
-    boxShadow: "0 14px 35px rgba(38, 40, 42, 0.08)",
+    background: "#eaf3f7",
+    boxShadow: "0 9px 24px rgba(18, 54, 72, 0.15)",
     backdropFilter: "blur(12px)",
   };
 
