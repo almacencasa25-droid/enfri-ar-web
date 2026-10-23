@@ -560,10 +560,10 @@ const inputStyle = {
   boxSizing: "border-box" as const,
   padding: "10px 12px",
   border:
-    "1px solid rgba(38, 40, 42, 0.18)",
+    "2px solid #7593a5",
   borderRadius: "10px",
-  background: "#ffffff",
-  color: "var(--foreground)",
+  background: "#e7f2f7",
+  color: "#17384b",
   font: "inherit",
 };
 
@@ -571,10 +571,10 @@ const buttonStyle = {
   minHeight: "40px",
   padding: "8px 13px",
   border:
-    "1px solid rgba(38, 40, 42, 0.16)",
+    "2px solid #718b9b",
   borderRadius: "9px",
-  background: "#ffffff",
-  color: "var(--foreground)",
+  background: "#dcebf3",
+  color: "#17384b",
   font: "inherit",
   fontSize: "0.84rem",
   fontWeight: 800,
