@@ -10,8 +10,10 @@ export async function agregarIdentificacionMatriculado(
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const supplied = (options.matricula || "").trim();
-  const matricula = supplied || DEFAULT_LICENSE;
-  const tecnico = (options.tecnico || "").trim() || (supplied ? "" : DEFAULT_TECH);
+  const otroTecnico = Boolean((options.tecnico || "").trim());
+  const matricula = supplied || (otroTecnico ? "" : DEFAULT_LICENSE);
+  if (!matricula) return;
+  const tecnico = (options.tecnico || "").trim() || DEFAULT_TECH;
   const heading = "TECNICO MATRICULADO  |  " + (tecnico ? tecnico + "  |  " : "") + matricula;
   const footer = "Servicio tecnico matriculado  -  RENACLI  |  Matricula " + matricula;
   pdf.getPages().forEach((page, index) => {
