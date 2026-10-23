@@ -29,3 +29,18 @@
     color: #59636b !important;
   }
 }
+/* Tarjetas y paneles del módulo: mayor separación respecto del fondo ilustrado. */
+@media screen {
+  .enfri-presupuestos-contrast main > div > header {
+    background: #eaf3f7 !important;
+    border: 2px solid #9bb2bd !important;
+    box-shadow: 0 9px 24px rgba(18,54,72,.14) !important;
+  }
+  .enfri-presupuestos-contrast label {
+    color: #18384a;
+  }
+  .enfri-presupuestos-contrast input[type="checkbox"],
+  .enfri-presupuestos-contrast input[type="radio"] {
+    accent-color: #087d86;
+  }
+}
