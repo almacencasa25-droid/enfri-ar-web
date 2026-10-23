@@ -1,3 +1,4 @@
+import { agregarIdentificacionMatriculado } from "./identificacionMatriculado";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -1569,6 +1570,9 @@ export async function generarOrdenTrabajoPdf(
       );
     }
   );
+
+  await agregarIdentificacionMatriculado(pdf, { tecnico: [datos.tecnico_nombre, datos.tecnico_apellido].filter(Boolean).join(" "), matricula: datos.tecnico_matricula });
+
 
   return await pdf.save();
 }
