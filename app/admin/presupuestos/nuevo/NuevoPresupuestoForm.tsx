@@ -1385,7 +1385,7 @@ export default function NuevoPresupuestoForm() {
               </label>
 
               <label style={labelStyle}>
-                N.º de serie
+                N.º de inventario
                 <input
                   value={equipoActivo.serie}
                   onChange={(event) =>
