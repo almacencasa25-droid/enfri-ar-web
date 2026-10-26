@@ -616,6 +616,19 @@ export default function EditarPresupuestoForm({
     );
   }
 
+  function datosEquipoSeleccionado() {
+    const ordenes = items.map((item) => Number(item.equipo_orden) || 0).filter((n) => n > 0);
+    const orden = ordenes.length ? Math.max(...ordenes) : 0;
+    const existente = items.find((item) => Number(item.equipo_orden) === orden);
+    return existente ? {
+      equipo_orden: existente.equipo_orden, equipo_tipo: existente.equipo_tipo,
+      equipo_marca: existente.equipo_marca, equipo_modelo: existente.equipo_modelo,
+      equipo_capacidad: existente.equipo_capacidad, equipo_ubicacion: existente.equipo_ubicacion,
+      equipo_refrigerante: existente.equipo_refrigerante, equipo_serie: existente.equipo_serie,
+      equipo_observaciones: existente.equipo_observaciones,
+    } : {};
+  }
+
   function agregarTrabajo(
     trabajo: Trabajo
   ) {
@@ -623,6 +636,7 @@ export default function EditarPresupuestoForm({
       ...actuales,
       {
         key: nuevaKey(),
+        ...datosEquipoSeleccionado(),
         trabajo_id: trabajo.id,
         nombre_corto:
           trabajo.nombre_corto,
@@ -647,6 +661,7 @@ export default function EditarPresupuestoForm({
       ...actuales,
       {
         key: nuevaKey(),
+        ...datosEquipoSeleccionado(),
         trabajo_id: null,
         nombre_corto: "",
         detalle: "",
