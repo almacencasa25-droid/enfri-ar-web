@@ -657,6 +657,17 @@ export default function EditarPresupuestoForm({
     ]);
   }
 
+  function agregarEquipo() {
+    const siguienteOrden = Math.max(0, ...items.map((item) => Number(item.equipo_orden) || 0)) + 1;
+    setItems((actuales) => [...actuales, {
+      key: nuevaKey(), trabajo_id: null, nombre_corto: "", detalle: "",
+      tipo: "mano_obra", cantidad: 1, precio_unitario: 0,
+      equipo_orden: siguienteOrden, equipo_tipo: "", equipo_marca: "",
+      equipo_modelo: "", equipo_capacidad: "", equipo_ubicacion: "",
+      equipo_refrigerante: "", equipo_serie: "", equipo_observaciones: "",
+    }]);
+  }
+
   function modificarItem(
     key: string,
     cambios: Partial<Item>
@@ -1049,6 +1060,9 @@ export default function EditarPresupuestoForm({
           Trabajos
         </h2>
 
+        <button type="button" onClick={agregarEquipo} style={buttonStyle}>
+          + Agregar equipo al presupuesto
+        </button>
         <div
           style={{
             display: "flex",
@@ -1176,6 +1190,35 @@ export default function EditarPresupuestoForm({
                   </button>
                 </div>
 
+                <div style={gridStyle}>
+                  <label style={labelStyle}>Equipo N.º
+                    <input type="number" min="1" value={item.equipo_orden ?? ""} onChange={(event) => modificarItem(item.key, {equipo_orden: event.target.value ? Number(event.target.value) : null})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Tipo de equipo
+                    <input value={item.equipo_tipo ?? ""} onChange={(event) => modificarItem(item.key, {equipo_tipo: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Marca
+                    <input value={item.equipo_marca ?? ""} onChange={(event) => modificarItem(item.key, {equipo_marca: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Modelo
+                    <input value={item.equipo_modelo ?? ""} onChange={(event) => modificarItem(item.key, {equipo_modelo: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Capacidad
+                    <input value={item.equipo_capacidad ?? ""} onChange={(event) => modificarItem(item.key, {equipo_capacidad: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Ubicación
+                    <input value={item.equipo_ubicacion ?? ""} onChange={(event) => modificarItem(item.key, {equipo_ubicacion: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Refrigerante
+                    <input value={item.equipo_refrigerante ?? ""} onChange={(event) => modificarItem(item.key, {equipo_refrigerante: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Inventario número
+                    <input value={item.equipo_serie ?? ""} onChange={(event) => modificarItem(item.key, {equipo_serie: event.target.value})} style={inputStyle} />
+                  </label>
+                  <label style={labelStyle}>Observaciones del equipo
+                    <input value={item.equipo_observaciones ?? ""} onChange={(event) => modificarItem(item.key, {equipo_observaciones: event.target.value})} style={inputStyle} />
+                  </label>
+                </div>
                 <div style={gridStyle}>
                   <label
                     style={labelStyle}
