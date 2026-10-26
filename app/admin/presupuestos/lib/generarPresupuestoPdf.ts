@@ -1777,7 +1777,7 @@ export async function generarPresupuestoPdf(
           )}`
         : "",
       texto(item.equipo_serie)
-        ? `Serie: ${texto(
+        ? `Inventario: ${texto(
             item.equipo_serie
           )}`
         : "",
