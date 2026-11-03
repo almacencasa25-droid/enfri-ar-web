@@ -755,8 +755,8 @@ export async function generarPresupuestoPdf(
    */
 
   const qtyWidth = 38;
-  const unitWidth = 82;
-  const subtotalWidth = 90;
+  const unitWidth = 0;
+  const subtotalWidth = 0;
 
   const descWidth =
     CONTENT_WIDTH -
@@ -855,45 +855,7 @@ export async function generarPresupuestoPdf(
       }
     );
 
-    page.drawText(
-      "Precio",
-      {
-        x:
-          xUnit +
-          8,
-        y:
-          y -
-          14,
-        size: 7,
-        font: bold,
-        color:
-          rgb(
-            1,
-            1,
-            1
-          ),
-      }
-    );
 
-    page.drawText(
-      "Subtotal",
-      {
-        x:
-          xSubtotal +
-          8,
-        y:
-          y -
-          14,
-        size: 7,
-        font: bold,
-        color:
-          rgb(
-            1,
-            1,
-            1
-          ),
-      }
-    );
 
     return y - altura;
   }
@@ -1540,38 +1502,6 @@ export async function generarPresupuestoPdf(
         COLOR_BORDER,
     });
 
-    page.drawLine({
-      start: {
-        x: xUnit,
-        y:
-          rowBottom,
-      },
-      end: {
-        x: xUnit,
-        y,
-      },
-      thickness:
-        0.4,
-      color:
-        COLOR_BORDER,
-    });
-
-    page.drawLine({
-      start: {
-        x: xSubtotal,
-        y:
-          rowBottom,
-      },
-      end: {
-        x: xSubtotal,
-        y,
-      },
-      thickness:
-        0.4,
-      color:
-        COLOR_BORDER,
-    });
-
     if (
       esPrimerFragmento
     ) {
@@ -1612,34 +1542,7 @@ export async function generarPresupuestoPdf(
         }
       );
 
-      textoDerecha(
-        page,
-        dinero(
-          precioUnitario,
-          moneda
-        ),
-        xSubtotal -
-          5,
-        y - 15,
-        regular,
-        SERVICE_DETAIL_SIZE,
-        COLOR_TEXT
-      );
 
-      textoDerecha(
-        page,
-        dinero(
-          subtotalItem,
-          moneda
-        ),
-        PAGE_WIDTH -
-          MARGIN -
-          5,
-        y - 15,
-        bold,
-        SERVICE_DETAIL_SIZE,
-        COLOR_TEXT
-      );
     }
 
     let textoY =
@@ -2464,86 +2367,12 @@ export async function generarPresupuestoPdf(
       snapshot.total
     );
 
-  const filasTotales:
-    Array<{
-      etiqueta: string;
-      valor: string;
-      destacado?: boolean;
-    }> = [
-      {
-        etiqueta:
-          "Subtotal",
-        valor:
-          dinero(
-            subtotal,
-            moneda
-          ),
-      },
-    ];
-
-  if (
-    descuentoMonto > 0
-  ) {
-    const detalleDescuento =
-      snapshot.descuento_tipo ===
-      "porcentaje"
-        ? ` (${descuentoValor.toLocaleString(
-            "es-AR",
-            {
-              maximumFractionDigits:
-                2,
-            }
-          )}%)`
-        : "";
-
-    filasTotales.push({
-      etiqueta:
-        `Descuento${detalleDescuento}`,
-      valor:
-        `- ${dinero(
-          descuentoMonto,
-          moneda
-        )}`,
-    });
-  }
-
-  if (
-    recargoMonto > 0
-  ) {
-    const detalleRecargo =
-      snapshot.recargo_tipo ===
-      "porcentaje"
-        ? ` (${recargoValor.toLocaleString(
-            "es-AR",
-            {
-              maximumFractionDigits:
-                2,
-            }
-          )}%)`
-        : "";
-
-    filasTotales.push({
-      etiqueta:
-        `Recargo${detalleRecargo}`,
-      valor:
-        `+ ${dinero(
-          recargoMonto,
-          moneda
-        )}`,
-    });
-  }
-
-  filasTotales.push({
-    etiqueta:
-      "TOTAL",
-    valor:
-      dinero(
-        total,
-        moneda
-      ),
-    destacado:
-      true,
-  });
+  // Los importes parciales se conservan para el cálculo interno.
+  const filasTotales = [{
+    etiqueta: "PRECIO FINAL",
+    valor: dinero(total, moneda),
+    destacado: true,
+  }];
 
   const filaHeight =
     Math.min(
