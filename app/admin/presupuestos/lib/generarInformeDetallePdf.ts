@@ -735,11 +735,11 @@ export async function generarInformeDetallePdf(
       pagina.drawLine({
         start: {
           x: MARGIN,
-          y: 45,
+          y: 55,
         },
         end: {
           x: PAGE_WIDTH - MARGIN,
-          y: 45,
+          y: 55,
         },
         thickness: 0.6,
         color: COLOR_LINE,
@@ -752,7 +752,7 @@ export async function generarInformeDetallePdf(
           String(paginas.length),
         {
           x: MARGIN,
-          y: 29,
+          y: 37,
           font: regular,
           size: 6.7,
           color: COLOR_MUTED,
